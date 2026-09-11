@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>시트 연동 앱 만들기 · 구글 시트에 데이터 쌓기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #fcfbf7;
+            --surface: #ffffff;
+            --panel: #f5f2e9;
+            --ink: #20263a;
+            --ink-soft: #5d6579;
+            --ink-faint: #8b91a3;
+            --primary: #2b44c7;
+            --primary-soft: #eaedfb;
+            --hl: #ffe45c;
+            --easy: #12a67a;
+            --hard: #e8604c;
+            --line: #e8e3d6;
+            --line-soft: #f0ece0;
+            --disp: "Gothic A1", sans-serif;
+            --sans: "IBM Plex Sans KR", sans-serif;
+            --mono: "IBM Plex Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.75;
+            word-break: keep-all;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            word-break: keep-all;
+            text-wrap: balance
+        }
+
+        p {
+            text-wrap: pretty
+        }
+
+        ::selection {
+            background: var(--hl);
+            color: var(--ink)
+        }
+
+        a {
+            color: inherit
+        }
+
+        .mark {
+            background: linear-gradient(180deg, transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%);
+            padding: 0 .06em
+        }
+
+        /* topbar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .75rem clamp(1rem, 4vw, 3rem);
+            background: rgba(252, 251, 247, .86);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .9rem;
+            color: var(--ink-soft);
+            transition: .18s
+        }
+
+        .back:hover {
+            color: var(--primary)
+        }
+
+        .back .a {
+            transition: .18s
+        }
+
+        .back:hover .a {
+            transform: translateX(-3px)
+        }
+
+        .crumb {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: .76rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-faint)
+        }
+
+        section {
+            padding: clamp(2.6rem, 6vw, 4.5rem) clamp(1.15rem, 5vw, 3rem)
+        }
+
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto
+        }
+
+        /* hero */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding-top: clamp(2.8rem, 7vw, 4.5rem)
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, var(--line) 1.4px, transparent 1.4px);
+            background-size: 26px 26px;
+            -webkit-mask-image: linear-gradient(180deg, #000, transparent 82%);
+            mask-image: linear-gradient(180deg, #000, transparent 82%);
+            opacity: .6;
+            pointer-events: none
+        }
+
+        .hero .wrap {
+            position: relative;
+            z-index: 1
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            font-family: var(--mono);
+            font-size: .76rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 1.1rem
+        }
+
+        .kicker .diff {
+            color: var(--easy);
+            background: #effbf6;
+            border: 1px solid #bfe6d8;
+            border-radius: 999px;
+            padding: .15rem .55rem;
+            letter-spacing: .06em
+        }
+
+        .hero h1 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: clamp(2rem, 6vw, 3.3rem);
+            line-height: 1.12;
+            letter-spacing: -.03em;
+            margin-bottom: 1rem;
+            max-width: 20ch
+        }
+
+        .hero .lead {
+            font-size: clamp(1rem, 2.3vw, 1.15rem);
+            color: var(--ink-soft);
+            max-width: 56ch;
+            margin-bottom: 2.2rem
+        }
+
+        .hero .lead b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* demo */
+        .demo {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: clamp(1.4rem, 4vw, 2.2rem);
+            box-shadow: 0 24px 60px -40px rgba(43, 68, 199, .4)
+        }
+
+        .demo .demolabel {
+            font-family: var(--mono);
+            font-size: .74rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .demo .demolabel::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--easy);
+            box-shadow: 0 0 0 3px #d5f2e8
+        }
+
+        .demo-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start
+        }
+
+        @media(max-width:680px) {
+            .demo-split {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .demo-form {
+            background: #f8f9fc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1.4rem
+        }
+
+        .demo-form .ftitle {
+            font-family: var(--disp);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--ink)
+        }
+
+        .field {
+            margin-bottom: .8rem
+        }
+
+        .field label {
+            display: block;
+            font-size: .82rem;
+            font-weight: 600;
+            color: var(--ink-soft);
+            margin-bottom: .4rem
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            font-family: var(--sans);
+            font-size: .95rem;
+            color: var(--ink);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: .6rem .8rem;
+            transition: .18s
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft)
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 80px
+        }
+
+        .submit-btn {
+            width: 100%;
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: .95rem;
+            color: #fff;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            padding: .8rem;
+            cursor: pointer;
+            transition: .18s;
+            margin-top: .4rem
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #2036a8;
+            transform: translateY(-1px)
+        }
+
+        .submit-btn:disabled {
+            opacity: .6;
+            cursor: not-wait
+        }
+
+        .demo-sheet {
+            background: var(--surface);
+            border: 1px solid #cce5d5;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(18, 166, 122, .08)
+        }
+
+        .sheet-head {
+            background: #0f9d58;
+            padding: .6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .sheet-head .icon {
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 2px;
+            display: grid;
+            place-items: center;
+            position: relative
+        }
+
+        .sheet-head .icon::before,
+        .sheet-head .icon::after {
+            content: "";
+            position: absolute;
+            background: #0f9d58
+        }
+
+        .sheet-head .icon::before {
+            width: 8px;
+            height: 2px
+        }
+
+        .sheet-head .icon::after {
+            width: 2px;
+            height: 8px
+        }
+
+        .sheet-head span {
+            color: #fff;
+            font-family: var(--sans);
+            font-size: .85rem;
+            font-weight: 600
+        }
+
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .82rem;
+            font-family: var(--sans)
+        }
+
+        .sheet-table th {
+            background: #f1f3f4;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            padding: .4rem .6rem;
+            text-align: left;
+            color: var(--ink-soft);
+            font-weight: 600
+        }
+
+        .sheet-table td {
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            padding: .5rem .6rem;
+            color: var(--ink)
+        }
+
+        .sheet-table tr.new-row {
+            background: #e8f0fe;
+            animation: highlight 2s ease forwards
+        }
+
+        @keyframes highlight {
+            0% {
+                background: #e8f0fe
+            }
+
+            100% {
+                background: var(--surface)
+            }
+        }
+
+        /* section title */
+        .stitle {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: clamp(1.5rem, 4vw, 2.1rem);
+            letter-spacing: -.02em;
+            margin-bottom: .7rem
+        }
+
+        .sintro {
+            font-size: 1.02rem;
+            color: var(--ink-soft);
+            max-width: 58ch;
+            margin-bottom: 2.2rem
+        }
+
+        .sintro b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* steps */
+        .steps {
+            display: grid;
+            gap: 1rem;
+            counter-reset: s
+        }
+
+        .step {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.3rem 1.4rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.1rem;
+            align-items: start
+        }
+
+        .step .sn {
+            counter-increment: s;
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            background: var(--primary);
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            flex: none
+        }
+
+        .step .sn::before {
+            content: counter(s)
+        }
+
+        .step h3 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1.12rem;
+            margin-bottom: .4rem;
+            letter-spacing: -.01em
+        }
+
+        .step p {
+            color: var(--ink-soft);
+            font-size: .96rem;
+            margin-bottom: .6rem;
+            line-height: 1.6
+        }
+
+        .step p:last-child {
+            margin-bottom: 0
+        }
+
+        .step b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        code {
+            font-family: var(--mono);
+            font-size: .86em;
+            background: var(--panel);
+            color: #3a4256;
+            padding: .1em .4em;
+            border-radius: 5px
+        }
+
+        /* prompt box */
+        .prompt {
+            background: #1c2030;
+            border-radius: 12px;
+            margin: .7rem 0;
+            overflow: hidden;
+            border: 1px solid #2c3350
+        }
+
+        .prompt .phead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem .9rem;
+            background: #252b40;
+            border-bottom: 1px solid #2c3350
+        }
+
+        .prompt .ptag {
+            font-family: var(--mono);
+            font-size: .72rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9aa3c4
+        }
+
+        .copy-btn {
+            font-family: var(--sans);
+            font-size: .78rem;
+            font-weight: 600;
+            color: #cdd4ee;
+            background: #333a55;
+            border: 1px solid #444d70;
+            border-radius: 7px;
+            padding: .28rem .7rem;
+            cursor: pointer;
+            transition: .15s
+        }
+
+        .copy-btn:hover {
+            background: #3d4666;
+            color: #fff
+        }
+
+        .copy-btn.done {
+            background: var(--easy);
+            border-color: var(--easy);
+            color: #fff
+        }
+
+        .prompt pre {
+            margin: 0;
+            padding: 1rem .95rem;
+            font-family: var(--mono);
+            font-size: .86rem;
+            line-height: 1.7;
+            color: #e4e8f7;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .tip {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin-top: .6rem;
+            font-size: .92rem;
+            color: var(--ink-soft)
+        }
+
+        .tip b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        .example-list {
+            display: grid;
+            gap: .5rem;
+            margin-top: .3rem
+        }
+
+        .example-list .ex {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: .55rem .8rem;
+            font-size: .9rem;
+            color: var(--ink);
+            font-family: var(--mono)
+        }
+
+        /* deploy callout - repurposed for authorization warning */
+        .deploybox {
+            background: linear-gradient(160deg, #fff9f8, #fff0ee);
+            border: 1px solid #f6cfc8;
+            border-radius: 14px;
+            padding: 1.4rem 1.5rem;
+            margin-top: .8rem
+        }
+
+        .deploybox h4 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #c0402e;
+            margin-bottom: .5rem;
+            display: flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .deploybox p {
+            font-size: .94rem;
+            color: var(--ink-soft);
+            margin-bottom: .5rem
+        }
+
+        .deploybox p:last-child {
+            margin-bottom: 0
+        }
+
+        .deploybox b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* footer nav */
+        .foot {
+            border-top: 1px solid var(--line);
+            padding: 2rem clamp(1.15rem, 5vw, 3rem);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .foot .backbtn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .92rem;
+            color: var(--primary);
+            border: 1px solid var(--primary-soft);
+            background: var(--primary-soft);
+            border-radius: 10px;
+            padding: .6rem 1.1rem;
+            transition: .18s
+        }
+
+        .foot .backbtn:hover {
+            background: #dfe4fb
+        }
+
+        .foot .who {
+            font-size: .85rem;
+            color: var(--ink-faint)
+        }
+
+        .foot .who b {
+            color: var(--ink)
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .6s ease, transform .6s ease
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: none
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                scroll-behavior: auto
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <a class="back" href="index.html"><span class="a">←</span> 앱 만들기로 돌아가기</a>
+        <span class="crumb">방법 · 시트 연동 앱</span>
+    </div>
+
+    <header class="hero">
+        <div class="wrap">
+            <span class="kicker">시트 연동 앱 만들기 <span class="diff">난이도 보통</span></span>
+            <h1>데이터가 차곡차곡, 앱스 스크립트</h1>
+            <p class="lead">입력받은 데이터를 어딘가에 저장해야 한다면 가장 친숙한 <b>구글 스프레드시트</b>가 제격입니다. 오늘은 학생들이 의견을 제출하면 내 시트에 실시간으로 기록되는
+                '의견 수합 앱'을 배포해 봅니다. 아래에서 작동 방식을 테스트해보세요.</p>
+
+            <div class="demo reveal">
+                <div class="demolabel">완성 예시 · 학생 폼 화면과 교사 시트 화면</div>
+                <div class="demo-split">
+                    <!-- 프론트엔드 (웹 앱) 역할 -->
+                    <div class="demo-form">
+                        <div class="ftitle">건의사항을 남겨주세요</div>
+                        <div class="field">
+                            <label for="demoName">이름</label>
+                            <input type="text" id="demoName" placeholder="홍길동" />
+                        </div>
+                        <div class="field">
+                            <label for="demoText">의견</label>
+                            <textarea id="demoText" placeholder="체육대회 종목을 늘려주세요!"></textarea>
+                        </div>
+                        <button class="submit-btn" id="demoSubmit" onclick="submitDemo()">의견 제출하기</button>
+                    </div>
+
+                    <!-- 백엔드 (구글 시트) 역할 -->
+                    <div class="demo-sheet">
+                        <div class="sheet-head">
+                            <div class="icon"></div>
+                            <span>학생 의견 수합_응답(교사용)</span>
+                        </div>
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30%">시간</th>
+                                    <th style="width:20%">이름</th>
+                                    <th style="width:50%">의견</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sheetBody">
+                                <tr>
+                                    <td>2026. 7. 13. 10:30</td>
+                                    <td>김철수</td>
+                                    <td>급식에 마라탕 원합니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="wrap reveal">
+            <h2 class="stitle">앱스 스크립트 배포, 6단계</h2>
+            <p class="sintro">코드 에디터를 따로 설치할 필요 없이, 구글 시트 안에서 모든 작업이 이루어집니다. <b>HTML 파일과 GS 파일을 나누어 넣는 것</b>만 주의하면 됩니다.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>구글 스프레드시트 준비하기</h3>
+                        <p>새 구글 스프레드시트를 열고, 첫 번째 행(A1, B1, C1)에 헤더를 적어줍니다. AI가 이 기준표를 보고 데이터를 넣게 됩니다.</p>
+                        <div class="example-list" style="grid-template-columns: repeat(3, 1fr); display: grid;">
+                            <div class="ex text-center">A1: 시간</div>
+                            <div class="ex text-center">B1: 이름</div>
+                            <div class="ex text-center">C1: 의견</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>앱스 스크립트 열기</h3>
+                        <p>시트 상단 메뉴에서 <b>확장 프로그램 → Apps Script</b>를 클릭합니다.</p>
+                        <p>새 창이 열리면 이것이 바로 우리의 '백엔드' 코드를 넣을 작업 공간입니다. 기본적으로 <code>Code.gs</code>라는 파일이 하나 열려 있을 거예요.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>AI에게 역할 나누어 요청하기</h3>
+                        <p>앱스 스크립트는 <b>기능(GS)</b>과 <b>화면(HTML)</b> 코드를 분리해야 합니다. 아래 프롬프트를 복사해서 AI에게 명확히 지시하세요.</p>
+                        <div class="prompt">
+                            <div class="phead">
+                                <span class="ptag">AI에게 보낼 요청</span>
+                                <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">복사</button>
+                            </div>
+                            <pre id="promptText">구글 앱스 스크립트(GAS)를 이용해 학생들의 의견을 수합하는 웹 앱을 만들려고 해.
+사용자가 폼에 이름과 의견을 적고 제출하면, 연결된 구글 시트(A열:시간, B열:이름, C열:의견)에 데이터가 저장되게 해줘.
+
+요구사항:
+1. 디자인은 학생들 모바일에서 보기 좋게 깔끔하게 꾸며줘. (CSS 포함)
+2. 제출이 완료되면 알림창 대신 화면 글씨가 "제출 완료되었습니다!"로 바뀌게 해줘.
+3. 내가 복사해서 붙여넣기 쉽도록, 앱스 스크립트용 백엔드 코드(Code.gs)와 프론트엔드 코드(Index.html)를 명확히 나누어서 전체 코드를 제공해줘.</pre>
+                        </div>
+                        <div class="tip"><b>팁 —</b> <code>Code.gs</code>는 서버 역할을 하고, <code>Index.html</code>은 사용자에게 보여지는
+                            폼 화면 역할을 합니다.</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>받은 코드를 각각 제자리에 붙여넣기</h3>
+                        <p>AI가 준 두 개의 코드를 앱스 스크립트 에디터에 알맞게 넣습니다.</p>
+                        <div class="example-list">
+                            <div class="ex"><b>1. Code.gs:</b> 기본으로 열려있는 파일의 내용을 모두 지우고, AI가 준 <code>Code.gs</code> 코드를
+                                붙여넣습니다.</div>
+                            <div class="ex"><b>2. Index.html:</b> 에디터 왼쪽 위 <b>파일(+)</b> 버튼을 누르고 <b>HTML</b>을 선택합니다. 파일
+                                이름을 <code>Index</code>로 짓고, 그 안에 AI가 준 HTML 코드를 붙여넣습니다.</div>
+                        </div>
+                        <p style="margin-top:.6rem">코드를 모두 넣었다면 상단의 <b>저장(💾 아이콘)</b> 버튼을 꼭 눌러주세요.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>웹 앱으로 배포하기</h3>
+                        <p>우측 상단의 파란색 <b>배포</b> 버튼을 누르고 <b>새 배포</b>를 선택합니다.</p>
+                        <p>유형 선택(톱니바퀴)에서 <b>웹 앱</b>을 고른 후, 설정이 매우 중요합니다!</p>
+                        <div class="example-list">
+                            <div class="ex">다음 사용자로서 실행: <b>나(내 이메일)</b></div>
+                            <div class="ex">액세스하는 사용자: <b>모든 사용자</b> <span
+                                    style="color:var(--ink-faint);font-size:.8rem;">(이래야 구글 로그인을 안 한 학생도 폼을 냅니다)</span>
+                            </div>
+                        </div>
+                        <p style="margin-top:.6rem">설정을 맞췄다면 우측 하단의 <b>배포</b> 버튼을 누릅니다.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>권한 허용 및 URL 공유 (가장 중요)</h3>
+                        <p>처음 배포할 때는 구글 시트에 접근할 <b>권한 승인</b> 창이 뜹니다. 화면이 무섭게 생겼지만 놀라지 마세요.</p>
+                        <div class="deploybox">
+                            <h4>⚠ '안전하지 않은 앱' 경고창 돌파하기</h4>
+                            <p>1. <b>액세스 승인</b> 버튼 클릭 → 내 구글 계정 선택</p>
+                            <p>2. "Google에서 확인하지 않은 앱입니다" 경고창이 뜨면, 왼쪽 아래의 <b>고급</b> 글씨를 클릭합니다.</p>
+                            <p>3. 맨 아래에 숨겨져 있는 <b>(안전하지 않음) 제목 없는 프로젝트로 이동</b>을 클릭하고 '허용'을 누릅니다.</p>
+                            <p style="margin-top:.5rem;font-size:.85rem">※ 내가 짠 코드(AI가 짜준 코드)를 내 시트에 연결하는 것이므로 안심하고 넘어가도
+                                됩니다.</p>
+                        </div>
+                        <p style="margin-top:1rem">권한을 허용하면 <code>https://script.google.com/macros/s/.../exec</code>로
+                            끝나는 긴 주소가 나옵니다. 이 주소가 바로 우리 반의 **웹 앱 링크**입니다. 학생들에게 공유하세요!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="foot">
+        <a class="backbtn" href="index.html">← 앱 만들기로 돌아가기</a>
+        <span class="who"><b>김원희</b> · 길음중학교 AI활용 에듀테크 교원학습공동체</span>
+    </div>
+
+    <script>
+        // 시트 연동 데모 자바스크립트
+        function submitDemo() {
+            const btn = document.getElementById('demoSubmit');
+            const nameInput = document.getElementById('demoName');
+            const textInput = document.getElementById('demoText');
+            const tbody = document.getElementById('sheetBody');
+
+            if (!nameInput.value.trim() || !textInput.value.trim()) {
+                alert('이름과 의견을 모두 입력해주세요.'); // 실제 앱에선 모달 쓰지만 데모에선 간단히
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '시트로 전송 중...';
+
+            // 딜레이로 통신하는 척 연출
+            setTimeout(() => {
+                // 시간 구하기
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}. ${now.getMonth() + 1}. ${now.getDate()}. ${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+                // 시트에 행 추가
+                const tr = document.createElement('tr');
+                tr.className = 'new-row';
+                tr.innerHTML = `
+        <td>${timeStr}</td>
+        <td>${nameInput.value}</td>
+        <td>${textInput.value}</td>
+      `;
+                tbody.prepend(tr); // 위로 쌓이게
+
+                // 폼 초기화 및 완료 메시지
+                nameInput.value = '';
+                textInput.value = '';
+                btn.textContent = '성공적으로 제출되었습니다!';
+                btn.style.background = 'var(--easy)';
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '의견 제출하기';
+                    btn.style.background = 'var(--primary)';
+                }, 2000);
+
+            }, 800);
+        }
+
+        // 프롬프트 복사
+        function copyPrompt() {
+            const text = document.getElementById('promptText').innerText;
+            const btn = document.getElementById('copyBtn');
+            const done = () => { btn.textContent = '복사됨!'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('done'); }, 1600); };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+            } else {
+                fallback(text, done);
+            }
+        }
+
+        function fallback(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { }
+            document.body.removeChild(ta);
+        }
+
+        // 스크롤 등장 효과
+        const io = new IntersectionObserver((es) => {
+            es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } });
+        }, { threshold: .12 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    </script>
+</body>
+
+</html>

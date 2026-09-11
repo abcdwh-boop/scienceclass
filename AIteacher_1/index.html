@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>선생님을 위한 앱 만들기 · 기획부터 배포까지</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fcfbf7;
+      --surface: #ffffff;
+      --panel: #f5f2e9;
+      --ink: #20263a;
+      --ink-soft: #5d6579;
+      --ink-faint: #8b91a3;
+      --primary: #2b44c7;
+      --primary-soft: #eaedfb;
+      --hl: #ffe45c;
+      --easy: #12a67a;
+      --hard: #e8604c;
+      --line: #e8e3d6;
+      --line-soft: #f0ece0;
+      --disp: "Gothic A1", sans-serif;
+      --sans: "IBM Plex Sans KR", sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.75;
+      word-break: keep-all;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      word-break: keep-all;
+      text-wrap: balance
+    }
+
+    p {
+      text-wrap: pretty
+    }
+
+    ::selection {
+      background: var(--hl);
+      color: var(--ink)
+    }
+
+    a {
+      color: inherit
+    }
+
+    .mark {
+      background: linear-gradient(180deg, transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%);
+      padding: 0 .06em
+    }
+
+    /* nav */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      padding: .75rem clamp(1rem, 4vw, 3rem);
+      background: rgba(252, 251, 247, .86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: .5rem;
+      text-decoration: none;
+      font-family: var(--disp);
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -.02em
+    }
+
+    .brand .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      background: var(--primary);
+      align-self: center
+    }
+
+    .navlinks {
+      display: flex;
+      gap: .1rem;
+      margin-left: auto;
+      overflow-x: auto;
+      scrollbar-width: none
+    }
+
+    .navlinks::-webkit-scrollbar {
+      display: none
+    }
+
+    .navlinks a {
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: .83rem;
+      font-weight: 500;
+      padding: .35rem .68rem;
+      border-radius: 8px;
+      white-space: nowrap;
+      transition: .18s
+    }
+
+    .navlinks a:hover {
+      color: var(--primary);
+      background: var(--primary-soft)
+    }
+
+    /* layout */
+    section {
+      padding: clamp(3.4rem, 7vw, 6rem) clamp(1.15rem, 5vw, 3rem)
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 1.1rem
+    }
+
+    .eyebrow .no {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: .8rem;
+      color: #fff;
+      background: var(--primary);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      letter-spacing: -.02em
+    }
+
+    .eyebrow .lbl {
+      font-family: var(--mono);
+      font-size: .76rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--primary)
+    }
+
+    h2.title {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: clamp(1.7rem, 4.4vw, 2.6rem);
+      line-height: 1.22;
+      letter-spacing: -.02em;
+      margin-bottom: 1rem
+    }
+
+    .lead {
+      font-size: clamp(1rem, 2.2vw, 1.1rem);
+      color: var(--ink-soft);
+      max-width: 62ch;
+      margin-bottom: 2.2rem
+    }
+
+    .lead b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    /* hero */
+    .hero {
+      position: relative;
+      padding: clamp(3.6rem, 9vw, 6.5rem) clamp(1.15rem, 5vw, 3rem) clamp(3rem, 6vw, 5rem);
+      overflow: hidden
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, var(--line) 1.4px, transparent 1.4px);
+      background-size: 26px 26px;
+      -webkit-mask-image: linear-gradient(180deg, #000, transparent 78%);
+      mask-image: linear-gradient(180deg, #000, transparent 78%);
+      opacity: .7;
+      pointer-events: none
+    }
+
+    .hero .wrap {
+      position: relative;
+      z-index: 1
+    }
+
+    .hero .kicker {
+      font-family: var(--mono);
+      font-size: .78rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 1.4rem
+    }
+
+    .hero h1 {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: clamp(2.5rem, 7.5vw, 4.4rem);
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      margin-bottom: 1.1rem;
+      max-width: 16ch
+    }
+
+    .hero .sub {
+      font-family: var(--disp);
+      font-weight: 400;
+      font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+      color: var(--ink-soft);
+      margin-bottom: 2.2rem
+    }
+
+    .byline {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .92rem;
+      color: var(--ink-faint);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .4rem 1rem;
+      background: var(--surface)
+    }
+
+    .byline b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .byline .sep {
+      width: 1px;
+      height: 12px;
+      background: var(--line)
+    }
+
+    /* thesis */
+    .thesis {
+      background: var(--surface);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .thesis p {
+      font-family: var(--disp);
+      font-weight: 700;
+      font-size: clamp(1.4rem, 4vw, 2.3rem);
+      line-height: 1.45;
+      letter-spacing: -.02em;
+      max-width: 24ch;
+      margin: 0 auto;
+      text-align: center
+    }
+
+    /* cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: clamp(1.4rem, 3.5vw, 2.4rem)
+    }
+
+    .card h3 {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.25rem;
+      margin-bottom: .5rem;
+      letter-spacing: -.01em
+    }
+
+    .card p {
+      color: var(--ink-soft)
+    }
+
+    .defs {
+      display: grid;
+      gap: 1.1rem;
+      margin-bottom: 1.8rem
+    }
+
+    .def {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.3rem 1.4rem
+    }
+
+    .def .term {
+      font-family: var(--disp);
+      font-weight: 800;
+      color: var(--primary);
+      font-size: .95rem;
+      white-space: nowrap;
+      padding-top: .1rem
+    }
+
+    .def p {
+      color: var(--ink-soft);
+      font-size: .96rem
+    }
+
+    .def p b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.4rem 1.5rem;
+      margin: 1.6rem 0
+    }
+
+    .note .h {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.05rem;
+      margin-bottom: .5rem
+    }
+
+    .note p {
+      color: var(--ink-soft);
+      font-size: .96rem;
+      margin-bottom: .7rem
+    }
+
+    .note p:last-child {
+      margin-bottom: 0
+    }
+
+    .note b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    /* warning box */
+    .warn {
+      background: #fdf2f0;
+      border: 1px solid #f2c4bc;
+      border-left: 4px solid var(--hard);
+      border-radius: 12px;
+      padding: 1.4rem 1.5rem;
+      margin-top: 1.8rem
+    }
+
+    .warn .wh {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #c0402e;
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem
+    }
+
+    .warn ul {
+      list-style: none;
+      display: grid;
+      gap: .8rem
+    }
+
+    .warn li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .7rem;
+      font-size: .95rem;
+      color: var(--ink-soft)
+    }
+
+    .warn li b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .warn li .x {
+      color: var(--hard);
+      font-weight: 700;
+      font-family: var(--mono);
+      flex: none
+    }
+
+    .worksheet {
+      display: grid;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: .5rem
+    }
+
+    .q {
+      background: var(--surface);
+      padding: 1rem 1.2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .9rem;
+      align-items: start
+    }
+
+    .q .n {
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: .9rem;
+      color: var(--primary);
+      background: var(--primary-soft);
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: none
+    }
+
+    .q .qt {
+      font-weight: 600
+    }
+
+    .q .qe {
+      display: block;
+      font-weight: 400;
+      color: var(--ink-faint);
+      font-size: .88rem;
+      margin-top: .15rem
+    }
+
+    .q .qe.warnnote {
+      color: var(--hard)
+    }
+
+    .q.hl {
+      background: #fffbe8
+    }
+
+    .q.hl .n {
+      background: var(--hl);
+      color: var(--ink)
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .93rem;
+      padding: .72rem 1.25rem;
+      border-radius: 10px;
+      transition: .18s;
+      border: none
+    }
+
+    .btn:hover {
+      background: #2036a8;
+      transform: translateY(-1px)
+    }
+
+    .btn .arw {
+      transition: .18s
+    }
+
+    .btn:hover .arw {
+      transform: translateX(3px)
+    }
+
+    .btn-note {
+      font-size: .82rem;
+      color: var(--ink-faint);
+      margin-top: .6rem
+    }
+
+    .cards3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.1rem;
+      margin-top: .4rem
+    }
+
+    .tcard {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.5rem;
+      transition: .2s
+    }
+
+    .tcard:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px -20px rgba(43, 68, 199, .4)
+    }
+
+    .tcard .lvl {
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: .7rem
+    }
+
+    .tcard h3 {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.2rem;
+      margin-bottom: .15rem;
+      letter-spacing: -.01em
+    }
+
+    .tcard .stack {
+      font-family: var(--mono);
+      font-size: .8rem;
+      color: var(--easy);
+      margin-bottom: .9rem
+    }
+
+    .tcard p {
+      font-size: .92rem;
+      color: var(--ink-soft);
+      margin-bottom: 1rem
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: .75rem;
+      color: var(--ink-soft);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .2rem .6rem;
+      margin: .2rem .25rem 0 0
+    }
+
+    .tag b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .toolrow {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.2rem;
+      align-items: start;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--line-soft)
+    }
+
+    .toolrow:first-of-type {
+      padding-top: .4rem
+    }
+
+    .toolrow:last-of-type {
+      border-bottom: none
+    }
+
+    .toolrow .badge {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: .85rem;
+      color: #fff;
+      background: var(--ink);
+      padding: .35rem .75rem;
+      border-radius: 8px;
+      white-space: nowrap
+    }
+
+    .toolrow.svc .badge {
+      background: var(--primary)
+    }
+
+    .toolrow h3 {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.15rem;
+      margin-bottom: .4rem
+    }
+
+    .toolrow p {
+      color: var(--ink-soft);
+      font-size: .96rem;
+      margin-bottom: .7rem
+    }
+
+    .toolrow p:last-child {
+      margin-bottom: 0
+    }
+
+    .toolrow b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .pros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: .3rem
+    }
+
+    .pill {
+      font-size: .8rem;
+      padding: .25rem .65rem;
+      border-radius: 999px;
+      border: 1px solid
+    }
+
+    .pill.up {
+      color: var(--easy);
+      border-color: #bfe6d8;
+      background: #effbf6
+    }
+
+    .pill.dn {
+      color: var(--hard);
+      border-color: #f6cfc8;
+      background: #fdf1ef
+    }
+
+    .qa {
+      background: #fffdf4;
+      border: 1px solid #f0e6b8;
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem;
+      margin: 1rem 0
+    }
+
+    .qa .qq {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: .98rem;
+      color: var(--ink);
+      margin-bottom: .4rem;
+      display: flex;
+      gap: .5rem
+    }
+
+    .qa .qq::before {
+      content: "Q";
+      font-family: var(--mono);
+      color: #c9a227;
+      font-weight: 500
+    }
+
+    .qa .aa {
+      color: var(--ink-soft);
+      font-size: .94rem;
+      display: flex;
+      gap: .5rem
+    }
+
+    .qa .aa::before {
+      content: "A";
+      font-family: var(--mono);
+      color: var(--primary);
+      font-weight: 500;
+      flex: none
+    }
+
+    .qa .aa b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: .86em;
+      background: var(--panel);
+      color: #3a4256;
+      padding: .06em .4em;
+      border-radius: 5px
+    }
+
+    .methods {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-top: .4rem
+    }
+
+    .mbtn {
+      display: block;
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.4rem;
+      transition: .2s
+    }
+
+    .mbtn:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px -20px rgba(43, 68, 199, .4)
+    }
+
+    .mbtn .mt {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: .7rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem
+    }
+
+    .mbtn .mt .go {
+      color: var(--primary);
+      transition: .18s
+    }
+
+    .mbtn:hover .mt .go {
+      transform: translateX(3px)
+    }
+
+    .diff {
+      font-family: var(--mono);
+      font-size: .74rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .22rem .6rem;
+      border-radius: 999px
+    }
+
+    .diff.e {
+      color: var(--easy);
+      background: #effbf6;
+      border: 1px solid #bfe6d8
+    }
+
+    .diff.h {
+      color: var(--hard);
+      background: #fdf1ef;
+      border: 1px solid #f6cfc8
+    }
+
+    .soon {
+      font-size: .82rem;
+      color: var(--ink-faint);
+      margin-top: 1.2rem;
+      text-align: center
+    }
+
+    .deploy {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+      margin-top: .4rem
+    }
+
+    .dcard {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: clamp(1.4rem, 3.5vw, 1.9rem)
+    }
+
+    .dcard .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--easy);
+      padding: .25rem .6rem;
+      border-radius: 6px;
+      margin-bottom: .9rem
+    }
+
+    .dcard.alt .badge {
+      background: var(--primary)
+    }
+
+    .dcard.git .badge {
+      background: #24292f
+    }
+
+    .dcard h3 {
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.25rem;
+      margin-bottom: .25rem
+    }
+
+    .dcard .easy {
+      font-size: .85rem;
+      color: var(--easy);
+      font-weight: 600;
+      margin-bottom: 1.1rem
+    }
+
+    .dcard.alt .easy {
+      color: var(--primary)
+    }
+
+    .dcard.git .easy {
+      color: #24292f
+    }
+
+    .dsteps {
+      display: grid;
+      gap: .7rem;
+      counter-reset: d;
+      margin-bottom: 1.1rem
+    }
+
+    .dstep {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: .7rem;
+      align-items: baseline
+    }
+
+    .dstep .dn {
+      counter-increment: d;
+      font-family: var(--mono);
+      font-weight: 500;
+      font-size: .8rem;
+      color: #fff;
+      background: var(--easy);
+      width: 1.45rem;
+      height: 1.45rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: none;
+      transform: translateY(2px)
+    }
+
+    .dcard.alt .dn {
+      background: var(--primary)
+    }
+
+    .dcard.git .dn {
+      background: #24292f
+    }
+
+    .dstep .dn::before {
+      content: counter(d)
+    }
+
+    .dstep p {
+      font-size: .91rem;
+      color: var(--ink)
+    }
+
+    .dtip {
+      font-size: .84rem;
+      color: var(--ink-soft);
+      border-top: 1px dashed var(--line);
+      padding-top: .9rem
+    }
+
+    .dtip b {
+      color: var(--easy)
+    }
+
+    .dcard.alt .dtip b {
+      color: var(--primary)
+    }
+
+    .dcard.git .dtip b {
+      color: #24292f
+    }
+
+    .steps {
+      display: grid;
+      gap: .85rem;
+      counter-reset: s;
+      margin-top: .4rem
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.1rem;
+      align-items: start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem;
+      transition: .18s
+    }
+
+    .step:hover {
+      border-color: var(--primary)
+    }
+
+    .step .sn {
+      counter-increment: s;
+      font-family: var(--disp);
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--primary);
+      line-height: 1;
+      min-width: 1.5rem
+    }
+
+    .step .sn::before {
+      content: counter(s)
+    }
+
+    .step p {
+      color: var(--ink-soft);
+      font-size: .96rem
+    }
+
+    .step p b {
+      color: var(--ink);
+      font-weight: 600
+    }
+
+    .ethics {
+      background: var(--panel);
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      padding: clamp(1.5rem, 4vw, 2.4rem)
+    }
+
+    .ethics .tag-soon {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: .74rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .25rem .7rem;
+      margin-bottom: 1rem
+    }
+
+    .ethics ul {
+      list-style: none;
+      display: grid;
+      gap: .7rem;
+      margin-top: .6rem
+    }
+
+    .ethics li {
+      display: flex;
+      gap: .7rem;
+      color: var(--ink-soft);
+      font-size: .96rem
+    }
+
+    .ethics li .c {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--primary);
+      flex: none;
+      margin-top: .6rem
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2.4rem clamp(1.15rem, 5vw, 3rem);
+      text-align: center;
+      color: var(--ink-faint);
+      font-size: .88rem
+    }
+
+    footer b {
+      color: var(--ink)
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .6s ease, transform .6s ease
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: none
+    }
+
+    @media (max-width:560px) {
+      .toolrow {
+        grid-template-columns: 1fr
+      }
+
+      .def {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      * {
+        animation: none !important;
+        scroll-behavior: auto
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <a class="brand" href="#top">앱 만들기<span class="dot"></span></a>
+    <div class="navlinks">
+      <a href="#plan">기획</a>
+      <a href="#build">구조</a>
+      <a href="#tools">도구</a>
+      <a href="#deploy">배포</a>
+      <a href="#how">방법</a>
+      <a href="#debug">디버깅</a>
+      <a href="#ethics">윤리</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="wrap">
+      <p class="kicker">길음중학교 · AI활용 에듀테크 교원학습공동체</p>
+      <h1>선생님을 위한 앱 만들기</h1>
+      <p class="sub">AI를 활용하여, 기획부터 배포까지.</p>
+      <div class="byline"><span>만든 사람</span><span class="sep"></span><b>김원희</b></div>
+    </div>
+  </header>
+
+  <!-- THESIS -->
+  <section class="thesis">
+    <div class="wrap reveal">
+      <p>코드를 직접 짤 필요는 없습니다. 무엇을 만들고 싶은지가 <span class="mark">명확</span>해야 합니다.</p>
+    </div>
+  </section>
+
+  <!-- 01 기획 -->
+  <section id="plan">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">01</span><span class="lbl">기획하기</span></span>
+      <h2 class="title">먼저 무엇을 만들지 적습니다</h2>
+      <p class="lead">좋은 앱은 코드가 아니라 기획에서 시작합니다. 개발자가 아니어도 괜찮아요. 시작 전에 무엇을 만들지 <b>글로 정리해두는 것</b>, 그게 첫 단추입니다.</p>
+
+      <div class="defs">
+        <div class="def">
+          <span class="term">PRD란?</span>
+          <p>Product Requirements Document, 즉 <b>제품 요구사항 문서</b>입니다. ‘무엇을, 왜, 어떻게 만들지’를 한곳에 적어둔 앱의 밑그림이에요. 화면, 기능, 사용자,
+            규칙을 미리 정리해 둡니다.</p>
+        </div>
+        <div class="def">
+          <span class="term">왜 쓰나?</span>
+          <p>AI에게 코드를 맡길 때 요구가 흐릿하면 AI도 헤매면서 <b>토큰</b>(AI가 읽고 쓰는 글자 단위)을 많이 쓰게 되고, 그만큼 <b>크레딧</b>(그 사용량에 매겨지는 요금)과 시간이
+            낭비됩니다. 기획이 뚜렷할수록 AI가 한 번에 정확히 만들어줘요. 제한된 크레딧과 촉박한 시간을 아끼는 첫 번째 단계입니다.</p>
+        </div>
+      </div>
+
+      <a class="btn" href="https://tjdr1517.github.io/prd/" target="_blank" rel="noopener">PRD 작성 도우미 열기 <span
+          class="arw">→</span></a>
+      <p class="btn-note">※출처: 교사개발자해커톤 연수 - 창동고 최성규 선생님 </p>
+
+      <div class="note">
+        <div class="h">제가 실제로 쓰는 방법</div>
+        <p>저는 양식을 완벽히 채우기보다, <b>생성형 AI에게 만들고 싶은 앱을 장황하게 설명</b>한 다음 “이걸 바탕으로 PRD로 정리해줘”라고 합니다. 대신 설명은 구체적이고 의도가 분명하게 —
+          고민되는 부분도 털어놓고, 넣고 싶은 기능도 하나하나 짚어가면서요.</p>
+        <p>이렇게 정리된 PRD는 <b>저장해 둡니다.</b> 나중에 다른 AI에서 다시 꺼내 쓸 수 있고, 복잡한 앱일수록 이 저장이 큰 힘이 되더라고요.</p>
+        <p>제가 느낀 장점은, AI가 정리하면서 제가 놓친 부분이나 부족한 곳을 짚어주고 더 나은 아이디어나 효율적인 방법을 제안해준다는 거예요. 좋으면 반영하면 됩니다.</p>
+      </div>
+
+      <div class="card">
+        <h3>기본적으로 생각해볼 부분들</h3>
+        <p style="margin-bottom:.4rem">빈칸을 채우듯 답만 적어 AI에게 건네보세요.</p>
+        <div class="worksheet">
+          <div class="q"><span class="n">1</span><span><span class="qt">뭘 만드나요? (한 문장)</span><span class="qe">예 — “우리 반
+                1인 1역할 신청받는 앱”</span></span></div>
+          <div class="q"><span class="n">2</span><span><span class="qt">누가 쓰나요?</span><span class="qe">예 — 우리 반 학생 28명,
+                담임인 나</span></span></div>
+          <div class="q"><span class="n">3</span><span><span class="qt">핵심 기능 3가지</span><span class="qe">예 — ① 역할 신청 ②
+                중복 신청 막기 ③ 결과 한눈에 보기</span></span></div>
+          <div class="q hl"><span class="n">4</span><span><span class="qt">데이터를 저장하나요? (예 / 아니오)</span><span
+                class="qe">이 질문이 다음 단계(구조·도구)의 갈림길입니다</span></span></div>
+          <div class="q"><span class="n">5</span><span><span class="qt">개인정보(이름·학번·사진 등)를 받나요?</span><span
+                class="qe warnnote">→ ‘예’라면 07 윤리 단계는 선택이 아니라 필수입니다</span></span></div>
+          <div class="q"><span class="n">6</span><span><span class="qt">어디서 쓰나요?</span><span class="qe">휴대폰 · 컴퓨터 · 둘
+                다</span></span></div>
+          <div class="q"><span class="n">7</span><span><span class="qt">없어도 되는 기능은?</span><span class="qe">예 — 로그인은 없어도
+                됨, 디자인은 나중에</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 구조 -->
+  <section id="build">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">02</span><span class="lbl">구조 이해하기</span></span>
+      <h2 class="title">앱의 구조를 이해합니다</h2>
+      <p class="lead">앱은 크게 두 부분입니다. 눈에 보이는 화면인 <b>프론트엔드</b>, 보이지 않는 곳에서 데이터를 저장·처리하는 <b>백엔드</b>. 백엔드가 얼마나 필요한지에 따라 앱의
+        종류가 갈립니다. 앞서 적은 4번 질문의 답을 여기 대입해 보세요.</p>
+
+      <div class="cards3">
+        <div class="tcard">
+          <div class="lvl">서버 저장 없음 · 프론트만</div>
+          <h3>정적 앱</h3>
+          <div class="stack">HTML 파일 하나</div>
+          <p>데이터를 서버에 저장하지 않아, 만든 내용이 다른 사람과 공유되지는 않습니다. 계산기, 타이머, 뽑기 룰렛, 즉석 퀴즈, 미니게임에 딱이에요.</p>
+          <span class="tag"><b>사례</b> 학급 선거 투표 앱</span>
+        </div>
+        <div class="tcard">
+          <div class="lvl">가볍게 저장 · 구글 시트</div>
+          <h3>시트 연동 앱</h3>
+          <div class="stack">프론트 + Google Sheets</div>
+          <p>데이터가 스프레드시트에 차곡차곡 쌓입니다. 우리에게 가장 익숙한 방식. 설문 수합, 명단 취합, 신청서, 채점.</p>
+          <span class="tag"><b>사례</b> AI 소논문 채점</span>
+        </div>
+        <div class="tcard">
+          <div class="lvl">제대로 저장 · 백엔드</div>
+          <h3>서비스형 앱</h3>
+          <div class="stack">프론트 + 데이터베이스</div>
+          <p>로그인, 실시간 반영, 여러 명이 동시에 사용. 진짜 ‘서비스’에 가까워집니다. 손은 더 가지만 못 하는 게 없어요.</p>
+          <span class="tag"><b>사례</b> 아나바다 장터 앱</span>
+          <span class="tag"><b>사례</b> 체육대회 치어리딩 투표 앱</span>
+        </div>
+      </div>
+      <div class="note" style="margin-top:1.4rem">
+        <p style="margin:0"><b>한 가지 —</b> 정적 앱도 <code>localStorage</code>를 쓰면 그 <b>기기의 브라우저 안에는</b> 데이터를 남길 수 있어요. 다만 다른
+          기기·사람과 공유되지 않으니, 여럿이 함께 쓰는 앱이라면 시트나 백엔드가 필요합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 도구 -->
+  <section id="tools">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">03</span><span class="lbl">도구 결정하기</span></span>
+      <h2 class="title">앱 유형에 맞는 도구를 고릅니다</h2>
+      <p class="lead">무엇을, 어떤 구조로 만들지 정했다면 이제 도구입니다. 세 가지 앱 유형마다 필요한 도구가 다릅니다.</p>
+
+      <div class="card">
+        <div class="toolrow">
+          <span class="badge">정적 앱</span>
+          <div>
+            <h3>생성형 AI 하나면 충분</h3>
+            <p>정적 앱은 <b>생성형 AI만으로 충분</b>합니다. 상위 요금제일수록 더 똑똑한(상위) 모델을 더 넉넉한 사용량으로 쓸 수 있어, 복잡한 요구도 더 안정적으로 처리해줘요.</p>
+          </div>
+        </div>
+
+        <div class="toolrow">
+          <span class="badge">시트 연동 앱</span>
+          <div>
+            <h3>생성형 AI + 구글 스프레드시트</h3>
+            <p>화면은 <b>HTML</b>로 만들고, 구글의 <b>앱스 스크립트</b>가 그 화면과 시트를 이어주는 <b>백엔드 역할</b>을 합니다. 데이터베이스 역할은 구글 시트가 하고요. AI
+              구독료 외 추가 비용이 없습니다.</p>
+            <div class="pros">
+              <span class="pill up">무료 (서버·호스팅 비용 없음)</span>
+              <span class="pill up">학교 계정으로 바로 접근</span>
+              <span class="pill up">학운위 심의 부담 없음</span>
+              <span class="pill up">데이터를 익숙한 시트로 확인·편집</span>
+              <span class="pill dn">동시 접속·실시간엔 약함</span>
+              <span class="pill dn">앱스 스크립트 실행 할당량 한계</span>
+              <span class="pill dn">데이터 많아지면 느려짐</span>
+              <span class="pill dn">학교 관리자 정책에 종속</span>
+            </div>
+            <p style="font-size:.82rem;color:var(--ink-faint);margin-top:.7rem">※ ‘학운위 심의 부담 없음’은 학교가 이미 교육용 구글 도구를
+              심의·도입해 쓰고 있는 경우예요.</p>
+          </div>
+        </div>
+
+        <div class="toolrow svc">
+          <span class="badge">서비스형 앱</span>
+          <div>
+            <h3>프론트 + 데이터베이스 + 코드 에디터(또는 IDE)</h3>
+            <p>화면(프론트)과 파이어베이스 같은 <b>데이터베이스</b>가 필요합니다. 그리고 파일이 여러 개로 늘고 서로 얽히기 때문에, 그 파일들을 다룰 <b>코드 에디터</b>가 필요해요. 아래에서
+              하나씩 짚어볼게요.</p>
+
+            <div class="qa">
+              <div class="qq">꼭 파이어베이스여야 하나요?</div>
+              <div class="aa"><span>아니요. 대표적 대안으로 <b>Supabase</b>가 있습니다. 파이어베이스가 자유로운 폴더 구조(NoSQL)라면, 수파베이스는 엑셀이나 구글
+                  시트처럼 칸을 엄격히 나눠 표(SQL) 형태로 데이터를 관리하는 방식입니다. 교사 입장에선 한국어 자료와 예제가 훨씬 많은 파이어베이스가 무난한 출발점이에요.</span>
+              </div>
+            </div>
+
+            <div class="qa">
+              <div class="qq">코드 에디터란 무엇이고, 왜 필요한가요?</div>
+              <div class="aa"><span>코드를 쓰고 고치는 <b>전용 프로그램</b>이에요. 워드가 문서 작성을 돕듯, 코드 에디터는 코딩을 돕습니다. 메모장에도 코드를 쓸 순 있지만, 코드
+                  에디터는 색으로 구분해 구조를 한눈에 보여주고, 다음 코드를 자동완성해주고, 실행 전에 실수를 미리 짚어주고, 여러 파일을 한 화면에서 오가게 해줘요. 파일이 여럿 얽히는 서비스형
+                  앱에선 사실상 필수입니다. 대표는 <b>VS Code</b>(요즘 표준)입니다.</span></div>
+            </div>
+
+            <div class="qa">
+              <div class="qq">통합 개발 환경(IDE)이란 무엇인가요?</div>
+              <div class="aa"><span><b>IDE</b>(Integrated Development Environment)는 코드 에디터에 ‘만드는 데 필요한 도구들’을 한데 묶은 거예요.
+                  코드를 쓰는 에디터 + 실행해보는 기능 + 오류를 찾는 디버거 + 버전 저장(git) 같은 걸 한 프로그램에서 처리합니다. 코드 에디터가 ‘펜’이라면, IDE는 ‘펜·실행·검사·정리가
+                  다 되는 작업대’예요. 요즘은 경계가 흐릿해서 VS Code도 확장 기능을 붙이면 IDE처럼 쓰이고, <b>Cursor·Antigravity</b>도 이 계열입니다.</span>
+              </div>
+            </div>
+
+            <div class="qa">
+              <div class="qq">요즘 코드 에디터는 뭐가 다른가요?</div>
+              <div class="aa"><span>가장 큰 변화는 <b>AI가 안으로 들어왔다</b>는 거예요. 처음엔 다음 줄을 제안하는 ‘똑똑한 자동완성’ 수준이었는데, 지금은 <b>AI
+                    에이전트</b>로 발전했습니다. 만들고 싶은 걸 말로 설명하면 AI가 여러 파일을 스스로 오가며 코드를 쓰고, 실행해보고, 오류가 나면 스스로 고치기까지 해요.
+                  Cursor·Antigravity·VS Code(Copilot) 모두 이 기능이 있습니다. 비개발자인 교사도 이 도구들을 쓸 수 있게 된 게 바로 이 덕분이에요 — 한 줄씩 짜는 대신
+                  AI와 대화하며 만드니까요.</span></div>
+            </div>
+
+            <p style="margin-top:1rem">대표적으로 <b>Cursor</b>와 <b>Antigravity</b>가 있습니다. Cursor는 별도 유료 구독이 필요하고,
+              Antigravity는 구글 AI(제미나이) 구독과 연동해 쓸 수 있으며 무료 등급도 있지만 사용량 제한이 빡빡한 편입니다. <span
+                style="color:var(--ink-faint)">(요금 정책이 자주 바뀌니 사용 전 확인하세요.)</span></p>
+            <p>다만 생성형 AI와 함께 만들어 나갈 거라면 요금제 없이도 Cursor로 꽤 할 만합니다. 요즘 에디터에는 AI 에이전트 기능이 있어 바로 요구할 수도 있는데, <b>제 경험상 소통의 질이
+                아직 아쉽고 토큰·시간을 많이 쓰는 경우가 많았어요.</b> 시행착오도 잦았고요. (이 부분은 빠르게 개선되는 중이라, 앞으로는 달라질 수 있습니다.) 그래서 저는 생성형 AI, 특히
+              Claude와 함께 작업하기를 추천합니다.</p>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.3rem">
+        <span class="eyebrow" style="margin-bottom:.8rem"><span class="lbl">또 다른 길</span></span>
+        <h3>도구를 조합하지 않고, 하나로 끝내기 — 올인원 AI 앱 빌더</h3>
+        <p style="color:var(--ink-soft);margin-bottom:1rem">지금까지는 ‘화면 만드는 도구 + 데이터베이스 + 배포’를 각각 챙기는 방식이었어요. 반면
+          <b>Lovable</b> 같은 <b>올인원 AI 앱 빌더</b>는 만들고 싶은 걸 말로 설명하면 화면·데이터베이스·로그인·배포까지 <b>한 번에</b> 만들어줍니다. 코드 에디터를 따로 열
+          필요 없이, 브라우저 안에서 전부 끝나요.
+        </p>
+
+        <div class="qa">
+          <div class="qq">커서·안티그래비티와 같은 건가요?</div>
+          <div class="aa"><span>아니요, 결이 다릅니다. 커서·안티그래비티는 <b>코드를 편집하는 도구(에디터)</b>라 데이터베이스와 배포는 내가 따로 챙겨야 해요. Lovable은 그
+              전 과정을 대신 해주고 <b>서버(호스팅)까지 제공</b>합니다. 실제로 Supabase 기반 백엔드와 호스팅을 함께 얹어줘요.</span></div>
+        </div>
+
+        <div class="pros">
+          <span class="pill up">말로 설명하면 완성까지 빠름</span>
+          <span class="pill up">데이터베이스·로그인·배포 원스톱</span>
+          <span class="pill up">결과 코드를 GitHub로 내보내 소유 가능</span>
+          <span class="pill dn">크레딧 기반 유료 (무료 체험 있음)</span>
+          <span class="pill dn">복잡한 로직은 AI가 헤맬 수 있음</span>
+          <span class="pill dn">문제가 생기면 디버깅이 까다로울 수 있음</span>
+        </div>
+        <p style="font-size:.82rem;color:var(--ink-faint);margin-top:.7rem">※ 무엇을 만드느냐(구조)와는 별개인 ‘만드는 방식’이에요. 복잡한 건 싫고
+          비용을 지불할 의향이 있다면 좋은 선택지입니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 배포 -->
+  <section id="deploy">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">04</span><span class="lbl">배포하기</span></span>
+      <h2 class="title">인터넷에 올립니다</h2>
+      <p class="lead">배포는 <b>‘내 컴퓨터에만 있던 것’을 ‘누구나 열 수 있는 인터넷 주소’로</b> 바꾸는 일입니다. 중요한 건, <b>앱 유형마다 올리는 곳이 다르다</b>는 점이에요.
+      </p>
+
+      <div class="defs">
+        <div class="def">
+          <span class="term">정적 앱</span>
+          <p>완성된 HTML 파일을 <b>Netlify Drop · GitHub Pages · Vercel</b> 중 한 곳에 올립니다. (아래 카드 참고)</p>
+        </div>
+        <div class="def">
+          <span class="term">시트 연동 앱</span>
+          <p>앱스 스크립트 편집기에서 <b>‘배포 → 웹 앱으로 배포’</b>를 눌러 나오는 <code>.../exec</code> 주소가 곧 앱 주소입니다. Netlify에 끌어다 놓는 방식이 아니에요.
+          </p>
+        </div>
+        <div class="def">
+          <span class="term">서비스형 앱</span>
+          <p>보통 <b>Firebase Hosting</b> 또는 <b>Vercel</b>에 올립니다. 데이터베이스(파이어베이스 등)와 함께 동작하도록 연결합니다.</p>
+        </div>
+      </div>
+
+      <div class="deploy">
+        <div class="dcard">
+          <span class="badge">가장 쉬움</span>
+          <h3>Netlify Drop</h3>
+          <div class="easy">정적 앱에 딱 맞아요</div>
+          <div class="dsteps">
+            <div class="dstep"><span class="dn"></span>
+              <p><code>app.netlify.com/drop</code> 접속 (로그인은 나중에 해도 됩니다)</p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p><code>index.html</code>이 든 폴더를 통째로 끌어다 놓기</p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p><code>~.netlify.app</code> 주소가 생성 — 바로 공유하면 끝!</p>
+            </div>
+          </div>
+          <p class="dtip"><b>팁 —</b> 폴더 안에 <code>index.html</code>이 꼭 있어야 하고 50MB 이하면 안정적입니다.</p>
+        </div>
+
+        <div class="dcard git">
+          <span class="badge">완전 무료</span>
+          <h3>GitHub Pages</h3>
+          <div class="easy">무료·안정적, 학교에 부담 없음</div>
+          <div class="dsteps">
+            <div class="dstep"><span class="dn"></span>
+              <p>GitHub에 <b>저장소(repository)</b>를 만들고 파일 올리기</p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p>저장소 <code>Settings → Pages</code>에서 브랜치 선택</p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p><code>~.github.io</code> 주소가 생성됩니다</p>
+            </div>
+          </div>
+          <p class="dtip"><b>팁 —</b> 첫 설정에 GitHub 계정과 약간의 적응이 필요하지만, 한 번 익히면 완전 무료로 오래 쓸 수 있어요.</p>
+        </div>
+
+        <div class="dcard alt">
+          <span class="badge">커지면 이걸로</span>
+          <h3>Vercel</h3>
+          <div class="easy">프로젝트가 커지고 자주 고칠 때</div>
+          <div class="dsteps">
+            <div class="dstep"><span class="dn"></span>
+              <p><code>vercel.com/drop</code>에 파일·폴더·zip 끌어다 놓기</p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p>팀과 프로젝트 이름을 고르고 <code>Deploy</code></p>
+            </div>
+            <div class="dstep"><span class="dn"></span>
+              <p>GitHub와 연결하면 <b>수정할 때마다 자동 배포</b></p>
+            </div>
+          </div>
+          <p class="dtip"><b>팁 —</b> 프레임워크 프로젝트나 바이브코딩 결과물도 알아서 빌드해줍니다.</p>
+        </div>
+      </div>
+
+      <div class="warn">
+        <div class="wh">⚠ 배포하기 전에 — 보안, 이건 꼭 확인하세요</div>
+        <ul>
+          <li><span class="x">01</span><span>배포하면 <b>화면 코드는 누구나 열어볼 수 있습니다.</b> ‘내 컴퓨터에서만 보이던 것’이 아니에요. 이 전제를 항상 염두에
+              두세요.</span></li>
+          <li><span class="x">02</span><span><b>유료 API 키(예: Gemini API 키)는 절대 화면 코드에 넣지 마세요.</b> 노출되면 요금 폭탄으로 이어집니다. 이런
+              키가 필요한 처리는 앱스 스크립트나 백엔드 뒤에 숨겨야 합니다.</span></li>
+          <li><span class="x">03</span><span>파이어베이스 키는 그 자체로 비밀은 아니지만, <b>보안 규칙(Security Rules)이 반드시 필요</b>합니다. 규칙 없이 두면
+              누구나 데이터를 읽고 지울 수 있어요.</span></li>
+          <li><span class="x">04</span><span>학생 데이터는 <b>최소한만 수집하고 익명화</b>하세요. 실명 대신 학급·번호 기반의 익명 코드(예:
+              <code>309lion</code>)를 쓰면 사고가 나도 피해가 작습니다.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 방법 -->
+  <section id="how">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">05</span><span class="lbl">방법</span></span>
+      <h2 class="title">유형별로 직접 만들어봅니다</h2>
+      <p class="lead">아래 각 유형의 실제 제작 방법은 별도 페이지에서 단계별로 이어집니다.</p>
+
+      <div class="methods">
+        <a class="mbtn" href="static.html">
+          <div class="mt"><span>정적 앱 만들기</span><span class="go">→</span></div>
+          <span class="diff e">난이도 쉬움</span>
+        </a>
+        <a class="mbtn" href="gas.html">
+          <div class="mt"><span>시트 연동 앱 만들기</span><span class="go">→</span></div>
+          <span class="diff e">난이도 쉬움</span>
+        </a>
+        <a class="mbtn" href="service.html">
+          <div class="mt"><span>서비스형 앱 만들기(간단버전)</span><span class="go">→</span></div>
+          <span class="diff h">난이도 중간</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 디버깅 -->
+  <section id="debug">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">06</span><span class="lbl">디버깅</span></span>
+      <h2 class="title">고치는 시간이 만드는 시간보다 깁니다</h2>
+      <p class="lead"><b>디버깅</b>은 만든 것이 의도대로 작동하지 않을 때 원인을 찾아 고치는 과정입니다. 여기서 <b>bug</b>는 벌레·결함을 뜻하고(옛날 컴퓨터에 낀 나방 일화가
+        유명하죠), 디버깅은 그 결함을 잡아내는 일이에요. 앱을 만들 때 가장 오래 걸리는 부분이 바로 여기입니다. 순서만 알아두면 훨씬 수월해져요.</p>
+
+      <div class="steps">
+        <div class="step"><span class="sn"></span>
+          <p><b>증상을 정확히 봅니다.</b> 무엇이 어떻게 잘못됐는지 관찰하세요. 화면이 안 뜨나요? 버튼이 안 눌리나요? 숫자가 틀리나요?</p>
+        </div>
+        <div class="step"><span class="sn"></span>
+          <p><b>단서를 모읍니다.</b> 브라우저에서 <code>F12</code>(개발자 도구)를 열고 ‘콘솔’에 뜨는 빨간 오류 메시지를 확인하세요. 가장 중요한 단서입니다.</p>
+        </div>
+        <div class="step"><span class="sn"></span>
+          <p><b>AI에게 넘깁니다.</b> 그 오류 메시지와 관련 코드를 평소 쓰던 생성형 AI(Claude, ChatGPT, Gemini 등)에 그대로 붙여넣고 “왜 이 오류가 나는지, 어떻게
+            고치는지” 물어보세요. 툴마다 해결책이 다를 수 있으니 여러 곳에 교차 검증해보는 것도 좋습니다.</p>
+        </div>
+        <div class="step"><span class="sn"></span>
+          <p><b>한 번에 하나씩 고칩니다.</b> 여러 곳을 동시에 바꾸지 마세요. 하나 고치고 → 확인 → 또 하나. 그래야 무엇이 문제였는지 알 수 있습니다.</p>
+        </div>
+        <div class="step"><span class="sn"></span>
+          <p><b>범위를 좁힙니다.</b> 문제가 어디서 나는지 절반씩 잘라가며 확인해 원인 지점을 좁혀갑니다.</p>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:1.4rem">
+        <p style="margin:0"><b>팁 —</b> 오류는 없는데 이상하게 동작한다면, 중간중간 값을 찍어보며(<code>console.log</code>) 어디서부터 어긋나는지 추적하세요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 윤리 -->
+  <section id="ethics">
+    <div class="wrap reveal">
+      <span class="eyebrow"><span class="no">07</span><span class="lbl">교사·개발자의 윤리</span></span>
+      <h2 class="title">만들었다면, 책임도 함께</h2>
+      <p class="lead">학생은 미성년자이고, 우리가 만드는 앱은 그 데이터를 다룹니다. <b>01 기획에서 ‘개인정보를 받나?’에 ‘예’라고 답했다면, 이 단계는 선택이 아니라 필수입니다.</b>
+        곁다리가 아니라, 앱을 세상에 내놓기 위한 조건이에요. 이 부분은 다음 시간에 함께 자세히 다룹니다.</p>
+
+      <div class="ethics">
+        <span class="tag-soon">다음 시간 · 준비 중</span>
+        <ul>
+          <li><span class="c"></span><span>개인정보 수집·이용에 대한 <b>동의</b> 받기 (무엇을, 왜 받는지 고지)</span></li>
+          <li><span class="c"></span><span><b>학교운영위원회 심의</b> 과정</span></li>
+          <li><span class="c"></span><span>앱 하단에 필요한 안내(<b>푸터</b>) 달기 — 수집 항목, 목적, 문의처</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>김원희</b> · 길음중학교 AI활용 에듀테크 교원학습공동체
+  </footer>
+
+  <script>
+    const io = new IntersectionObserver((es) => {
+      es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } });
+    }, { threshold: .12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+</body>
+
+</html>

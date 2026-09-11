@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>서비스형 앱 만들기 · 실시간 방명록 (Firebase)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #fcfbf7;
+            --surface: #ffffff;
+            --panel: #f5f2e9;
+            --ink: #20263a;
+            --ink-soft: #5d6579;
+            --ink-faint: #8b91a3;
+            --primary: #2b44c7;
+            --primary-soft: #eaedfb;
+            --hl: #ffe45c;
+            --easy: #12a67a;
+            --hard: #e8604c;
+            --line: #e8e3d6;
+            --line-soft: #f0ece0;
+            --disp: "Gothic A1", sans-serif;
+            --sans: "IBM Plex Sans KR", sans-serif;
+            --mono: "IBM Plex Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: var(--sans);
+            color: var(--ink);
+            background: var(--bg);
+            line-height: 1.75;
+            word-break: keep-all;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            word-break: keep-all;
+            text-wrap: balance
+        }
+
+        p {
+            text-wrap: pretty
+        }
+
+        ::selection {
+            background: var(--hl);
+            color: var(--ink)
+        }
+
+        a {
+            color: inherit
+        }
+
+        .mark {
+            background: linear-gradient(180deg, transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%);
+            padding: 0 .06em
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: .75rem clamp(1rem, 4vw, 3rem);
+            background: rgba(252, 251, 247, .86);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .9rem;
+            color: var(--ink-soft);
+            transition: .18s
+        }
+
+        .back:hover {
+            color: var(--primary)
+        }
+
+        .back .a {
+            transition: .18s
+        }
+
+        .back:hover .a {
+            transform: translateX(-3px)
+        }
+
+        .crumb {
+            margin-left: auto;
+            font-family: var(--mono);
+            font-size: .76rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-faint)
+        }
+
+        section {
+            padding: clamp(2.6rem, 6vw, 4.5rem) clamp(1.15rem, 5vw, 3rem)
+        }
+
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding-top: clamp(2.8rem, 7vw, 4.5rem)
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, var(--line) 1.4px, transparent 1.4px);
+            background-size: 26px 26px;
+            -webkit-mask-image: linear-gradient(180deg, #000, transparent 82%);
+            mask-image: linear-gradient(180deg, #000, transparent 82%);
+            opacity: .6;
+            pointer-events: none
+        }
+
+        .hero .wrap {
+            position: relative;
+            z-index: 1
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            font-family: var(--mono);
+            font-size: .76rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 1.1rem
+        }
+
+        .kicker .diff {
+            color: var(--hard);
+            background: #fdf1ef;
+            border: 1px solid #f6cfc8;
+            border-radius: 999px;
+            padding: .15rem .55rem;
+            letter-spacing: .06em
+        }
+
+        .hero h1 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: clamp(2rem, 6vw, 3.3rem);
+            line-height: 1.12;
+            letter-spacing: -.03em;
+            margin-bottom: 1rem;
+            max-width: 20ch
+        }
+
+        .hero .lead {
+            font-size: clamp(1rem, 2.3vw, 1.15rem);
+            color: var(--ink-soft);
+            max-width: 58ch;
+            margin-bottom: 2.2rem
+        }
+
+        .hero .lead b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* demo: guestbook */
+        .demo {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: clamp(1.4rem, 4vw, 2.2rem);
+            box-shadow: 0 24px 60px -40px rgba(43, 68, 199, .4)
+        }
+
+        .demo .demolabel {
+            font-family: var(--mono);
+            font-size: .74rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .demo .demolabel::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--easy);
+            box-shadow: 0 0 0 3px #d5f2e8
+        }
+
+        .gb-head {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1.15rem;
+            margin-bottom: 1rem;
+            color: var(--ink)
+        }
+
+        .live {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-family: var(--sans);
+            font-size: .72rem;
+            font-weight: 600;
+            color: var(--easy);
+            background: #effbf6;
+            border: 1px solid #bfe6d8;
+            border-radius: 999px;
+            padding: .15rem .55rem
+        }
+
+        .live .pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--easy);
+            animation: pulse 1.4s ease-in-out infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .35
+            }
+        }
+
+        .gb-feed {
+            display: grid;
+            gap: .6rem;
+            margin-bottom: 1.1rem;
+            max-height: 230px;
+            overflow-y: auto;
+            padding-right: .2rem
+        }
+
+        .gb-msg {
+            background: #f8f9fc;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            padding: .7rem .9rem
+        }
+
+        .gb-msg.fresh {
+            animation: slidein .5s ease;
+            border-color: var(--primary-soft);
+            background: #f2f4ff
+        }
+
+        @keyframes slidein {
+            from {
+                opacity: 0;
+                transform: translateY(-8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .gb-msg .meta {
+            display: flex;
+            align-items: baseline;
+            gap: .5rem;
+            margin-bottom: .2rem
+        }
+
+        .gb-msg .who {
+            font-weight: 700;
+            font-size: .9rem;
+            color: var(--ink)
+        }
+
+        .gb-msg .when {
+            font-size: .75rem;
+            color: var(--ink-faint);
+            font-family: var(--mono)
+        }
+
+        .gb-msg .body {
+            font-size: .94rem;
+            color: var(--ink-soft)
+        }
+
+        .gb-controls {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: .6rem;
+            align-items: center
+        }
+
+        @media(max-width:560px) {
+            .gb-controls {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .gb-controls input {
+            width: 100%;
+            font-family: var(--sans);
+            font-size: .92rem;
+            color: var(--ink);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: .6rem .75rem
+        }
+
+        .gb-controls input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft)
+        }
+
+        .gb-btn {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: .95rem;
+            color: #fff;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            padding: .7rem 1.2rem;
+            cursor: pointer;
+            transition: .18s;
+            white-space: nowrap
+        }
+
+        .gb-btn:hover {
+            background: #2036a8;
+            transform: translateY(-1px)
+        }
+
+        .demo-note {
+            font-size: .8rem;
+            color: var(--ink-faint);
+            margin-top: .8rem;
+            text-align: center
+        }
+
+        .stitle {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: clamp(1.5rem, 4vw, 2.1rem);
+            letter-spacing: -.02em;
+            margin-bottom: .7rem
+        }
+
+        .sintro {
+            font-size: 1.02rem;
+            color: var(--ink-soft);
+            max-width: 60ch;
+            margin-bottom: 2.2rem
+        }
+
+        .sintro b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        .steps {
+            display: grid;
+            gap: 1rem;
+            counter-reset: s
+        }
+
+        .step {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.3rem 1.4rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.1rem;
+            align-items: start
+        }
+
+        .step .sn {
+            counter-increment: s;
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            background: var(--primary);
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            flex: none
+        }
+
+        .step .sn::before {
+            content: counter(s)
+        }
+
+        .step h3 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1.12rem;
+            margin-bottom: .4rem;
+            letter-spacing: -.01em
+        }
+
+        .step p {
+            color: var(--ink-soft);
+            font-size: .96rem;
+            margin-bottom: .6rem;
+            line-height: 1.65
+        }
+
+        .step p:last-child {
+            margin-bottom: 0
+        }
+
+        .step b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        code {
+            font-family: var(--mono);
+            font-size: .85em;
+            background: var(--panel);
+            color: #3a4256;
+            padding: .1em .4em;
+            border-radius: 5px;
+            word-break: break-all
+        }
+
+        .prompt {
+            background: #1c2030;
+            border-radius: 12px;
+            margin: .7rem 0;
+            overflow: hidden;
+            border: 1px solid #2c3350
+        }
+
+        .prompt .phead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .6rem .9rem;
+            background: #252b40;
+            border-bottom: 1px solid #2c3350
+        }
+
+        .prompt .ptag {
+            font-family: var(--mono);
+            font-size: .72rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #9aa3c4
+        }
+
+        .copy-btn {
+            font-family: var(--sans);
+            font-size: .78rem;
+            font-weight: 600;
+            color: #cdd4ee;
+            background: #333a55;
+            border: 1px solid #444d70;
+            border-radius: 7px;
+            padding: .28rem .7rem;
+            cursor: pointer;
+            transition: .15s
+        }
+
+        .copy-btn:hover {
+            background: #3d4666;
+            color: #fff
+        }
+
+        .copy-btn.done {
+            background: var(--easy);
+            border-color: var(--easy);
+            color: #fff
+        }
+
+        .prompt pre {
+            margin: 0;
+            padding: 1rem .95rem;
+            font-family: var(--mono);
+            font-size: .85rem;
+            line-height: 1.7;
+            color: #e4e8f7;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .tip {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin-top: .6rem;
+            font-size: .92rem;
+            color: var(--ink-soft)
+        }
+
+        .tip b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        .warnbox {
+            background: #fdf2f0;
+            border: 1px solid #f2c4bc;
+            border-left: 4px solid var(--hard);
+            border-radius: 12px;
+            padding: 1.1rem 1.3rem;
+            margin-top: .7rem
+        }
+
+        .warnbox h4 {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1rem;
+            color: #c0402e;
+            margin-bottom: .4rem
+        }
+
+        .warnbox p {
+            font-size: .92rem;
+            color: var(--ink-soft);
+            margin-bottom: 0
+        }
+
+        .warnbox b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        .example-list {
+            display: grid;
+            gap: .5rem;
+            margin-top: .4rem
+        }
+
+        .example-list .ex {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: .55rem .8rem;
+            font-size: .9rem;
+            color: var(--ink)
+        }
+
+        .example-list .ex b {
+            font-weight: 700
+        }
+
+        .foot {
+            border-top: 1px solid var(--line);
+            padding: 2rem clamp(1.15rem, 5vw, 3rem);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .foot .backbtn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: .92rem;
+            color: var(--primary);
+            border: 1px solid var(--primary-soft);
+            background: var(--primary-soft);
+            border-radius: 10px;
+            padding: .6rem 1.1rem;
+            transition: .18s
+        }
+
+        .foot .backbtn:hover {
+            background: #dfe4fb
+        }
+
+        .foot .who {
+            font-size: .85rem;
+            color: var(--ink-faint)
+        }
+
+        .foot .who b {
+            color: var(--ink)
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .6s ease, transform .6s ease
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: none
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                scroll-behavior: auto
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none
+            }
+        }
+                /* ===== 링크 모음 박스 ===== */
+        .linkbox {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.3rem 1.4rem;
+            margin: 1.6rem 0;
+        }
+
+        .linkbox .lb-title {
+            font-family: var(--disp);
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -.01em;
+            margin-bottom: .3rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .linkbox .lb-desc {
+            font-size: .92rem;
+            color: var(--ink-soft);
+            margin-bottom: 1rem;
+        }
+
+        .linkbox .lb-list {
+            display: grid;
+            gap: .55rem;
+        }
+
+        .linkbox .lb-link {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            text-decoration: none;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: .7rem .9rem;
+            transition: .18s;
+        }
+
+        .linkbox .lb-link:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+            transform: translateY(-1px);
+        }
+
+        .linkbox .lb-link .ico {
+            flex: none;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+        }
+
+        .linkbox .lb-link .txt {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.4;
+        }
+
+        .linkbox .lb-link .lk-name {
+            font-weight: 700;
+            font-size: .95rem;
+            color: var(--ink);
+        }
+
+        .linkbox .lb-link .lk-sub {
+            font-size: .8rem;
+            color: var(--ink-faint);
+        }
+
+        .linkbox .lb-link .arr {
+            margin-left: auto;
+            color: var(--ink-faint);
+            transition: .18s;
+        }
+
+        .linkbox .lb-link:hover .arr {
+            color: var(--primary);
+            transform: translateX(3px);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <a class="back" href="index.html"><span class="a">←</span> 앱 만들기로 돌아가기</a>
+        <span class="crumb">방법 · 서비스형 앱</span>
+    </div>
+
+    <header class="hero">
+        <div class="wrap">
+            <span class="kicker">서비스형 앱 만들기 <span class="diff">난이도 중간 또는 어려움</span></span>
+            <h1>여럿이 실시간으로, 실시간 방명록</h1>
+            <p class="lead">여러 사람이 동시에 쓰고, 올린 글이 모두에게 바로 보이는 앱. 이건 <b>백엔드(Firebase)</b>가 필요해요. 단계는 많지만, 핵심은 하나 — <b>AI에게
+                    정확히 시키는 것</b>입니다. 오늘은 우리 반 ‘실시간 방명록’을 처음부터 배포까지 만들어봅니다.</p>
+
+            <div class="demo reveal">
+                <div class="demolabel">완성 예시 · 직접 글을 남겨보세요</div>
+                <div class="gb-head">📖 우리 반 방명록 <span class="live"><span class="pulse"></span>실시간</span></div>
+                <div class="gb-feed" id="feed">
+                    <div class="gb-msg">
+                        <div class="meta"><span class="who">서연</span><span class="when">방금</span></div>
+                        <div class="body">오늘 수업 진짜 재밌었어요!</div>
+                    </div>
+                    <div class="gb-msg">
+                        <div class="meta"><span class="who">지훈</span><span class="when">2분 전</span></div>
+                        <div class="body">다음에 또 만들어요 🙌</div>
+                    </div>
+                </div>
+                <div class="gb-controls">
+                    <input type="text" id="gbName" placeholder="이름" maxlength="10" />
+                    <input type="text" id="gbMsg" placeholder="한 줄 남기기" maxlength="60" />
+                    <button class="gb-btn" onclick="postMsg()">남기기</button>
+                </div>
+                <p class="demo-note">※ 이건 화면 미리보기예요. 실제로 만들면 다른 기기에서 열어도 서로 실시간으로 보입니다.</p>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="wrap reveal">
+                            <!-- ▼▼▼ 링크 박스 (상단) ▼▼▼ -->
+                <div class="linkbox reveal">
+
+                    <!-- ✏️ [글 쓸 위치 1] 박스 제목을 여기에 적으세요 -->
+                    <div class="lb-title">🔗 링크 모음</div>
+
+                    <!-- ✏️ [글 쓸 위치 2] 박스 설명을 여기에 적으세요 -->
+                    <p class="lb-desc">꼭 필요하거나, 있으면 좋은 링크들입니다.</p>
+
+                    <div class="lb-list">
+
+                        <!-- 🔗 [링크 넣는 위치] href="" 안에 주소를 넣으세요. 아래 블록을 복사해서 링크를 추가할 수 있어요 -->
+                        <a class="lb-link" href="https://firebase.google.com/?hl=ko" target="_blank" rel="noopener">
+                            <span class="ico">↗</span>
+                            <span class="txt">
+                                <span class="lk-name">파이어베이스</span>                        
+                            </span>
+                            <span class="arr">→</span>
+                        </a>
+
+                        <!-- 🔗 링크 추가 예시 (필요한 만큼 위 블록을 복사해서 붙여넣기) -->
+                        <a class="lb-link" href="https://antigravity.google/product/antigravity-ide" target="_blank" rel="noopener">
+                            <span class="ico">↗</span>
+                            <span class="txt">
+                                <span class="lk-name">안티그래비티 IDE 설치</span>
+                               
+                            </span>
+                            <span class="arr">→</span>
+                        </a>
+                        
+                         <!-- 🔗 링크 추가 예시 (필요한 만큼 위 블록을 복사해서 붙여넣기) -->
+                        <a class="lb-link" href="https://git-scm.com/" target="_blank" rel="noopener">
+                            <span class="ico">↗</span>
+                            <span class="txt">
+                                <span class="lk-name">Git — 내 컴퓨터에서 코드 변화를 기록하는 도구</span>
+                               
+                            </span>
+                            <span class="arr">→</span>
+                        </a>
+                        <!-- 🔗 링크 추가 예시 (필요한 만큼 위 블록을 복사해서 붙여넣기) -->
+                        <a class="lb-link" href="https://github.com/?locale=ko-kr" target="_blank" rel="noopener">
+                            <span class="ico">↗</span>
+                            <span class="txt">
+                                <span class="lk-name">GitHub- 그 기록을 인터넷에 올려두고, 다른 사람과 나누거나 웹사이트로 배포할 수 있는 서비스</span>
+                               
+                            </span>
+                            <span class="arr">→</span>
+                        </a>
+
+                    </div>
+                </div>
+                <!-- ▲▲▲ 링크 박스 (상단) 끝 ▲▲▲ -->
+
+            <h2 class="stitle">Firebase 방명록, 7단계</h2>
+            <p class="sintro">앞의 두 유형과 달리 <b>Firebase 콘솔에서 그릇(데이터베이스)을 먼저 만들고</b>, 그 열쇠(설정)를 AI에게 건네 앱을 짓게 합니다. 순서대로
+                따라오세요. 한 반, 하루 행사 정도는 <b>무료 등급(Spark)</b>으로 충분해요.</p>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>Firebase 프로젝트 만들기</h3>
+                        <p><code>console.firebase.google.com</code>에 구글 계정으로 접속해 <b>프로젝트 만들기</b>를 누릅니다. 이름을 짓고(예:
+                            <code>our-class</code>), 애널리틱스는 꺼도 됩니다. 이게 우리 앱의 ‘본부’예요.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>Firestore 데이터베이스 만들기</h3>
+                        <p>왼쪽 메뉴에서 <b>빌드 → Firestore Database → 데이터베이스 만들기</b>를 누릅니다. 위치는 가까운
+                            곳(<code>asia-northeast3</code>=서울)을 고르고, 시작 모드는 <b>테스트 모드</b>로 시작하세요.</p>
+                        <p>여기가 방명록 글이 실제로 쌓이는 ‘창고’입니다.</p>
+                        <div class="warnbox">
+                            <h4>⚠ 테스트 모드는 임시예요</h4>
+                            <p>테스트 모드는 <b>30일 뒤 잠기고</b>, 그 전엔 누구나 데이터를 읽고 지울 수 있어요. 6단계에서 <b>보안 규칙</b>을 꼭 설정합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>웹 앱 등록하고 ‘설정(config)’ 복사하기</h3>
+                        <p>프로젝트 개요 화면에서 <b>웹 아이콘(<code>&lt;/&gt;</code>)</b>을 클릭 → 앱 별명을 짓고 <b>앱 등록</b>을 누릅니다. 그러면
+                            <code>firebaseConfig</code>라는 코드 덩어리가 나와요. <b>이걸 통째로 복사</b>해 둡니다. AI에게 건넬 열쇠예요.</p>
+                        <div class="tip"><b>이 열쇠, 노출돼도 되나요?</b> — 네. config의 <code>apiKey</code>는 비밀번호가 아니라 ‘우리 프로젝트 주소’
+                            같은 거라, 화면 코드에 넣어 배포해도 됩니다. 대신 데이터를 지키는 일은 6단계 <b>보안 규칙</b>이 하니, 규칙 설정을 꼭 하세요.</div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>AI에게 앱을 만들어 달라고 요청하기</h3>
+                        <p>이제 핵심이에요. 아래 프롬프트를 복사하고, <b>마지막 줄에 3단계에서 복사한 <code>firebaseConfig</code>를 붙여넣어</b> Claude(또는
+                            쓰시는 생성형 AI)에게 보내세요.</p>
+                        <div class="prompt">
+                            <div class="phead">
+                                <span class="ptag">AI에게 보낼 요청 ①</span>
+                                <button class="copy-btn" data-target="p1" onclick="copyPrompt(this)">복사</button>
+                            </div>
+                            <pre id="p1">Firebase Firestore를 이용한 '실시간 방명록' 웹 앱을 HTML 파일 하나로 만들어줘.
+
+- 이름과 한 줄 메시지를 입력하고 '남기기' 버튼을 누르면 Firestore에 저장돼
+- 저장된 메시지가 최신순으로 화면에 실시간으로 나타나게 해줘 (onSnapshot 사용)
+- 각 메시지에 작성한 시간도 함께 보여줘
+- 휴대폰에서 보기 좋게 반응형으로, 깔끔하게 꾸며줘
+- Firebase 설정은 아래 값을 그대로 넣어줘:
+  (여기에 3단계에서 복사한 firebaseConfig 붙여넣기)
+- 전체를 index.html 하나에 담아, 복사해서 바로 쓸 수 있는 완성된 코드로 줘</pre>
+                        </div>
+                        <div class="tip"><b>팁 —</b> 원하는 게 더 있으면 줄을 추가하세요. “욕설·비속어가 들어간 글은 저장 안 되게”, “글자 색은 파스텔톤으로”처럼요.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>저장하고 확인하기</h3>
+                        <p>받은 코드를 <code>index.html</code>로 저장하고 더블클릭해 열어보세요. 방명록에 글을 남긴 뒤, <b>Firebase 콘솔의 Firestore 화면을
+                                새로고침</b>하면 방금 쓴 글이 창고에 쌓여 있을 거예요. 데이터가 보이면 성공입니다.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>보안 규칙도 AI에게 짜 달라고 하기 (가장 중요)</h3>
+                        <p>규칙 없이 두면 누군가 방명록을 통째로 지우거나 장난 글로 도배할 수 있어요. 규칙도 직접 짤 필요 없이, AI에게 시키면 됩니다.</p>
+                        <div class="prompt">
+                            <div class="phead">
+                                <span class="ptag">AI에게 보낼 요청 ②</span>
+                                <button class="copy-btn" data-target="p2" onclick="copyPrompt(this)">복사</button>
+                            </div>
+                            <pre id="p2">방금 만든 방명록 앱의 Firestore 보안 규칙을 짜줘.
+
+- 누구나 메시지를 읽고, 새 메시지를 쓸 수는 있게
+- 단, 이미 올라온 메시지는 아무도 수정하거나 삭제하지 못하게
+- 메시지 한 개의 길이는 200자로 제한
+
+Firestore 규칙 코드와, 콘솔 어디에 붙여넣고 게시하는지도 알려줘.</pre>
+                        </div>
+                        <p style="margin-top:.6rem">받은 규칙 코드를 <b>Firestore → 규칙 탭</b>에 붙여넣고 <b>게시</b>를 누르면 적용됩니다.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="sn"></span>
+                    <div>
+                        <h3>인터넷에 올리기 (배포)</h3>
+                        <p><code>index.html</code>이 든 폴더를 <b>Netlify Drop</b>에 끌어다 놓으면 링크가 생겨요. Firebase 콘솔의
+                            <b>Hosting</b>에 올려도 됩니다. 자세한 방법은 <b>메인의 ‘04 배포하기’</b>를 참고하세요.</p>
+                        <div class="warnbox">
+                            <h4>⚠ 공유 전 마지막 점검</h4>
+                            <p>학생들에게 링크를 뿌리기 전에 — <b>6단계 보안 규칙을 게시했는지</b> 꼭 확인하세요. 규칙이 테스트 모드 그대로면, 누구나 방명록을 지울 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                       
+    </section>
+
+    <div class="foot">
+        <a class="backbtn" href="index.html">← 앱 만들기로 돌아가기</a>
+        <span class="who"><b>김원희</b> · 길음중학교 AI활용 에듀테크 교원학습공동체</span>
+    </div>
+
+    <script>
+        // 방명록 데모 (미리보기 — 실제 저장 없음)
+        function postMsg() {
+            const name = document.getElementById('gbName').value.trim() || '익명';
+            const msg = document.getElementById('gbMsg').value.trim();
+            if (!msg) { document.getElementById('gbMsg').focus(); return; }
+            const feed = document.getElementById('feed');
+            const el = document.createElement('div');
+            el.className = 'gb-msg fresh';
+            el.innerHTML = '<div class="meta"><span class="who"></span><span class="when">방금</span></div><div class="body"></div>';
+            el.querySelector('.who').textContent = name;
+            el.querySelector('.body').textContent = msg;
+            feed.prepend(el);
+            document.getElementById('gbMsg').value = '';
+            document.getElementById('gbMsg').focus();
+        }
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && (e.target.id === 'gbMsg' || e.target.id === 'gbName')) postMsg();
+        });
+
+        // 프롬프트 복사 (여러 개 지원)
+        function copyPrompt(btn) {
+            const id = btn.getAttribute('data-target');
+            const text = document.getElementById(id).innerText;
+            const done = () => { btn.textContent = '복사됨!'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('done'); }, 1600); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+            } else { fallback(text, done); }
+        }
+        function fallback(text, done) {
+            const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { }
+            document.body.removeChild(ta);
+        }
+
+        const io = new IntersectionObserver((es) => { es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }) }, { threshold: .12 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    </script>
+</body>
+
+</html>
