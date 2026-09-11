@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RGB Sub-pixel Simulator</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for range inputs to ensure visibility across browsers */
+        input[type='range'] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type='range']::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #475569;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-top: -6px;
+        }
+        input[type='range']::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+        }
+        /* Custom accent for density slider */
+        .density-slider::-webkit-slider-runnable-track {
+            background: #3b82f6; /* Blue-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // Simple Inline SVG Icons to match the original Lucide icons
+        const IconSettings = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        );
+        const IconMaximize = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        );
+        const IconInfo = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        );
+        const IconPalette = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.76-.74 1.76-1.67 0-.44-.18-.84-.48-1.15-.3-.3-.48-.72-.48-1.18 0-.92.75-1.67 1.67-1.67h1.53c4.42 0 8-3.58 8-8 0-4.42-3.58-8-8-8z"/></svg>
+        );
+
+        const App = () => {
+            const [rgb, setRgb] = useState({ r: 255, g: 255, b: 255 });
+            const [density, setDensity] = useState(10);
+            const [showBorders, setShowBorders] = useState(true);
+
+            const handleRgbChange = (color, value) => {
+                setRgb((prev) => ({ ...prev, [color]: parseInt(value) }));
+            };
+
+            const combinedColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            const gridContainerSize = 400; 
+            const pixelSize = gridContainerSize / density;
+
+            // Sub-pixel grid generation logic
+            const pixels = useMemo(() => {
+                const total = density * density;
+                const items = [];
+                for (let i = 0; i < total; i++) {
+                    items.push(
+                        <div key={i} className="flex overflow-hidden" style={{ 
+                            width: `${pixelSize}px`, 
+                            height: `${pixelSize}px`,
+                            outline: showBorders ? '1px solid rgba(0,0,0,0.1)' : 'none'
+                        }}>
+                            <div className="h-full flex-1" style={{ backgroundColor: `rgb(${rgb.r}, 0, 0)` }} />
+                            <div className="h-full flex-1" style={{ backgroundColor: `rgb(0, ${rgb.g}, 0)` }} />
+                            <div className="h-full flex-1" style={{ backgroundColor: `rgb(0, 0, ${rgb.b})` }} />
+                        </div>
+                    );
+                }
+                return items;
+            }, [density, rgb, showBorders, pixelSize]);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    <header className="mb-8 text-center">
+                        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+                            <IconPalette />
+                            RGB 서브픽셀 시뮬레이터
+                        </h1>
+                        <p className="text-slate-500">화면의 픽셀이 어떻게 색을 조합하는지 시각적으로 확인해보세요.</p>
+                    </header>
+
+                    <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        
+                        {/* Controls Section */}
+                        <div className="lg:col-span-4 space-y-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="space-y-4">
+                                <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2">
+                                    <IconSettings /> 빛의 세기 조절
+                                </h2>
+                                
+                                {['r', 'g', 'b'].map((color) => (
+                                    <div key={color} className="space-y-2">
+                                        <div className="flex justify-between items-center capitalize">
+                                            <label className="font-medium text-sm">
+                                                {color === 'r' ? 'Red (빨강)' : color === 'g' ? 'Green (초록)' : 'Blue (파랑)'}
+                                            </label>
+                                            <span className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">{rgb[color]}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="255"
+                                            value={rgb[color]}
+                                            onChange={(e) => handleRgbChange(color, e.target.value)}
+                                            className="w-full h-2 rounded-lg"
+                                            style={{
+                                                background: `linear-gradient(to right, black, ${color === 'r' ? 'red' : color === 'g' ? '#00ff00' : 'blue'})`
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-4 pt-4">
+                                <h2 className="text-lg font-semibold flex items-center gap-2 border-b pb-2">
+                                    <IconMaximize /> 그리드 설정
+                                </h2>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <label className="font-medium text-sm">해상도 (밀도)</label>
+                                        <span className="font-mono bg-slate-100 px-2 py-1 rounded text-xs">{density} x {density}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="2"
+                                        max="50"
+                                        value={density}
+                                        onChange={(e) => setDensity(parseInt(e.target.value))}
+                                        className="w-full h-2 density-slider rounded-lg"
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">밀도가 높아질수록 서브픽셀들이 하나의 색으로 섞여 보입니다. (최대 50)</p>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-2">
+                                    <input 
+                                        type="checkbox" 
+                                        id="border-toggle" 
+                                        checked={showBorders} 
+                                        onChange={(e) => setShowBorders(e.target.checked)}
+                                        className="w-4 h-4 rounded text-blue-600 cursor-pointer"
+                                    />
+                                    <label htmlFor="border-toggle" className="text-sm font-medium cursor-pointer">픽셀 경계 표시</label>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t">
+                                <h3 className="text-sm font-semibold mb-2">혼합된 결과 색상:</h3>
+                                <div 
+                                    className="w-full h-16 rounded-xl shadow-inner border border-slate-200 flex items-center justify-center text-white font-bold text-lg"
+                                    style={{ backgroundColor: combinedColor, textShadow: '0px 1px 3px rgba(0,0,0,0.4)' }}
+                                >
+                                    {combinedColor}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Display Section */}
+                        <div className="lg:col-span-8 flex flex-col items-center space-y-6">
+                            <div className="bg-black p-4 rounded-3xl shadow-2xl border-8 border-slate-800">
+                                <div 
+                                    className="grid overflow-hidden bg-black"
+                                    style={{ 
+                                        width: `${gridContainerSize}px`, 
+                                        height: `${gridContainerSize}px`,
+                                        gridTemplateColumns: `repeat(${density}, 1fr)`
+                                    }}
+                                >
+                                    {pixels}
+                                </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 max-w-md">
+                                <h3 className="text-blue-800 font-bold flex items-center gap-2 mb-2">
+                                    <IconInfo /> 관찰 포인트
+                                </h3>
+                                <ul className="text-sm text-blue-700 space-y-2 list-disc pl-4">
+                                    <li>밀도를 <b>높이면(100에 가깝게)</b> 개별 색상이 너무 작아져서 우리 뇌는 이를 하단의 혼합 색상과 똑같이 인식합니다.</li>
+                                    <li>이것을 <b>가산 혼합(Additive Color Mixing)</b>이라고 합니다.</li>
+                                    <li>픽셀 경계를 끄면 훨씬 더 실제 화면 같은 느낌을 받을 수 있습니다.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
