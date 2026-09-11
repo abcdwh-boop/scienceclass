@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 두근두근 발표자 뽑기 🎰</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            /* 밝고 명랑한 그라데이션 배경 */
+            background: linear-gradient(135deg, #fef08a 0%, #fbcfe8 50%, #bfdbfe 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 10s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 슬롯머신 본체 입체감 스타일 */
+        .machine-body {
+            box-shadow: 
+                inset -5px -5px 15px rgba(0,0,0,0.2),
+                inset 5px 5px 15px rgba(255,255,255,0.7),
+                10px 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* 슬롯 창 스타일 (돌아가는 곳) */
+        .slot-window {
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 크고 귀여운 버튼 스타일 */
+        .spin-btn {
+            transition: all 0.1s;
+            box-shadow: 0 8px 0 #b91c1c, 0 15px 20px rgba(0,0,0,0.3);
+        }
+        
+        .spin-btn:active, .spin-btn.active-sim {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #b91c1c, 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* 슬롯 심볼 애니메이션용 */
+        .blur-text {
+            filter: blur(2px);
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        .pop-text {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full flex flex-col items-center gap-8">
+        
+        <!-- 제목 -->
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold text-pink-500 drop-shadow-md mb-2">
+                🎉 발표자를 뽑아라! 🎰
+            </h1>
+            <p class="text-xl text-gray-700">숫자 3개가 일치하면 당첨!</p>
+        </div>
+
+        <!-- 슬롯머신 UI -->
+        <div class="machine-body bg-white rounded-3xl p-6 md:p-10 border-8 border-pink-400 w-full relative">
+            
+            <!-- 인원 설정 -->
+            <div class="flex items-center justify-center gap-3 mb-8 bg-pink-50 p-4 rounded-2xl border-2 border-pink-200">
+                <label for="maxNumber" class="text-2xl text-pink-600">발표 인원 : </label>
+                <div class="flex items-center">
+                    <span class="text-2xl text-gray-600 mr-2">1 ~ </span>
+                    <input type="number" id="maxNumber" value="30" min="2" max="100" 
+                           class="w-24 text-center text-2xl p-2 rounded-xl border-2 border-pink-300 focus:outline-none focus:border-pink-500 bg-white">
+                    <span class="text-2xl text-gray-600 ml-2">번</span>
+                </div>
+            </div>
+            
+            <div id="errorMessage" class="text-red-500 text-center text-lg mb-4 hidden">
+                ⚠️ 인원수를 2 이상으로 정확히 입력해주세요!
+            </div>
+
+            <!-- 슬롯 3개 -->
+            <div class="flex justify-center gap-4 md:gap-6 mb-8">
+                <div class="slot-window bg-gray-50 w-24 h-32 md:w-32 md:h-40 rounded-2xl border-4 border-gray-300 flex items-center justify-center overflow-hidden">
+                    <span id="slot1" class="text-6xl md:text-7xl font-bold">🍌</span>
+                </div>
+                <div class="slot-window bg-gray-50 w-24 h-32 md:w-32 md:h-40 rounded-2xl border-4 border-gray-300 flex items-center justify-center overflow-hidden">
+                    <span id="slot2" class="text-6xl md:text-7xl font-bold">🐰</span>
+                </div>
+                <div class="slot-window bg-gray-50 w-24 h-32 md:w-32 md:h-40 rounded-2xl border-4 border-gray-300 flex items-center justify-center overflow-hidden">
+                    <span id="slot3" class="text-6xl md:text-7xl font-bold">🍓</span>
+                </div>
+            </div>
+
+            <!-- 결과 메시지 -->
+            <div class="text-center h-16 flex items-center justify-center">
+                <h2 id="resultText" class="text-3xl md:text-4xl text-gray-500 transition-colors duration-300">
+                    레버를 눌러주세요! 🕹️
+                </h2>
+            </div>
+        </div>
+
+        <!-- 당기기(스핀) 버튼 -->
+        <button id="spinBtn" class="spin-btn bg-red-500 hover:bg-red-400 text-white text-4xl md:text-5xl font-bold py-6 px-16 rounded-full border-4 border-red-700 cursor-pointer w-64 md:w-80">
+            당기기! ✨
+        </button>
+
+    </div>
+
+    <script>
+        // 요소 가져오기
+        const slot1 = document.getElementById('slot1');
+        const slot2 = document.getElementById('slot2');
+        const slot3 = document.getElementById('slot3');
+        const spinBtn = document.getElementById('spinBtn');
+        const resultText = document.getElementById('resultText');
+        const maxNumberInput = document.getElementById('maxNumber');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        let isSpinning = false;
+        
+        // 귀여운 동물 및 과일 이모지 모음
+        const cuteExtras = ['🍌', '🍎', '🍓', '🍇', '🍒', '🍉', '🐶', '🐱', '🐰', '🐻', '🐼', '🐹', '🦊', '🐸', '🐷', '🐥', '🦄'];
+
+        // 랜덤 심볼 가져오기 (숫자 혹은 이모지)
+        function getRandomSymbol(maxNum) {
+            // 50% 확률로 숫자, 50% 확률로 이모지 등장
+            if (Math.random() < 0.5) {
+                return Math.floor(Math.random() * maxNum) + 1;
+            } else {
+                return cuteExtras[Math.floor(Math.random() * cuteExtras.length)];
+            }
+        }
+
+        // 스핀 시작 함수
+        function startSpin() {
+            if (isSpinning) return; // 이미 돌아가고 있으면 무시
+
+            const maxNum = parseInt(maxNumberInput.value);
+            
+            // 입력값 검증
+            if (isNaN(maxNum) || maxNum < 2) {
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            errorMessage.classList.add('hidden');
+
+            isSpinning = true;
+            spinBtn.classList.add('active-sim', 'opacity-70', 'cursor-not-allowed');
+            setTimeout(() => spinBtn.classList.remove('active-sim'), 150);
+
+            // UI 초기화
+            resultText.innerText = "두르르르르...";
+            resultText.className = "text-3xl md:text-4xl text-gray-500 animate-pulse";
+            [slot1, slot2, slot3].forEach(slot => {
+                slot.classList.remove('pop-text', 'text-pink-600');
+                slot.classList.add('blur-text', 'text-gray-800');
+            });
+
+            /* 
+             * 핵심 로직: 1/4 확률로 당첨(잭팟) 설정
+             */
+            const isJackpot = Math.random() < 0.25; 
+            let finalResults = [];
+
+            if (isJackpot) {
+                // 당첨인 경우: 1~maxNum 사이의 랜덤 숫자 하나를 골라 3개 모두 통일
+                const winNumber = Math.floor(Math.random() * maxNum) + 1;
+                finalResults = [winNumber, winNumber, winNumber];
+            } else {
+                // 꽝인 경우: 각각 랜덤하게 생성
+                finalResults = [getRandomSymbol(maxNum), getRandomSymbol(maxNum), getRandomSymbol(maxNum)];
+                
+                // 혹시라도 꽝인데 3개 숫자가 우연히 일치하는 것을 방지
+                if (finalResults[0] === finalResults[1] && finalResults[1] === finalResults[2] && typeof finalResults[0] === 'number') {
+                    // 마지막 결과를 무조건 귀여운 이모지로 변경하여 당첨을 취소함
+                    finalResults[2] = cuteExtras[Math.floor(Math.random() * cuteExtras.length)];
+                }
+            }
+
+            // 빠르게 심볼이 바뀌는 효과 설정
+            const intervalTime = 50; 
+            const slots = [slot1, slot2, slot3];
+            const intervals = [];
+
+            slots.forEach((slot, index) => {
+                intervals[index] = setInterval(() => {
+                    slot.innerText = getRandomSymbol(maxNum);
+                }, intervalTime);
+            });
+
+            // 순차적으로 멈추기 (1초, 2초, 3초)
+            setTimeout(() => stopSlot(0, intervals, slots, finalResults), 1000);
+            setTimeout(() => stopSlot(1, intervals, slots, finalResults), 1800);
+            setTimeout(() => {
+                stopSlot(2, intervals, slots, finalResults);
+                finishSpin(isJackpot, finalResults[0]);
+            }, 2600);
+        }
+
+        // 개별 슬롯 정지 함수
+        function stopSlot(index, intervals, slots, finalResults) {
+            clearInterval(intervals[index]);
+            const slot = slots[index];
+            slot.innerText = finalResults[index];
+            slot.classList.remove('blur-text');
+            slot.classList.add('pop-text'); // 통통 튀는 애니메이션
+            
+            // 만약 숫자가 나왔다면 색상을 핑크색으로 강조
+            if(typeof finalResults[index] === 'number') {
+                slot.classList.add('text-pink-600');
+            }
+        }
+
+        // 스핀 완전 종료 및 결과 판정
+        function finishSpin(isJackpot, winNumber) {
+            isSpinning = false;
+            spinBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+
+            if (isJackpot) {
+                // 당첨!
+                resultText.innerHTML = `🎉 대박! <span class="text-pink-600 font-bold text-5xl">${winNumber}번</span> 당첨! 🎉`;
+                resultText.className = "text-3xl md:text-4xl text-blue-600 animate-bounce font-bold";
+                
+                // 폭죽 이펙트 발사
+                fireConfetti();
+            } else {
+                // 꽝
+                resultText.innerText = "아쉽네요! 다시 한 번 당겨보세요! 😅";
+                resultText.className = "text-3xl md:text-4xl text-red-500";
+            }
+        }
+
+        function fireConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                confetti(Object.assign({}, defaults, { particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
+        }
+
+        // 이벤트 리스너 등록
+        spinBtn.addEventListener('click', startSpin);
+
+    </script>
+</body>
+</html>
