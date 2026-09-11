@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LASER REFRACTION — 거울과 물의 방</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a12;
+    --panel: #0f0f1a;
+    --border: #1a1a2e;
+    --accent: #00f5ff;
+    --accent2: #ff006e;
+    --gold: #ffd700;
+    --green: #00ff88;
+    --wall: #1e2a3a;
+    --mirror: #4a9eff;
+    --laser: #ff3333;
+    --guide: rgba(255, 200, 50, 0.5);
+    --text: #e0e8ff;
+    --dim: #4a5568;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    padding: 12px 8px 20px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(0.9rem, 4vw, 1.6rem);
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--accent), 0 0 40px rgba(0,245,255,0.3);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    margin-bottom: 10px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ── 레이아웃: 데스크탑은 가로, 모바일은 세로 ── */
+  .game-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 780px;
+  }
+
+  /* 모바일: 세로 스택 */
+  @media (max-width: 680px) {
+    .game-wrapper {
+      flex-direction: column;
+      align-items: center;
+    }
+    .left-panel, .right-panel {
+      width: 100% !important;
+      max-width: 400px;
+      flex-direction: row !important;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .left-panel .panel-box,
+    .right-panel .panel-box {
+      flex: 1 1 140px;
+      min-width: 120px;
+    }
+    .right-panel {
+      height: auto !important;
+      justify-content: flex-start !important;
+    }
+    /* 점수 박스 전체 너비 */
+    .score-box {
+      flex: 1 1 100% !important;
+    }
+    /* 히트 로그 숨김 (모바일 공간 부족) */
+    .hit-log-box {
+      display: none;
+    }
+    .fire-btn {
+      flex: 1 1 100% !important;
+    }
+    .restart-btn-wrap {
+      flex: 1 1 100% !important;
+    }
+  }
+
+  /* ── 패널 공통 ── */
+  .left-panel {
+    width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .right-panel {
+    width: 145px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .panel-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .panel-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  /* Energy bar */
+  .energy-bar-wrap {
+    height: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .energy-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), #ff6b9d);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    position: relative;
+  }
+  .energy-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 2px;
+  }
+  .energy-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    color: var(--accent2);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* Angle */
+  .angle-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--gold);
+    text-align: center;
+    text-shadow: 0 0 10px var(--gold);
+    margin-bottom: 6px;
+  }
+  .angle-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .angle-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--gold);
+  }
+
+  /* Difficulty */
+  .diff-btns { display: flex; gap: 4px; }
+  .diff-btn {
+    flex: 1;
+    padding: 6px 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    min-height: 36px;
+  }
+  .diff-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .diff-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+  .diff-btn.active.hard { background: var(--accent2); border-color: var(--accent2); }
+  .diff-btn.active.mid { background: var(--gold); border-color: var(--gold); }
+
+  /* Guide toggle */
+  .guide-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--border);
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--accent); box-shadow: 0 0 8px rgba(0,245,255,0.4); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    top: 2px; left: 2px;
+    transition: left 0.2s;
+  }
+  .toggle-switch.on::after { left: 18px; }
+  .toggle-label { font-size: 0.72rem; color: var(--text); }
+  .bonus-notice {
+    font-size: 0.62rem;
+    color: var(--gold);
+    margin-top: 4px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .bonus-notice.show { opacity: 1; }
+
+  /* Buttons */
+  .fire-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #8b0000, #cc0000);
+    border: 1px solid #ff3333;
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+    text-shadow: 0 0 10px rgba(255,100,100,0.8);
+    min-height: 46px;
+  }
+  .fire-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #cc0000, #ff3333);
+    box-shadow: 0 0 25px rgba(255,50,50,0.5);
+  }
+  .fire-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .restart-btn {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    min-height: 38px;
+  }
+  .restart-btn:hover { background: rgba(0,245,255,0.1); }
+
+  /* Score */
+  .score-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .score-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .score-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.25em;
+    color: var(--dim);
+    margin-bottom: 2px;
+  }
+  .score-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--gold), 0 0 40px rgba(255,215,0,0.3);
+    line-height: 1;
+    transition: transform 0.1s;
+  }
+  .score-value.pop { animation: scorePop 0.4s ease; }
+  @keyframes scorePop {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  .score-add {
+    position: absolute;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--green);
+    text-shadow: 0 0 10px var(--green);
+    pointer-events: none;
+    animation: floatUp 1s ease forwards;
+    font-weight: 700;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(1.4); }
+  }
+
+  .hits-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    color: var(--green);
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+  .wave-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    color: var(--accent);
+    text-align: center;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+
+  /* Hit log */
+  .hit-log {
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .hit-log::-webkit-scrollbar { width: 3px; }
+  .hit-log::-webkit-scrollbar-track { background: transparent; }
+  .hit-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .hit-entry {
+    font-size: 0.68rem;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .hit-entry .pts {
+    color: var(--gold);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+  }
+
+  .disabled-setting { opacity: 0.5; pointer-events: none; }
+
+  /* ── Canvas wrap ── */
+  .canvas-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  #gameCanvas {
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: #080810;
+    display: block;
+    box-shadow: 0 0 30px rgba(0,245,255,0.08), inset 0 0 50px rgba(0,0,0,0.5);
+    /* 캔버스는 JS에서 동적으로 크기 설정 */
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8,8,16,0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    z-index: 10;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--accent2);
+    text-shadow: 0 0 20px var(--accent2);
+    letter-spacing: 0.2em;
+    text-align: center;
+  }
+  .overlay .final-score {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px var(--gold);
+  }
+  .overlay p {
+    font-size: 0.82rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  .bonus-flash {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+  }
+  .bonus-flash.active { animation: bonusFlash 0.8s ease; }
+  @keyframes bonusFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bonus-flash" id="bonusFlash"></div>
+
+<h1>LASER REFRACTION</h1>
+<div class="subtitle">거울과 물의 방 · Mirror &amp; Water Chamber</div>
+
+<div class="game-wrapper" id="gameWrapper">
+  <!-- LEFT PANEL -->
+  <div class="left-panel" id="leftPanel">
+
+    <div class="panel-box">
+      <div class="panel-label">⚡ ENERGY</div>
+      <div class="energy-bar-wrap">
+        <div class="energy-bar-fill" id="energyFill" style="width:100%"></div>
+      </div>
+      <div class="energy-text" id="energyText">30 / 30</div>
+    </div>
+
+    <div class="panel-box" id="diffContainer">
+      <div class="panel-label">⚙ DIFFICULTY</div>
+      <div class="diff-btns">
+        <button class="diff-btn active" id="diffEasy" onclick="setDifficulty('easy')">하</button>
+        <button class="diff-btn mid" id="diffMid" onclick="setDifficulty('mid')">중</button>
+        <button class="diff-btn hard" id="diffHard" onclick="setDifficulty('hard')">상</button>
+      </div>
+    </div>
+
+    <div class="panel-box" id="guideContainer">
+      <div class="panel-label">💡 GUIDE LINE</div>
+      <div class="guide-toggle" onclick="toggleGuide()">
+        <div class="toggle-switch on" id="guideToggle"></div>
+        <span class="toggle-label" id="guideLabel">가이드 ON</span>
+      </div>
+      <div class="bonus-notice" id="bonusNotice">★ 2배 점수 모드!</div>
+    </div>
+
+    <div class="restart-btn-wrap">
+      <button class="restart-btn" onclick="restartGame()">↺ NEW GAME</button>
+    </div>
+
+  </div>
+
+  <!-- CANVAS -->
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="gameCanvas"></canvas>
+    <div class="overlay hidden" id="gameOverOverlay">
+      <h2>GAME OVER</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <p>에너지 소진</p>
+      <button class="restart-btn" style="width:140px" onclick="restartGame()">↺ 다시 시작</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel" id="rightPanel">
+
+    <div class="score-box">
+      <div class="score-label">SCORE</div>
+      <div class="score-value" id="scoreDisplay">0</div>
+      <div class="hits-display" id="hitsDisplay">HITS: 0</div>
+      <div class="wave-display" id="waveDisplay">WAVE 1</div>
+    </div>
+
+    <div class="panel-box hit-log-box" style="padding: 8px;">
+      <div class="panel-label">📋 HIT LOG</div>
+      <div class="hit-log" id="hitLog"></div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-label">🎯 ANGLE</div>
+      <div class="angle-display" id="angleDisplay">170°</div>
+      <input type="range" class="angle-slider" id="angleSlider" min="100" max="240" value="170">
+    </div>
+
+    <button class="fire-btn" id="fireBtn" onclick="fireLaser()">▶ FIRE</button>
+
+  </div>
+
+</div>
+
+<script>
+// ── 반응형 캔버스 크기 계산 ──────────────────────────────
+const CANVAS_ASPECT = 340 / 620; // 원본 비율 유지
+
+function calcCanvasSize() {
+  const isMobile = window.innerWidth <= 680;
+  if (isMobile) {
+    // 모바일: 화면 너비 - 양 여백(16px)에서 최대 400px
+    const available = Math.min(window.innerWidth - 16, 400);
+    const cw = available;
+    const ch = Math.round(cw / CANVAS_ASPECT);
+    return { cw, ch };
+  } else {
+    // 데스크탑: 원본 크기 유지
+    return { cw: 340, ch: 620 };
+  }
+}
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let W, H, ROOM, WATER_Y, gun;
+
+function initLayout() {
+  const { cw, ch } = calcCanvasSize();
+  W = cw; H = ch;
+  canvas.width = W;
+  canvas.height = H;
+
+  ROOM = {
+    x: 10, y: 10,
+    w: W - 20, h: H - 20,
+    entranceY: 10,
+    entranceBottom: 10 + (H - 20) * 0.2,
+    entranceX: W - 10,
+  };
+
+  WATER_Y = ROOM.y + ROOM.h * (3/7);
+
+  gun = {
+    x: ROOM.x + ROOM.w - 10,
+    y: ROOM.entranceY + (ROOM.entranceBottom - ROOM.entranceY) / 2,
+    angle: currentAngle,
+  };
+}
+
+// ── 게임 상태 ──────────────────────────────────────────
+let score = 0;
+let totalHits = 0;
+let wave = 1;
+let energy = 30;
+let maxEnergy = 30;
+let guideOn = true;
+let difficulty = 'easy';
+let dolls = [];
+let pillars = [];
+let laserPath = [];
+let isFiring = false;
+let animFrame = null;
+let gameOver = false;
+let currentAngle = 170 * Math.PI / 180;
+
+const WATER_REFRACTION_INDEX = 1.3;
+
+// Angle slider
+const slider = document.getElementById('angleSlider');
+slider.addEventListener('input', () => {
+  const deg = parseInt(slider.value);
+  currentAngle = deg * Math.PI / 180;
+  if (gun) gun.angle = currentAngle;
+  document.getElementById('angleDisplay').textContent = deg + '°';
+  render();
+});
+
+function setDifficulty(d) {
+  if (energy < maxEnergy) return;
+  difficulty = d;
+  document.getElementById('diffEasy').classList.toggle('active', d === 'easy');
+  document.getElementById('diffMid').classList.toggle('active', d === 'mid');
+  document.getElementById('diffHard').classList.toggle('active', d === 'hard');
+  initDolls();
+  initPillars();
+  render();
+}
+
+function toggleGuide() {
+  if (energy < maxEnergy) return;
+  guideOn = !guideOn;
+  const tog = document.getElementById('guideToggle');
+  const lbl = document.getElementById('guideLabel');
+  const notice = document.getElementById('bonusNotice');
+  const flash = document.getElementById('bonusFlash');
+  tog.classList.toggle('on', guideOn);
+  lbl.textContent = guideOn ? '가이드 ON' : '가이드 OFF';
+  notice.classList.toggle('show', !guideOn);
+  if (!guideOn) {
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 800);
+  }
+  render();
+}
+
+function getDollScoreDistribution() {
+  if (difficulty === 'easy')  return [1,1,1,2,2,2,3,3,4,5];
+  if (difficulty === 'mid')   return [1,2,2,3,3,4,4,5,5,5];
+  if (difficulty === 'hard')  return [2,3,3,4,4,5,5,5,5,5];
+}
+
+function initDolls() {
+  const scores = getDollScoreDistribution();
+  const waterH = ROOM.h * (4/7);
+  const topArea = {
+    x: ROOM.x + 30, y: WATER_Y + 20,
+    w: ROOM.w - 60, h: waterH - 40
+  };
+  dolls = [];
+  let placed = 0, tries = 0;
+  while (placed < 10 && tries < 200) {
+    tries++;
+    const px = topArea.x + Math.random() * topArea.w;
+    const py = topArea.y + Math.random() * topArea.h;
+    let ok = true;
+    for (const d of dolls) {
+      if (Math.hypot(d.x - px, d.y - py) < 36) { ok = false; break; }
+    }
+    for (const p of pillars) {
+      if (Math.abs(p.x - px) < p.size + 22 && Math.abs(p.y - py) < p.size + 22) { ok = false; break; }
+    }
+    if (ok) {
+      dolls.push({ x: px, y: py, score: scores[placed], hit: false, id: placed, hitAnim: 0 });
+      placed++;
+    }
+  }
+}
+
+function initPillars() {
+  pillars = [];
+  let count = difficulty === 'easy' ? 0 : difficulty === 'mid' ? 1 : 3;
+  const sz = 22;
+  let tries = 0;
+  while (pillars.length < count && tries < 300) {
+    tries++;
+    const px = ROOM.x + 30 + Math.random() * (ROOM.w - 60);
+    const py = ROOM.y + 30 + Math.random() * (ROOM.h - 60);
+    let ok = true;
+    for (const p of pillars) {
+      if (Math.hypot(p.x - px, p.y - py) < sz * 3) { ok = false; break; }
+    }
+    if (px > ROOM.x + ROOM.w * 0.6 && py < ROOM.entranceBottom + 40) ok = false;
+    if (ok) pillars.push({ x: px, y: py, size: sz });
+  }
+}
+
+function castLaser(ox, oy, dx, dy, bounces, maxBounces) {
+  const path = [{ x: ox, y: oy }];
+  let cx = ox, cy = oy;
+  let cdx = dx, cdy = dy;
+  for (let b = 0; b <= maxBounces; b++) {
+    let minT = 5000;
+    let hitNX = 0, hitNY = 0;
+    let hitType = null;
+    if (cdx < 0) {
+      const t = (ROOM.x - cx) / cdx;
+      const iy = cy + t * cdy;
+      if (t > 0.001 && iy >= ROOM.y && iy <= ROOM.h + ROOM.y && t < minT) {
+        minT = t; hitNX = 1; hitNY = 0; hitType = 'wall';
+      }
+    }
+    if (cdx > 0) {
+      const t = (ROOM.x + ROOM.w - cx) / cdx;
+      const iy = cy + t * cdy;
+      if (t > 0.001) {
+        const inEntrance = iy >= ROOM.entranceY && iy <= ROOM.entranceBottom;
+        if (!inEntrance && iy >= ROOM.y && iy <= ROOM.h + ROOM.y && t < minT) {
+          minT = t; hitNX = -1; hitNY = 0; hitType = 'wall';
+        } else if (inEntrance && t < minT) {
+          minT = t; hitType = 'exit';
+        }
+      }
+    }
+    if (cdy < 0) {
+      const t = (ROOM.y - cy) / cdy;
+      const ix = cx + t * cdx;
+      if (t > 0.001 && ix >= ROOM.x && ix <= ROOM.x + ROOM.w && t < minT) {
+        minT = t; hitNX = 0; hitNY = 1; hitType = 'wall';
+      }
+    }
+    if (cdy > 0) {
+      const t = (ROOM.y + ROOM.h - cy) / cdy;
+      const ix = cx + t * cdx;
+      if (t > 0.001 && ix >= ROOM.x && ix <= ROOM.x + ROOM.w && t < minT) {
+        minT = t; hitNX = 0; hitNY = -1; hitType = 'wall';
+      }
+    }
+    for (const p of pillars) {
+      const px1 = p.x - p.size/2, px2 = p.x + p.size/2;
+      const py1 = p.y - p.size/2, py2 = p.y + p.size/2;
+      const txMin = cdx !== 0 ? (px1 - cx) / cdx : -Infinity;
+      const txMax = cdx !== 0 ? (px2 - cx) / cdx : Infinity;
+      const tyMin = cdy !== 0 ? (py1 - cy) / cdy : -Infinity;
+      const tyMax = cdy !== 0 ? (py2 - cy) / cdy : Infinity;
+      const tEnter = Math.max(Math.min(txMin, txMax), Math.min(tyMin, tyMax));
+      const tLeave = Math.min(Math.max(txMin, txMax), Math.max(tyMin, tyMax));
+      if (tEnter < tLeave && tEnter > 0.001 && tEnter < minT) {
+        minT = tEnter; hitType = 'pillar';
+        const ix = cx + tEnter * cdx;
+        const iy = cy + tEnter * cdy;
+        const epx = ix - p.x, epy = iy - p.y;
+        if (Math.abs(epx / (p.size/2)) > Math.abs(epy / (p.size/2))) {
+          hitNX = epx > 0 ? 1 : -1; hitNY = 0;
+        } else {
+          hitNX = 0; hitNY = epy > 0 ? 1 : -1;
+        }
+      }
+    }
+    if (cdy !== 0) {
+      const t = (WATER_Y - cy) / cdy;
+      const ix = cx + t * cdx;
+      if (t > 0.001 && ix >= ROOM.x && ix <= ROOM.x + ROOM.w && t < minT) {
+        minT = t; hitType = 'water'; hitNX = 0; hitNY = cdy > 0 ? -1 : 1;
+      }
+    }
+    const nx = cx + minT * cdx;
+    const ny = cy + minT * cdy;
+    path.push({ x: nx, y: ny });
+    if (hitType === 'exit' || hitType === null) break;
+    if (b >= maxBounces) break;
+    if (hitType === 'water') {
+      const n1 = cdy > 0 ? 1.0 : WATER_REFRACTION_INDEX;
+      const n2 = cdy > 0 ? WATER_REFRACTION_INDEX : 1.0;
+      const eta = n1 / n2;
+      const cos1 = -cdy * hitNY;
+      const sin2_sq = eta * eta * (1 - cos1 * cos1);
+      if (sin2_sq > 1.0) {
+        cdy = -cdy;
+      } else {
+        const cos2 = Math.sqrt(1 - sin2_sq);
+        const mult = eta * cos1 - cos2;
+        cdx = eta * cdx;
+        cdy = eta * cdy + mult * hitNY;
+        const len = Math.hypot(cdx, cdy);
+        cdx /= len; cdy /= len;
+      }
+    } else {
+      const dot = cdx * hitNX + cdy * hitNY;
+      cdx = cdx - 2 * dot * hitNX;
+      cdy = cdy - 2 * dot * hitNY;
+    }
+    cx = nx; cy = ny;
+  }
+  return path;
+}
+
+function checkDollHits(path) {
+  const DOLL_R = 14;
+  const hitDolls = [];
+  for (let i = 1; i < path.length; i++) {
+    const ax = path[i-1].x, ay = path[i-1].y;
+    const bx = path[i].x, by = path[i].y;
+    const dx = bx - ax, dy = by - ay;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 0.001) continue;
+    let closestDoll = null, closestT = 1.1;
+    for (const d of dolls) {
+      if (d.hit) continue;
+      const fx = ax - d.x, fy = ay - d.y;
+      const a = dx*dx + dy*dy;
+      const b = 2 * (fx*dx + fy*dy);
+      const c = (fx*fx + fy*fy) - DOLL_R*DOLL_R;
+      let disc = b*b - 4*a*c;
+      if (disc >= 0) {
+        disc = Math.sqrt(disc);
+        const t1 = (-b - disc) / (2*a);
+        const t2 = (-b + disc) / (2*a);
+        if (t1 >= 0 && t1 <= 1 && t1 < closestT) { closestT = t1; closestDoll = d; }
+        else if (t2 >= 0 && t2 <= 1 && t2 < closestT) { closestT = t2; closestDoll = d; }
+      }
+    }
+    if (closestDoll) {
+      hitDolls.push(closestDoll);
+      path[i] = { x: ax + closestT*dx, y: ay + closestT*dy };
+      path.length = i + 1;
+      break;
+    }
+  }
+  return hitDolls;
+}
+
+function fireLaser() {
+  if (gameOver || isFiring) return;
+  if (energy <= 0) return;
+  energy--;
+  updateEnergyUI();
+  updateSettingsLock();
+  const rdx = Math.cos(gun.angle);
+  const rdy = -Math.sin(gun.angle);
+  laserPath = castLaser(gun.x, gun.y, rdx, rdy, 0, 30);
+  const hitDolls = checkDollHits(laserPath);
+  hitDolls.forEach(d => {
+    d.hit = true; d.hitAnim = 1.0;
+    let pts = d.score;
+    if (!guideOn) pts *= 2;
+    score += pts; totalHits++;
+    addHitLog(d.score, !guideOn);
+    showScoreAdd(pts);
+  });
+  updateScoreUI();
+  isFiring = true;
+  const fireDuration = 150;
+  const startTime = Date.now();
+  function animate() {
+    render(1.0);
+    if (Date.now() - startTime < fireDuration) {
+      animFrame = requestAnimationFrame(animate);
+    } else {
+      isFiring = false; laserPath = [];
+      if (dolls.every(d => d.hit)) {
+        wave++;
+        setTimeout(() => {
+          document.getElementById('waveDisplay').textContent = 'WAVE ' + wave;
+          initDolls(); render();
+        }, 600);
+      }
+      if (energy <= 0) triggerGameOver();
+      else render();
+    }
+  }
+  animate();
+}
+
+function triggerGameOver() {
+  gameOver = true;
+  document.getElementById('gameOverOverlay').classList.remove('hidden');
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('fireBtn').disabled = true;
+}
+
+function restartGame() {
+  score = 0; totalHits = 0; wave = 1;
+  energy = maxEnergy; gameOver = false; isFiring = false; laserPath = [];
+  if (animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('gameOverOverlay').classList.add('hidden');
+  document.getElementById('fireBtn').disabled = false;
+  document.getElementById('hitLog').innerHTML = '';
+  document.getElementById('waveDisplay').textContent = 'WAVE 1';
+  updateEnergyUI(); updateScoreUI(); updateSettingsLock();
+  initPillars(); initDolls(); render();
+}
+
+function updateSettingsLock() {
+  const locked = energy < maxEnergy;
+  document.getElementById('diffContainer').classList.toggle('disabled-setting', locked);
+  document.getElementById('guideContainer').classList.toggle('disabled-setting', locked);
+}
+function updateEnergyUI() {
+  const pct = (energy / maxEnergy) * 100;
+  document.getElementById('energyFill').style.width = pct + '%';
+  document.getElementById('energyText').textContent = energy + ' / ' + maxEnergy;
+}
+function updateScoreUI() {
+  const el = document.getElementById('scoreDisplay');
+  el.textContent = score;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  document.getElementById('hitsDisplay').textContent = 'HITS: ' + totalHits;
+}
+function addHitLog(pts, doubled) {
+  const log = document.getElementById('hitLog');
+  const dollNames = ['🐻','🦊','🐱','🐶','🐨','🦁','🐸','🐼','🦄','🐯'];
+  const name = dollNames[Math.floor(Math.random() * dollNames.length)];
+  const entry = document.createElement('div');
+  entry.className = 'hit-entry';
+  const ptsDisplay = doubled ? pts + ' <span style="color:#ff006e;font-size:0.6rem">×2!</span>' : pts;
+  entry.innerHTML = `<span>${name} HIT</span><span class="pts">+${ptsDisplay}</span>`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 20) log.removeChild(log.lastChild);
+}
+function showScoreAdd(pts) {
+  const box = document.querySelector('.score-box');
+  const el = document.createElement('div');
+  el.className = 'score-add';
+  el.textContent = '+' + pts;
+  el.style.left = (30 + Math.random() * 60) + 'px';
+  el.style.top = '20px';
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+// ── RENDER ──────────────────────────────────────────────
+function render(laserProgress) {
+  ctx.clearRect(0, 0, W, H);
+  drawBackground(); drawWalls(); drawPillars(); drawDolls();
+  if (guideOn && !isFiring) drawGuide();
+  if (isFiring && laserPath.length > 0) drawLaser(laserProgress || 0);
+  drawGun();
+}
+
+function drawBackground() {
+  ctx.fillStyle = '#08080f';
+  ctx.fillRect(ROOM.x, ROOM.y, ROOM.w, ROOM.h);
+  ctx.fillStyle = 'rgba(0, 150, 255, 0.15)';
+  ctx.fillRect(ROOM.x, WATER_Y, ROOM.w, ROOM.h - (WATER_Y - ROOM.y));
+  const time = Date.now() / 300;
+  ctx.strokeStyle = 'rgba(0, 200, 255, 0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let x = 0; x <= ROOM.w; x += 5) {
+    const y = WATER_Y + Math.sin(x * 0.05 + time) * 2.5;
+    if (x === 0) ctx.moveTo(ROOM.x + x, y);
+    else ctx.lineTo(ROOM.x + x, y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,245,255,0.03)';
+  ctx.lineWidth = 1;
+  const gs = 30;
+  for (let x = ROOM.x; x < ROOM.x + ROOM.w; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, ROOM.y); ctx.lineTo(x, ROOM.y + ROOM.h); ctx.stroke();
+  }
+  for (let y = ROOM.y; y < ROOM.y + ROOM.h; y += gs) {
+    ctx.beginPath(); ctx.moveTo(ROOM.x, y); ctx.lineTo(ROOM.x + ROOM.w, y); ctx.stroke();
+  }
+}
+
+function drawWalls() {
+  const thick = 6;
+  const mirrorGrad = (x0,y0,x1,y1) => {
+    const g = ctx.createLinearGradient(x0,y0,x1,y1);
+    g.addColorStop(0, '#1a3a5c');
+    g.addColorStop(0.5, '#4a9eff');
+    g.addColorStop(1, '#1a3a5c');
+    return g;
+  };
+  ctx.fillStyle = mirrorGrad(ROOM.x, ROOM.y, ROOM.x+ROOM.w, ROOM.y);
+  ctx.fillRect(ROOM.x, ROOM.y, ROOM.w, thick);
+  ctx.fillStyle = mirrorGrad(ROOM.x, ROOM.y, ROOM.x, ROOM.y+ROOM.h);
+  ctx.fillRect(ROOM.x, ROOM.y, thick, ROOM.h);
+  ctx.fillStyle = mirrorGrad(ROOM.x, ROOM.y+ROOM.h, ROOM.x+ROOM.w, ROOM.y+ROOM.h);
+  ctx.fillRect(ROOM.x, ROOM.y+ROOM.h-thick, ROOM.w, thick);
+  const botH = (ROOM.y + ROOM.h) - ROOM.entranceBottom;
+  if (botH > 0) {
+    ctx.fillStyle = mirrorGrad(ROOM.x+ROOM.w, ROOM.entranceBottom, ROOM.x+ROOM.w, ROOM.y+ROOM.h);
+    ctx.fillRect(ROOM.x+ROOM.w-thick, ROOM.entranceBottom, thick, botH);
+  }
+  ctx.fillStyle = 'rgba(0,245,255,0.05)';
+  ctx.fillRect(ROOM.x+ROOM.w-thick, ROOM.entranceY, thick, ROOM.entranceBottom - ROOM.entranceY);
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(0,245,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ROOM.x+ROOM.w, ROOM.entranceY);
+  ctx.lineTo(ROOM.x+ROOM.w-thick, ROOM.entranceY);
+  ctx.moveTo(ROOM.x+ROOM.w, ROOM.entranceBottom);
+  ctx.lineTo(ROOM.x+ROOM.w-thick, ROOM.entranceBottom);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(74,158,255,0.4)';
+  ctx.strokeStyle = 'rgba(74,158,255,0.6)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ROOM.x, ROOM.y, ROOM.w, ROOM.h);
+  ctx.shadowBlur = 0;
+}
+
+function drawPillars() {
+  for (const p of pillars) {
+    const s = p.size, x = p.x - s/2, y = p.y - s/2;
+    const g = ctx.createLinearGradient(x, y, x+s, y+s);
+    g.addColorStop(0, '#1a3a5c'); g.addColorStop(0.4, '#5ab0ff');
+    g.addColorStop(0.6, '#5ab0ff'); g.addColorStop(1, '#1a3a5c');
+    ctx.fillStyle = g; ctx.fillRect(x, y, s, s);
+    ctx.strokeStyle = 'rgba(74,158,255,0.8)'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, s, s);
+  }
+}
+
+function drawDolls() {
+  const time = Date.now() / 1000;
+  for (const d of dolls) {
+    if (d.hit) {
+      d.hitAnim = Math.max(0, d.hitAnim - 0.04);
+      if (d.hitAnim <= 0) continue;
+      ctx.globalAlpha = d.hitAnim; drawDoll(d, true); ctx.globalAlpha = 1;
+    } else {
+      const floatY = Math.sin(time * 1.5 + d.id * 0.8) * 2;
+      drawDoll({ ...d, y: d.y + floatY }, false);
+    }
+  }
+}
+
+const DOLL_EMOJIS = ['🐻','🦊','🐱','🐶','🐨','🦁','🐸','🐼','🦄','🐯'];
+const scoreColors = { 1:'#aabbcc', 2:'#44ff88', 3:'#ffdd00', 4:'#ff8844', 5:'#ff3366' };
+
+function drawDoll(d, exploding) {
+  const r = 14;
+  if (exploding) {
+    ctx.fillStyle = 'rgba(255,220,50,0.6)';
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const dist = r * (1 + (1 - d.hitAnim) * 3);
+      ctx.beginPath(); ctx.arc(d.x + Math.cos(a)*dist, d.y + Math.sin(a)*dist, 3, 0, Math.PI*2); ctx.fill();
+    }
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(d.x, d.y+r+2, r*0.7, 4, 0, 0, Math.PI*2); ctx.fill();
+  const col = scoreColors[d.score];
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.arc(d.x, d.y, r+2, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = col; ctx.lineWidth = 2;
+  ctx.shadowBlur = 10; ctx.shadowColor = col;
+  ctx.beginPath(); ctx.arc(d.x, d.y, r, 0, Math.PI*2); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.font = `${r*1.2}px serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(DOLL_EMOJIS[d.id % DOLL_EMOJIS.length], d.x, d.y-1);
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.arc(d.x+r-2, d.y-r+2, 7, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#000'; ctx.font = 'bold 8px Orbitron, monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(d.score, d.x+r-2, d.y-r+2);
+}
+
+function computeGuidePath() {
+  const rdx = Math.cos(gun.angle);
+  const rdy = -Math.sin(gun.angle);
+  const path = castLaser(gun.x, gun.y, rdx, rdy, 0, 30);
+  checkDollHits(path);
+  return path;
+}
+
+function drawGuide() {
+  const path = computeGuidePath();
+  if (path.length < 2) return;
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = 'rgba(255,200,50,0.35)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
+  for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+  ctx.stroke();
+  for (let i = 1; i < path.length - 1; i++) {
+    ctx.fillStyle = 'rgba(255,200,50,0.6)';
+    ctx.beginPath(); ctx.arc(path[i].x, path[i].y, 3, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.setLineDash([]);
+}
+
+function drawLaser(progress) {
+  if (laserPath.length < 2) return;
+  const segLens = []; let total = 0;
+  for (let i = 1; i < laserPath.length; i++) {
+    const l = Math.hypot(laserPath[i].x-laserPath[i-1].x, laserPath[i].y-laserPath[i-1].y);
+    segLens.push(l); total += l;
+  }
+  const drawn = progress * total; let acc = 0;
+  ctx.lineWidth = 2; ctx.lineCap = 'round';
+  for (let i = 1; i < laserPath.length; i++) {
+    const segL = segLens[i-1];
+    if (acc + segL <= drawn + 0.001) {
+      drawLaserSegment(laserPath[i-1], laserPath[i]); acc += segL;
+    } else if (acc < drawn) {
+      const t = (drawn - acc) / segL;
+      const mx = laserPath[i-1].x + t*(laserPath[i].x-laserPath[i-1].x);
+      const my = laserPath[i-1].y + t*(laserPath[i].y-laserPath[i-1].y);
+      drawLaserSegment(laserPath[i-1], { x: mx, y: my });
+      ctx.shadowBlur = 15; ctx.shadowColor = '#ff6666';
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(mx, my, 3, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0; break;
+    } else break;
+  }
+}
+
+function drawLaserSegment(a, b) {
+  const layers = [
+    { w:6, color:'rgba(255,50,50,0.2)' }, { w:3, color:'rgba(255,100,100,0.5)' },
+    { w:1.5, color:'rgba(255,200,200,0.9)' }, { w:0.5, color:'#ffffff' },
+  ];
+  for (const l of layers) {
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = l.color; ctx.lineWidth = l.w; ctx.stroke();
+  }
+}
+
+function drawGun() {
+  const gx = gun.x, gy = gun.y;
+  ctx.save(); ctx.translate(gx, gy); ctx.rotate(-gun.angle);
+  ctx.fillStyle = '#2a2a3a'; ctx.strokeStyle = '#4a9eff'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(-8,-5,24,10,3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1a1a2a'; ctx.strokeStyle = '#00f5ff'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(14,-2,14,4,2); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 10; ctx.shadowColor = '#ff3333';
+  ctx.fillStyle = '#ff3333'; ctx.beginPath(); ctx.arc(28,0,3,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0; ctx.restore();
+  ctx.fillStyle = 'rgba(0,245,255,0.1)';
+  ctx.fillRect(ROOM.x+ROOM.w-6, ROOM.entranceY, 6, ROOM.entranceBottom-ROOM.entranceY);
+}
+
+// ── 초기화 & 리사이즈 ──────────────────────────────────
+function fullInit() {
+  initLayout();
+  initPillars();
+  initDolls();
+  render();
+}
+
+// 리사이즈 시 레이아웃 재계산
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    fullInit();
+  }, 150);
+});
+
+fullInit();
+
+function loop() {
+  if (!isFiring) render();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>

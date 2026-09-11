@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전기의 역사와 원자의 발견</title>
+<style>
+@font-face {
+    font-family: 'GangwonEducationModuche';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEdu_OTFLightA.woff') format('woff');
+    font-weight: 300;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'GangwonEducationModuche';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEdu_OTFBoldA.woff') format('woff');
+    font-weight: 700;
+    font-display: swap;
+}
+
+:root {
+  --paper: #F1ECE1;
+  --paper-deep: #E6DECE;
+  --ink: #1A1815;
+  --dim: #6E675C;
+  --copper: #C2703A;
+  --amber: #E3A72C;
+  --verdigris: #1D5E58;
+  --night: #0F312E;
+  --verdigris-lt: #4E9A8F;
+  --rule: rgba(26,24,21,0.14);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'GangwonEducationModuche', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  font-weight: 300;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+.hero {
+  background: var(--night);
+  color: var(--paper);
+  position: relative;
+  overflow: hidden;
+  padding: clamp(80px, 16vw, 150px) 0 clamp(70px, 12vw, 120px);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  top: -30%; left: 50%;
+  width: min(900px, 150vw); height: min(900px, 150vw);
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(227,167,44,0.20) 0%, rgba(227,167,44,0.06) 38%, transparent 68%);
+  pointer-events: none;
+}
+.hero .wrap { position: relative; z-index: 1; }
+
+.amber-word {
+  font-family: var(--mono);
+  font-size: clamp(2.6rem, 10vw, 5.2rem);
+  color: var(--amber);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-shadow: 0 0 40px rgba(227,167,44,0.35);
+}
+.amber-gloss {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  color: rgba(241,236,225,0.55);
+  margin-top: 14px;
+}
+.hero h1 {
+  font-weight: 700;
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  line-height: 1.45;
+  margin-top: 38px;
+  letter-spacing: -0.01em;
+}
+.hero-lede {
+  margin-top: 26px;
+  max-width: 38em;
+  color: rgba(241,236,225,0.78);
+  font-size: clamp(1rem, 2.6vw, 1.12rem);
+}
+.hero-stat {
+  margin-top: 44px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 22px;
+  border: 1px solid var(--verdigris-lt);
+  border-radius: 2px;
+}
+.hero-stat b {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  color: var(--amber);
+}
+.hero-stat span { font-size: 0.95rem; color: rgba(241,236,225,0.72); }
+
+.section { padding: clamp(64px, 10vw, 110px) 0; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  color: var(--verdigris);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.eyebrow::after {
+  content: "";
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--verdigris), transparent);
+  opacity: 0.5;
+}
+.section h2 {
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4.6vw, 2.1rem);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--verdigris);
+  display: inline-block;
+}
+.section-lede {
+  margin-top: 18px;
+  max-width: 40em;
+  color: var(--dim);
+  font-size: 1.02rem;
+}
+
+.rail {
+  position: relative;
+  margin-top: 56px;
+  padding-left: clamp(34px, 7vw, 58px);
+}
+.rail::before {
+  content: "";
+  position: absolute;
+  left: clamp(9px, 2vw, 17px);
+  top: 6px; bottom: 6px;
+  width: 3px;
+  background: linear-gradient(180deg, var(--copper), #9E5A2E 55%, var(--copper));
+  border-radius: 2px;
+}
+.charge {
+  position: absolute;
+  left: calc(clamp(9px, 2vw, 17px) - 4px);
+  top: 0;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 12px 3px rgba(227,167,44,0.75);
+  animation: drift 22s linear infinite;
+}
+@keyframes drift {
+  0% { top: 0; opacity: 0; }
+  6% { opacity: 1; }
+  94% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.node { position: relative; margin-bottom: 14px; }
+.node::before {
+  content: "";
+  position: absolute;
+  left: calc(clamp(34px, 7vw, 58px) * -1 + clamp(9px, 2vw, 17px) - 5px);
+  top: 26px;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 3px solid var(--copper);
+  transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.node.lit::before {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 16px 4px rgba(227,167,44,0.6);
+}
+
+.node-head {
+  display: block; width: 100%;
+  text-align: left;
+  background: #F8F5EE;
+  border: 1px solid var(--rule);
+  border-left: 5px solid var(--verdigris);
+  border-radius: 3px;
+  padding: 18px 52px 18px 20px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  position: relative;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.node-head:hover { background: #FFFDF7; border-color: rgba(194,112,58,0.55); border-left-color: var(--verdigris-lt); }
+.node-head:focus-visible { outline: 3px solid var(--verdigris); outline-offset: 2px; }
+.node.lit .node-head { background: #FFFDF7; border-color: rgba(194,112,58,0.6); border-left-color: var(--amber); }
+
+.year {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.13em;
+  color: var(--copper);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 5px;
+}
+.node-title {
+  font-weight: 700;
+  font-size: clamp(1.05rem, 3.2vw, 1.2rem);
+  line-height: 1.5;
+  display: block;
+}
+.node-sub {
+  display: block;
+  color: var(--dim);
+  font-size: 0.95rem;
+  margin-top: 5px;
+  line-height: 1.65;
+}
+.chev {
+  position: absolute;
+  right: 20px; top: 50%;
+  width: 11px; height: 11px;
+  margin-top: -7px;
+  border-right: 2.5px solid var(--copper);
+  border-bottom: 2.5px solid var(--copper);
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+.node.lit .chev { transform: rotate(-135deg); margin-top: -2px; }
+
+.node-body {
+  display: none;
+  padding: 6px 20px 4px;
+  border-left: 2px solid rgba(194,112,58,0.3);
+  margin: 14px 0 26px 20px;
+}
+.node.lit .node-body { display: block; animation: lamp 0.45s ease; }
+@keyframes lamp { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.node-body p { margin-bottom: 16px; font-size: 1.02rem; }
+.node-body h4 {
+  font-weight: 700;
+  font-size: 1.02rem;
+  margin: 26px 0 10px;
+  color: var(--verdigris);
+}
+.node-body ul { margin: 0 0 16px 0; padding-left: 0; list-style: none; }
+.node-body li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 10px;
+  font-size: 1.01rem;
+}
+.node-body li::before {
+  content: "";
+  position: absolute; left: 2px; top: 0.85em;
+  width: 7px; height: 2px; background: var(--copper);
+}
+.node-body strong { font-weight: 700; }
+
+/* 이미지 일러스트 컨테이너 */
+.node-img-wrap {
+  background: var(--night);
+  border-radius: 6px;
+  padding: 24px;
+  margin: 24px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--verdigris);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+}
+.node-img-wrap svg {
+  max-width: 100%;
+  height: auto;
+  max-height: 180px;
+}
+
+/* 인용/주의 박스 */
+.note {
+  background: var(--paper-deep);
+  border-left: 4px solid var(--verdigris);
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: 0.99rem;
+}
+.note b { color: var(--verdigris); }
+.myth {
+  background: #F6E7DC;
+  border-left: 4px solid var(--copper);
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: 0.99rem;
+}
+.myth b { color: #9E4A18; }
+
+.eq {
+  font-family: var(--mono);
+  background: var(--night);
+  color: var(--amber);
+  padding: 14px 18px;
+  border-radius: 3px;
+  margin: 18px 0;
+  font-size: 1.1rem;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.qna { background: var(--night); color: var(--paper); }
+.qna .eyebrow { color: var(--amber); }
+.qna .section-lede { color: rgba(241,236,225,0.7); }
+.qna h2 { border-bottom-color: var(--verdigris-lt); }
+.qna .eyebrow::after { background: linear-gradient(90deg, var(--verdigris-lt), transparent); }
+.qna .node-body h4 { color: var(--verdigris-lt); }
+.qna .node-head {
+  background: rgba(241,236,225,0.05);
+  border-color: rgba(241,236,225,0.16);
+  border-left-color: var(--verdigris-lt);
+  color: var(--paper);
+}
+.qna .node-head:hover { background: rgba(241,236,225,0.1); border-color: rgba(227,167,44,0.5); }
+.qna .node-head:focus-visible { outline-color: var(--amber); }
+.qna .node.lit .node-head { background: rgba(227,167,44,0.1); border-color: rgba(227,167,44,0.55); border-left-color: var(--amber); }
+.qna .year { color: var(--amber); }
+.qna .node-sub { color: rgba(241,236,225,0.62); }
+.qna .chev { border-color: var(--amber); }
+.qna .node-body { border-left-color: rgba(227,167,44,0.35); }
+.qna .node-body h4 { color: var(--amber); }
+.qna .node-body li::before { background: var(--amber); }
+.qna .note { background: rgba(241,236,225,0.07); border-left-color: var(--amber); }
+.qna .note b { color: var(--amber); }
+.qna .eq { background: rgba(241,236,225,0.08); border: 1px solid rgba(227,167,44,0.3); }
+.qna .rail { padding-left: 0; }
+.qna .rail::before, .qna .charge { display: none; }
+.qna .node::before { display: none; }
+.qna .node { margin-bottom: 14px; }
+
+.tablebox { overflow-x: auto; margin: 20px 0; }
+table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 0.94rem; }
+th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid rgba(241,236,225,0.16); }
+th { font-weight: 700; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--amber); }
+td:first-child { color: rgba(241,236,225,0.72); }
+tbody tr:last-child td { border-bottom: none; }
+.hi { color: var(--amber); font-weight: 700; }
+
+.closing { background: var(--paper-deep); text-align: left; border-top: 6px solid var(--verdigris); }
+.feynman {
+  font-size: clamp(1.15rem, 3.6vw, 1.5rem);
+  line-height: 1.85;
+  font-weight: 700;
+  max-width: 26em;
+  margin: 28px 0;
+  border-left: 4px solid var(--copper);
+  padding-left: 22px;
+}
+.closing p { max-width: 40em; margin-bottom: 16px; font-size: 1.02rem; color: #3B362E; }
+
+footer {
+  background: var(--night);
+  color: rgba(241,236,225,0.45);
+  padding: 34px 0;
+  font-size: 0.85rem;
+  font-family: var(--mono);
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 600px) {
+  .node-head { padding: 16px 44px 16px 16px; }
+  .node-body { margin-left: 8px; padding: 6px 12px 4px; }
+  .hero-stat { padding: 12px 16px; gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+}
+</style>
+<!-- 수학 수식을 예쁘게 보여주는 MathJax 라이브러리 추가 -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="amber-word">ἤλεκτρον</div>
+    <div class="amber-gloss">ELEKTRON &nbsp;·&nbsp; 그리스어로 '호박(琥珀)'</div>
+    <h1>전기의 역사와<br>원자의 발견</h1>
+    <p class="hero-lede">
+      서로 다른 두 물체를 문지르면 서로 달라붙는 현상, 다들 한 번쯤 들어보셨죠? 이 사소한 관찰에서 시작해, 
+      인류는 전기가 정확히 무엇인지도 모르는 채로 배터리를 만들고, 발전소를 세우고, 도시에 불을 밝혔습니다. 
+      전기의 진짜 주인공인 <b>전자</b>가 발견된 건 그 모든 놀라운 일들이 벌어진 한참 뒤의 일이었답니다.
+    </p>
+    <div class="hero-stat">
+      <b>145년</b>
+      <span>프랭클린의 연 실험(1752)부터 전자 발견(1897)까지<br>우리가 정체를 모른 채 전기를 써 온 시간</span>
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="wrap">
+    <div class="eyebrow">TIMELINE &nbsp;/&nbsp; 도선을 따라가기</div>
+    <h2>2500년의 연표</h2>
+    <p class="section-lede">
+      아래 구리선은 2500년에 걸친 이야기가 흐르는 길이에요. 각 접점을 누르면 재미있는 사건의 내막이 켜집니다. 
+      순서대로 쭉 읽어보셔도 좋고, 평소 궁금했던 이름만 골라서 눌러보셔도 좋아요.
+    </p>
+
+    <div class="rail">
+      <div class="charge" aria-hidden="true"></div>
+
+      <!-- 1 탈레스 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">기원전 600년경</span>
+          <span class="node-title">탈레스 &mdash; 호박에서 시작하다</span>
+          <span class="node-sub">전기의 역사는 번개가 아니라 예쁜 노란 보석에서 출발했어요</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Amber stone -->
+              <path d="M 60 60 C 60 30, 90 20, 120 40 C 140 55, 130 90, 100 100 C 70 110, 60 90, 60 60 Z" fill="#E3A72C" opacity="0.9"/>
+              <!-- Feather -->
+              <path d="M 130 90 Q 150 70 160 40 Q 140 55 125 75 Z" fill="#F1ECE1" opacity="0.8"/>
+              <path d="M 160 40 L 125 75" stroke="#1D5E58" stroke-width="2"/>
+              <!-- Sparkles/Attraction lines -->
+              <line x1="120" y1="50" x2="110" y2="60" stroke="#F1ECE1" stroke-width="2" stroke-dasharray="2,2"/>
+              <line x1="130" y1="65" x2="115" y2="70" stroke="#F1ECE1" stroke-width="2" stroke-dasharray="2,2"/>
+            </svg>
+          </div>
+          <p>고대 그리스의 철학자 탈레스는 호박을 모피에 문지르면 깃털이나 지푸라기처럼 가벼운 것들이 신기하게 달라붙는다는 사실을 기록으로 남겼어요. 당시 사람들은 이 예쁜 노란 보석을 <b>엘렉트론(ἤλεκτρον)</b>이라고 불렀죠.</p>
+          <div class="note"><b>바로 여기서 이름이 탄생했어요.</b> 이 이야기의 맨 끝에서 발견될 주인공 입자의 이름이 바로 <b>electron(전자)</b>랍니다. 무려 2500년 뒤에 호박이라는 단어가 시간을 건너뛰어 우리에게 되돌아온 셈이죠!</div>
+          <p>하지만 딱 여기까지였어요. 이후 2000년이 넘는 시간 동안 이 현상은 그저 <b>'신기한 구경거리'</b>로만 여겨졌거든요. 왜 이런 일이 생기는지 깊게 묻는 사람도, 다른 물건으로 실험해보는 사람도 거의 없었답니다.</p>
+        </div>
+      </article>
+
+      <!-- 2 길버트 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1600</span>
+          <span class="node-title">길버트 &mdash; 전기와 자기를 구별하다</span>
+          <span class="node-sub">'electricity'라는 단어가 태어나고, 지구가 거대한 자석임이 밝혀진 해</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Earth/Terrella -->
+              <circle cx="100" cy="60" r="40" fill="#1D5E58" stroke="#F1ECE1" stroke-width="2"/>
+              <path d="M 60 60 Q 100 40 140 60 Q 100 80 60 60" fill="none" stroke="#F1ECE1" stroke-width="1" stroke-dasharray="4,4"/>
+              <!-- Magnetic fields -->
+              <path d="M 90 20 C 50 20, 50 100, 90 100" fill="none" stroke="#E3A72C" stroke-width="2"/>
+              <path d="M 110 20 C 150 20, 150 100, 110 100" fill="none" stroke="#E3A72C" stroke-width="2"/>
+              <!-- Little compass needle -->
+              <polygon points="100,5 95,15 105,15" fill="#C2703A"/>
+              <polygon points="100,25 95,15 105,15" fill="#F1ECE1"/>
+            </svg>
+          </div>
+          <p>영국 엘리자베스 1세 여왕의 주치의였던 <b>윌리엄 길버트</b>는 『자석에 관하여』라는 훌륭한 책을 펴냈어요. 그때까지만 해도 사람들은 자석이 쇳덩이를 당기는 현상과 호박이 지푸라기를 당기는 현상을 그저 비슷한 마법 쯤으로 뭉뚱그려 생각했죠. 그런데 길버트는 이 둘을 명확하게 갈라놓았습니다.</p>
+
+          <h4>먼저 자석 쪽을 확실히 파헤쳤어요</h4>
+          <p>길버트는 천연 자석을 공 모양으로 깎아 <b>테렐라(terrella, 작은 지구)</b>라는 앙증맞은 모형을 만들었어요. 그 위에 작은 나침반들을 올려놓고 바늘이 어떻게 움직이는지 하나하나 관찰했더니, 실제 지구 위에서 일어나는 일과 똑같다는 걸 발견했죠. 결론은 <b>"지구 자체가 거대한 자석이다!"</b>라는 거였어요. 당시엔 북극성이 나침반을 끌어당긴다거나 북쪽 바다에 자석 산이 있다는 설이 통하던 시절이었는데, 길버트에 의해 밝혀진 거에요.</p>
+
+          <h4>그 다음엔 호박 쪽을 살펴봤습니다</h4>
+          <p>길버트는 호박에만 만족하지 않고 유리, 황, 수정, 다이아몬드, 밀랍 등 수십 가지 재료를 직접 문질러 보면서 비슷한 성질이 나타나는지 확인했어요. 그리고 이 성질을 가진 물질들을 통틀어 라틴어로 <b>electricus</b>(호박 같은 것)라고 불렀답니다. 우리가 아는 <b>electricity(전기)</b>라는 단어가 바로 여기서 탄생했어요.</p>
+         <p>이것이 결정적이었던 이유는, 호박의 끌어당김이 <b>그 보석만의 고유한 신비가 아니라 여러 물질이 공유하는 일반적 성질</b>임을 보였기 때문이에요. 반면 자성은 자철석과 철 계통에서만 나타났어요. </p>
+          <p>그는 아주 가벼운 금속 바늘을 축 위에 올려 미세한 끌림도 감지하는 <b>versorium</b>이라는 장치도 만들었어요. 사실상 최초의 검전기라고 할 수 있죠. 눈으로 대충 보던 단계에서 <b>측정 도구를 쓰는 단계</b>로 넘어간 것입니다.</p>
+
+          <h4>두 힘은 어떻게 달랐을까요?</h4>
+          <ul>
+            <li><b>마찰:</b> 호박은 열심히 문질러야만 당기는 힘이 생기지만, 자석은 가만히 둬도 늘 철을 끌어당겨요.</li>
+            <li><b>재료:</b> 자석은 오직 철만 좋아하는 것 같았어요. 하지만 문지른 호박은 가볍기만 하다면 <b>종류를 가리지 않고</b> 다 끌어당깁니다. 종이, 나무, 물방울, 연기까지도요!</li>
+            <li><b>장애물:</b> 자석의 힘은 종이나 물을 뚫고 지나가지만, 호박의 힘은 얇은 천만 덮어놔도 감쪽같이 사라져 버립니다.</li>
+          </ul>
+
+          <div class="myth"><b>사실 길버트가 틀린 부분도 있어요.</b> 길버트는 문지를 때 물질에서 보이지 않는 액체 같은 게 뿜어져 나와서 물건을 감싸고 끌어당긴다고 설명했거든요. 습기나 천이 이 유출물을 물리적으로 막고, 열이 흩어버린다는 것이었죠. 반면 자기는 물체에 내재된 힘으로 보았어요.<b> "전기와 자기는 완전 다르다"</b>는 그의 판단은 천재적이었지만, "왜 다른가"에 대한 설명은 조금 아쉬웠죠.</div>
+        </div>
+      </article>
+
+      <!-- 3 라이덴병 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1745&ndash;46</span>
+          <span class="node-title">라이덴병 &mdash; 전기를 담는 마법의 유리병</span>
+          <span class="node-sub">"프랑스 왕국을 준다 해도 두 번은 이 짓을 하지 않겠다!"</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Jar outline -->
+              <rect x="70" y="40" width="60" height="70" rx="5" fill="none" stroke="#F1ECE1" stroke-width="3"/>
+              <!-- Foil coating inside/outside -->
+              <rect x="75" y="70" width="50" height="35" rx="2" fill="#C2703A" opacity="0.8"/>
+              <!-- Metal rod -->
+              <rect x="97" y="15" width="6" height="50" fill="#F1ECE1"/>
+              <!-- Metal ball -->
+              <circle cx="100" cy="15" r="8" fill="#F1ECE1"/>
+              <!-- Sparks -->
+              <path d="M 100 5 L 110 -5 M 90 5 L 80 -5 M 115 15 L 125 15" stroke="#E3A72C" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p>네덜란드 라이덴 대학의 과학자 <b>뮈스헨브루크</b>(독일의 폰 클라이스트가 거의 동시에)가 유리병 안팎에 금속을 붙여서 전기를 차곡차곡 모아두는 신기한 장치를 발명했어요. 이게 바로 오늘날 전자제품에 들어가는 축전기(배터리 부품)의 조상 격인 <b>라이덴병(Leyden jar)</b>이랍니다.</p>
+          <p>재미있는 건, 이 병을 만들고 처음으로 강렬한 감전을 경험한 뮈스헨브루크는 동료에게 <b>"프랑스 왕국을 통째로 준다 해도 이 짓은 두 번 다시 안 할 거네!"</b>라며 기겁을 하는 편지를 썼다는 거예요.</p>
+         <p>라이덴병은 유럽 전역에서 크게 유행했어요. 프랑스에서는 수도사 수백 명이 손을 잡고 늘어서서 동시에 감전되며 펄쩍 뛰는 장면을 국왕 앞에서 시연하기도 했죠. 이 시기의 전기는 아직 과학이라기보다 <b>왕실 앞 마술쇼</b>에 가까웠습니다.</p>
+
+          <div class="note"><b>이게 왜 그렇게 중요할까요?</b> 인류 역사상 처음으로 <b>전기를 병에 모아뒀다가 원할 때 꺼내 쓸 수 있게</b> 되었기 때문이에요. 프랭클린이 번개에서 전기를 모아 실험을 할 수 있었던 것도 든든한 라이덴병이 있었기 때문이죠. 
+           <p>물론 한계도 뚜렷했습니다. 라이덴병은 순간적으로 팍 하고 방전될 뿐, <b>끊기지 않고 계속 흐르는 전기</b>는 만들지 못했습니다. 그 벽은 <b>볼타</b>가 깹니다.</p>
+</div>
+        </div>
+      </article>
+
+      <!-- 4 프랭클린 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1747&ndash;1752</span>
+          <span class="node-title">프랭클린 &mdash; 벼락을 맞은 연? 오해와 진실</span>
+          <span class="node-sub">가장 유명한 과학 일화이자, 우리가 가장 크게 오해하고 있는 실험</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Kite -->
+              <polygon points="140,20 160,40 140,70 120,40" fill="#E3A72C"/>
+              <!-- String -->
+              <path d="M 140 70 Q 120 90 90 100" fill="none" stroke="#F1ECE1" stroke-width="1.5" stroke-dasharray="3,3"/>
+              <!-- Key -->
+              <circle cx="85" cy="100" r="5" fill="none" stroke="#C2703A" stroke-width="2"/>
+              <line x1="80" y1="100" x2="65" y2="100" stroke="#C2703A" stroke-width="2"/>
+              <line x1="72" y1="100" x2="72" y2="105" stroke="#C2703A" stroke-width="2"/>
+              <line x1="66" y1="100" x2="66" y2="105" stroke="#C2703A" stroke-width="2"/>
+              <!-- Lightning in clouds -->
+              <path d="M 120 10 Q 140 5 150 15 Q 170 10 180 25 Q 170 40 150 35" fill="#F1ECE1" opacity="0.2"/>
+              <polyline points="150,25 145,35 155,35 145,50" fill="none" stroke="#F1ECE1" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="myth"><b>먼저 흔한 오해부터 바로잡고 갈까요?</b> 흔히 "번개가 치는 날 연을 날렸다가 벼락을 맞았고, 그 전기가 줄을 타고 내려왔다"고 알고 계시죠? <b>절대 사실이 아닙니다.</b> 만약 연이 벼락을 정통으로 맞았다면 프랭클린은 그 자리에서 목숨을 잃었을 거예요.</div>
+          <p>1752년, 프랭클린이 실제로 본 건 훨씬 조용한 현상이었어요. 먹구름 속에 쌓여 있던 전기가 비에 젖은 연줄을 타고 조금씩 스멀스멀 흘러내렸고, 줄 끝에 매달아 둔 금속 열쇠에 그 전기가 모인 거죠. 열쇠에 손을 갖다 대자 '타닥'하고 작은 불꽃이 튀었고, 그 전하를 라이덴병에 담아 실험실 전기와 성질이 같음을 확인했어요. 이를 통해<b>저 무서운 번개가 사실은 실험실에서 만지작거리던 전기와 완전히 똑같은 자연 현상</b>이라는 걸 증명해 냈답니다. 하늘의 현상과 땅의 현상이 하나임을 보인, 자연을 통합하는 발견이었죠.</p>
+
+<h4>얼마나 위험했던 실험인지</h4>
+          <p>이듬해인 <b>1753년</b>, 러시아 상트페테르부르크의 <b>게오르크 리흐만</b>이 같은 실험을 재현하다 감전으로 사망했습니다. 인류 최초의 전기 실험 순직자였죠. 프랭클린은 대단히 운이 좋았던거에요.</p>
+
+          <p>그의 연구 덕분에 인류는 <b>피뢰침</b>을 얻게 되었고, 처음으로 자연재해(번개)를 과학 기술로 안전하게 다스릴 수 있게 되었습니다.</p>
+
+          <h4>+와 - : 확률 50%의 <b>찍기</b>가 빗나가다</h4>
+          <p>프랭클린은 전기를 설명하기 위해 전기가 <b>남아도는 상태를 +, 모자라는 상태를 -</b>로 부르자고 제안했어요. 그런데 전기가 어느 쪽으로 흐르는지 정할 때 큰 실수를 하고 맙니다. <b>"+를 띤 무언가가 도선을 따라 움직일 것!"</b>이라고 찍어버린 거예요.</p>
+          <p>하지만 150년 뒤 진짜 진실이 밝혀졌을 땐 다들 당황했죠. 도선 안에서 실제로 뽈뽈거리며 돌아다니는 녀석은 <b>-전하를 띤 전자</b>였고, 실제 이동 방향은 <b>-극에서 +극</b>이었거든요! </p>
+          <div class="note"><b>그래서 지금도 우리는,</b> 전류가 흐르는 방향과 전자가 진짜 움직이는 방향을 정반대로 배우고 있답니다. 우주 물리 법칙이 꼬인 게 아니라, <b>250년 전 선배 과학자의 50% 확률 찍기가 빗나간 아주 인간적인 실수</b> 때문이에요!</div>
+        </div>
+      </article>
+
+      <!-- 5 쿨롱 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1785</span>
+          <span class="node-title">쿨롱 &mdash; 전기가 수학의 언어를 입다</span>
+          <span class="node-sub">눈에 보이지 않는 힘(전기력)의 크기를 저울로 정확하게 재다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Torsion balance conceptual -->
+              <line x1="100" y1="10" x2="100" y2="60" stroke="#F1ECE1" stroke-width="1"/>
+              <line x1="60" y1="60" x2="140" y2="60" stroke="#F1ECE1" stroke-width="2"/>
+              <circle cx="60" cy="60" r="10" fill="#E3A72C"/>
+              <circle cx="140" cy="60" r="10" fill="#C2703A"/>
+              <!-- Fixed charge -->
+              <circle cx="35" cy="60" r="10" fill="#E3A72C"/>
+              <!-- Repulsion arrow -->
+              <path d="M 50 80 Q 70 90 90 80" fill="none" stroke="#F1ECE1" stroke-width="1.5" stroke-dasharray="2,2"/>
+              <polygon points="45,78 50,85 55,75" fill="#F1ECE1"/>
+            </svg>
+          </div>
+          <p>프랑스의 물리학자 <b>샤를 쿨롱</b>은 가느다란 실에 매단 막대가 비틀리는 미세한 각도를 이용해 힘을 재는 아주 정밀한 비틀림 저울을 만들었어요. 그리고 이 저울로 <b>두 전기가 서로 얼마나 세게 밀고 당기는지를 수학 공식으로 깔끔하게 측정해 냈죠.</b></p>
+          
+          <div class="eq">$$F = k \frac{q_1 q_2}{r^2}$$</div>
+          
+          <p>공식이 복잡해 보이나요? 핵심은 이렇습니다. <b>"서로가 가진 전기를 곱한 만큼 강하게 당기고, 거리가 멀어지면 그 힘은 급격히(제곱으로) 뚝 떨어진다!"</b></p>
+          <div class="note"><b>여기서 놀라운 점은,</b> 이 공식이 뉴턴이 발견한 우주의 <b>중력 법칙(만유인력)과 형태가 완전히 똑같이 생겼다</b>는 거예요. 장난감 마술 같던 전기가 비로소 우주의 중력과 어깨를 나란히 하는 '진짜 물리학'의 세계로 들어온 순간이랍니다.</div>
+        </div>
+      </article>
+
+      <!-- 6 볼타 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1780s&ndash;1800</span>
+          <span class="node-title">갈바니와 볼타 &mdash; 개구리 뒷다리에서 시작된 배터리</span>
+          <span class="node-sub">과학자들의 팽팽한 자존심 싸움이 위대한 발명을 낳았어요</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Voltaic Pile -->
+              <rect x="80" y="80" width="40" height="8" rx="2" fill="#C2703A"/>
+              <rect x="80" y="70" width="40" height="8" rx="2" fill="#F1ECE1"/>
+              <rect x="80" y="60" width="40" height="8" rx="2" fill="#E3A72C"/>
+              
+              <rect x="80" y="50" width="40" height="8" rx="2" fill="#C2703A"/>
+              <rect x="80" y="40" width="40" height="8" rx="2" fill="#F1ECE1"/>
+              <rect x="80" y="30" width="40" height="8" rx="2" fill="#E3A72C"/>
+              
+              <rect x="80" y="20" width="40" height="8" rx="2" fill="#C2703A"/>
+              <!-- Wire connecting top and bottom -->
+              <path d="M 100 20 C 150 -10, 150 120, 100 88" fill="none" stroke="#F1ECE1" stroke-width="2"/>
+              <circle cx="138" cy="55" r="4" fill="#E3A72C"/> <!-- Spark representation -->
+            </svg>
+          </div>
+          <p>1780년대, 이탈리아의 <b>루이지 갈바니</b>는 죽은 개구리 뒷다리에 금속 메스를 대자 다리가 '움찔'하며 경련을 일으키는 걸 발견했어요. 그는 흥분해서 <b>"생명체 안에는 고유한 '동물 전기'가 흐른다!"</b>라고 굳게 믿었죠.</p>
+          <p>하지만 동료 과학자 <b>알레산드로 볼타</b>의 생각은 달랐어요. 볼타는 갈바니가 메스와 판, <b>서로 다른 두 종류의 금속</b>을 개구리 다리에 댔다는 사실을 꿰뚫어 보았죠. "전기는 개구리에서 나온 게 아니라 두 금속이 만나서 생긴 거고, 축축한 개구리 다리는 그냥 전기가 통한다는 걸 보여준 훌륭한 센서 역할만 한 거야!"라고 맞섰습니다.</p>
+          
+          <h4>이것이 바로 최초의 배터리, '볼타 전지'의 탄생입니다</h4>
+          <p>논쟁에서 이기기 위해 볼타는 개구리 없이 전기를 만들어 보였습니다.(1800년) <b>아연판 - 소금물에 적신 헝겊 - 구리판</b>을 샌드위치처럼 수십 층 차곡차곡 쌓아 올린 아주 단순한 기둥이었죠.</p>
+         <h4>볼타 전지의 구조와 원리</h4>
+         <ul>
+            <li>아연은 구리보다 <b>이온이 되려는 성질(반응성)이 강함</b>.</li>
+            <li>아연 원자가 전자 2개를 판에 남기고 아연 이온이 되어 전해액으로 녹아 나감. (Zn → Zn²⁺ + 2e⁻)</li>
+            <li>아연판엔 전자가 쌓이고 구리판 쪽은 전자가 부족해짐. 이 <b>전위차</b>가 곧 전압입니다.</li>
+            <li>두 판을 도선으로 이으면 전자가 아연에서 구리 쪽으로 이동함. 이것이 <b>지속적인 전류</b>입니다.</li>
+          </ul>
+         <p> 화학 반응을 이용해 <b>인류 역사상 처음으로 '끊기지 않고 계속 흐르는 전기'</b>를 손에 쥐게 된 겁니다.</p>
+         <h4>파급력은 즉각적이었다</h4>
+          <ul>
+            <li><b>1800년</b> &mdash; 영국의 니컬슨과 칼라일이 볼타 전지로 <b>물을 전기분해</b>해 수소와 산소를 얻었습니다.</li>
+            <li><b>1807년</b> &mdash; 험프리 데이비가 같은 방법으로 <b>나트륨과 칼륨을 최초로 분리</b>했습니다. 화학이 전기라는 새 도구를 얻은 것이죠.</li>
+            <li><b>1827년</b> &mdash; 게오르크 옴이 <b>옴의 법칙(V = IR)</b>을 정리합니다. 안정적인 전류원이 있었기에 가능했던 것이죠.</li>
+          </ul>
+
+          <p>나폴레옹은 이 위대한 발명에 감동해 볼타에게 백작 작위를 내렸고, 오늘날 우리가 쓰는 전압의 단위인 <b>볼트(V)</b>는 바로 이 천재 과학자의 이름에서 따왔답니다.</p>
+        </div>
+      </article>
+
+      <!-- 7 외르스테드 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1820</span>
+          <span class="node-title">외르스테드 &mdash; 강의실에서 벌어진 뜻밖의 사건</span>
+          <span class="node-sub">220년 만에 전기와 자기가 다시 만나다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Wire -->
+              <line x1="20" y1="60" x2="180" y2="60" stroke="#C2703A" stroke-width="4"/>
+              <!-- Electrons moving -->
+              <circle cx="50" cy="60" r="3" fill="#F1ECE1"><animate attributeName="cx" values="50;150" dur="2s" repeatCount="indefinite"/></circle>
+              <circle cx="100" cy="60" r="3" fill="#F1ECE1"><animate attributeName="cx" values="100;180" dur="2s" repeatCount="indefinite"/></circle>
+              <!-- Compass -->
+              <circle cx="100" cy="90" r="18" fill="none" stroke="#F1ECE1" stroke-width="2"/>
+              <!-- Needle deflected -->
+              <polygon points="100,75 95,90 105,90" fill="#E3A72C" transform="rotate(30 100 90)"/>
+              <polygon points="100,105 95,90 105,90" fill="#F1ECE1" transform="rotate(30 100 90)"/>
+            </svg>
+          </div>
+          <p>덴마크의 물리학자 <b>한스 크리스티안 외르스테드</b>는 코펜하겐에서 학생들에게 강의를 하던 도중 우연히 엄청난 현상을 목격합니다. 전선에 전기를 흘려보내는 순간, 근처에 놓여 있던 <b>나침반 바늘이 휙 돌아가는 것</b>을 발견한 거예요!</p>
+          <p>이게 무슨 뜻일까요? 바로 <b>전기가 흐르면 주변에 자석의 힘(자기장)이 생겨난다</b>는 뜻이었습니다. 200년 전 길버트가 철저하게 남남으로 갈라놓았던 전기와 자기가, 사실은 뗄레야 뗄 수 없는 짝꿍이라는 비밀이 세상에 드러난 순간이죠.</p>
+<p>이 소식은 몇 주 만에 유럽 전역으로 퍼졌고, 프랑스의 <b>앙드레 마리 앙페르</b>가 곧바로 수학적으로 정리를 합니다. 전류의 단위 <b>암페어(A)</b>가 그의 이름에서 따온거에요.</p>
+
+          <div class="note"><b>이때 과학자들의 머릿속에 번쩍 든 생각!</b> "전기로 자석을 만들 수 있다면, 거꾸로 <b>자석을 움직여서 전기를 만들어 낼 수는 없을까?</b>" 이 질문이 11년 뒤 세상을 바꿉니다.</div>
+        </div>
+      </article>
+
+      <!-- 8 패러데이 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1831</span>
+          <span class="node-title">패러데이 &mdash; 발전소는 아직도 이 원리로 돌아가요</span>
+          <span class="node-sub">초등학교도 못 나온 제본소 견습공이 현대 문명을 설계하다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Coil -->
+              <path d="M 60 40 C 60 20, 80 20, 80 40 C 80 60, 60 60, 60 40 Z" fill="none" stroke="#C2703A" stroke-width="2" transform="translate(10,0)"/>
+              <path d="M 70 40 C 70 20, 90 20, 90 40 C 90 60, 70 60, 70 40 Z" fill="none" stroke="#C2703A" stroke-width="2" transform="translate(10,0)"/>
+              <path d="M 80 40 C 80 20, 100 20, 100 40 C 100 60, 80 60, 80 40 Z" fill="none" stroke="#C2703A" stroke-width="2" transform="translate(10,0)"/>
+              <path d="M 90 40 C 90 20, 110 20, 110 40 C 110 60, 90 60, 90 40 Z" fill="none" stroke="#C2703A" stroke-width="2" transform="translate(10,0)"/>
+              <!-- Wire out to meter -->
+              <path d="M 70 60 L 70 90 L 140 90 L 140 60" fill="none" stroke="#C2703A" stroke-width="2"/>
+              <!-- Magnet -->
+              <rect x="130" y="30" width="40" height="20" fill="#E3A72C"/>
+              <rect x="150" y="30" width="20" height="20" fill="#F1ECE1"/>
+              <!-- Motion arrow -->
+              <path d="M 120 40 L 100 40 M 105 35 L 100 40 L 105 45" fill="none" stroke="#1D5E58" stroke-width="2"/>
+            </svg>
+          </div>
+          <p><b>마이클 패러데이</b>의 삶은 한 편의 감동적인 영화 같아요. 가난한 대장장이의 아들로 태어나 정규 교육을 거의 받지 못했고, 어린 나이에 제본소(책 묶는 곳)에서 일해야 했죠. 하지만 그는 자기가 묶던 과학 책들을 몰래 읽으며 독학했고, 유명한 과학자 험프리 데이비의 강연을 듣고 필기한 노트를 정성껏 제본해 선물한 것을 계기로 왕립연구소의 조수가 되며 인생이 바뀝니다.</p>
+          <p>1831년, 패러데이는 마침내 <b>전자기 유도</b>라는 기적 같은 현상을 발견해요. 구리 선을 돌돌 만 코일 근처에서 자석을 왔다 갔다 움직였더니, 코일에 마법처럼 전기가 흐르는 걸 확인한 거예요. 제일 중요한 건 <b>'움직인다(변화한다)'</b>는 조건입니다. 자석을 가만히 놔두면 아무 일도 일어나지 않아요.</p>
+          <div class="note"><b>이 원리가 지금 우리의 삶을 100% 떠받치고 있습니다.</b> 석탄을 태우든, 우라늄으로 물을 끓이든, 수력으로 물레방아를 돌리든, 풍력으로 바람개비를 돌리든 <b>발전소의 궁극적인 목적은 '거대한 자석을 돌려서 코일에 전기를 만드는 것'</b>입니다. 1831년 이후 전기를 만드는 기본 원리는 한 번도 바뀐 적이 없답니다!</div>
+        </div>
+      </article>
+
+      <!-- 9 맥스웰 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1860년대</span>
+          <span class="node-title">맥스웰 &mdash; 빛의 진짜 정체를 밝혀내다</span>
+          <span class="node-sub">수학 방정식 네 줄로 전기, 자기, 그리고 빛을 통일하다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Grid/Axis -->
+              <line x1="20" y1="60" x2="180" y2="60" stroke="#F1ECE1" stroke-width="1"/>
+              <!-- Electric wave -->
+              <path d="M 20 60 Q 40 20, 60 60 T 100 60 T 140 60 T 180 60" fill="none" stroke="#E3A72C" stroke-width="2"/>
+              <!-- Magnetic wave (drawn 3d-ish) -->
+              <path d="M 20 60 Q 30 75, 40 60 T 60 60 Q 70 45, 80 60 T 100 60 Q 110 75, 120 60 T 140 60 Q 150 45, 160 60 T 180 60" fill="none" stroke="#C2703A" stroke-width="2"/>
+            </svg>
+          </div>
+          <p>천재 수학자 <b>제임스 클러크 맥스웰</b>이 나타나, 패러데이가 머릿속으로 상상했던 직관적인 그림들을 4개의 우아한 수학 방정식으로 완벽하게 번역해 냈어요. 이로써 전기와 자기는 완전히 하나의 이론으로 합쳐졌습니다.</p>
+          <p>그런데 이 방정식을 풀다 보니 상상도 못 한 놀라운 결과가 툭 튀어나왔습니다. 전기와 자기가 파도처럼 우주 공간을 퍼져나가는 '전자기파'라는 게 존재해야 했고, 놀랍게도 그 전파의 속도를 계산해보니 <b>우리가 이미 알고 있던 '빛의 속도'와 소름 돋게 똑같았던 거예요.</b></p>
+          <p>결론은 하나뿐이었습니다. <b>"우리가 매일 보는 빛도 사실은 전자기파의 한 종류였다!"</b> 오늘날 우리가 매일 쓰는 와이파이, 스마트폰 통신, 전자레인지... 전부 이 방정식 덕분에 태어난 기술이랍니다.</p>
+        </div>
+      </article>
+
+      <!-- 10 전류 전쟁 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1882&ndash;1895</span>
+          <span class="node-title">전류 전쟁 &mdash; 직류(DC)냐 교류(AC)냐, 그것이 문제로다</span>
+          <span class="node-sub">위대한 승부를 가른 건 아주 짧은 물리 공식 하나였어요</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Lightbulb -->
+              <path d="M 100 20 C 120 20, 120 50, 110 60 C 105 65, 105 70, 105 75 L 95 75 C 95 70, 95 65, 90 60 C 80 50, 80 20, 100 20 Z" fill="#F1ECE1" opacity="0.9"/>
+              <path d="M 95 75 L 105 75 L 105 85 L 95 85 Z" fill="#C2703A"/>
+              <path d="M 97 85 L 103 85 L 100 95 Z" fill="#C2703A"/>
+              <!-- Glow -->
+              <circle cx="100" cy="40" r="40" fill="#E3A72C" opacity="0.2"/>
+              <!-- AC DC text -->
+              <text x="30" y="65" fill="#E3A72C" font-family="sans-serif" font-weight="bold" font-size="16">AC</text>
+              <text x="145" y="65" fill="#C2703A" font-family="sans-serif" font-weight="bold" font-size="16">DC</text>
+              <!-- AC wave line -->
+              <path d="M 20 80 Q 30 70, 40 80 T 60 80" fill="none" stroke="#E3A72C" stroke-width="2"/>
+              <!-- DC straight line -->
+              <line x1="140" y1="80" x2="175" y2="80" stroke="#C2703A" stroke-width="2"/>
+            </svg>
+          </div>
+          <p>1879년, 발명왕 <b>에디슨</b>이 실용적인 백열전구를 발명하며 세계 최초로 뉴욕 맨해튼에 상업용 발전소를 세웁니다. 에디슨이 선택한 방식은 전기가 한 방향으로 얌전하게 흐르는 <b>직류(DC)</b>였어요. 하지만 직류는 전기를 고작 1.6km 정도밖에 멀리 보내지 못한다는 치명적인 단점이 있었죠.</p>
+
+          <h4>승패를 가른 물리학: 왜 교류(AC)가 이겼을까요?</h4>
+          <p>전기를 멀리 보낼 때 가장 골칫거리는 전선에서 열이 펄펄 나면서 전기가 낭비되는 현상(손실)이에요. 그런데 신기하게도 발전소에서 전압(밀어주는 힘)을 10배 높여서 보내면 낭비되는 전기는 100분의 1로 확 줄어든답니다. 정답은 아주 명확해졌죠. <b>"발전소에서 전기를 쏠 때는 전압을 엄청 높게 뻥튀기하고, 집에 들어올 때는 다시 안전하게 낮춰서 쓰자!"</b></p>
+          <p>그런데 당시 기술로는 전압을 마음대로 올렸다 내렸다 할 수 있는 장치(변압기)가 <b>전기의 방향이 쉴 새 없이 꿀렁거리며 바뀌는 교류(AC)에서만 작동했어요.</b> 결국 <b>웨스팅하우스</b>(테슬라의 특허를 사들인 사업가)가 이끄는 교류 진영이 이 물리학적 장점 하나로 승리를 거머쥐게 됩니다.</p>
+          
+          <div class="myth"><b>잔인한 흑역사:</b> 기술력에서 밀리게 된 에디슨 진영은 결국 무리수를 둡니다. 교류가 얼마나 위험한지 대중에게 겁을 주려고 사형 집행에 교류 전기의자를 도입하도록 부추기는 등, 진흙탕 마케팅을 펼치기도 했어요.</div>
+        </div>
+      </article>
+
+      <!-- 11 톰슨 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1897</span>
+          <span class="node-title">톰슨 &mdash; 145년 만에 전기의 진짜 주인공을 찾다</span>
+          <span class="node-sub">원자보다 작은 것이 세상에 존재했다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Tube -->
+              <path d="M 40 40 L 100 40 L 150 20 C 170 20, 180 30, 180 60 C 180 90, 170 100, 150 100 L 100 80 L 40 80 Z" fill="none" stroke="#F1ECE1" stroke-width="2"/>
+              <line x1="40" y1="40" x2="40" y2="80" stroke="#F1ECE1" stroke-width="2"/>
+              <!-- Cathode -->
+              <rect x="50" y="45" width="5" height="30" fill="#C2703A"/>
+              <!-- Beam bent -->
+              <path d="M 55 60 L 110 60 Q 140 60, 160 30" fill="none" stroke="#E3A72C" stroke-width="3" stroke-dasharray="4,4"/>
+              <!-- Electric Plates -->
+              <line x1="110" y1="45" x2="140" y2="45" stroke="#F1ECE1" stroke-width="2"/>
+              <line x1="110" y1="75" x2="140" y2="75" stroke="#F1ECE1" stroke-width="2"/>
+              <text x="122" y="40" fill="#E3A72C" font-family="sans-serif" font-weight="bold" font-size="12">+</text>
+              <text x="123" y="90" fill="#F1ECE1" font-family="sans-serif" font-weight="bold" font-size="12">-</text>
+            </svg>
+          </div>
+          <p>에디슨이 도시를 전등으로 밝히고 전차가 거리를 누비던 이때까지도, 사실 과학자들은 전기의 진짜 정체가 무엇인지 잘 몰랐어요.</p>
+          <p>영국의 <b>J. J. 톰슨</b> 교수는 진공 유리관에 전기를 연결했을 때 뿜어져 나오는 정체불명의 빛(음극선)을 연구하다가, 이 빛이 자석이나 전기를 갖다 대면 한쪽으로 휘어진다는 걸 발견합니다. 아주 정밀한 계산 끝에 그는 놀라운 사실을 발표하죠. 이 빛을 이루는 알갱이의 무게가, <b>당시 세상에서 가장 가볍다고 알려져 있던 수소 원자보다 무려 1800배나 더 가볍다는 걸 말이에요!</b></p>
+          <div class="note"><b>기억하시나요, 제일 처음에 나왔던 단어?</b> 드디어 '원자는 쪼갤 수 없는 가장 작은 알갱이'라는 오랜 믿음이 깨졌습니다. 이 신비하고 쪼끄만 알갱이에게 새로운 이름이 붙여졌는데, 바로 <b>전자(electron)</b>입니다. 네, 맞아요. 2500년 전 탈레스가 문질렀던 <b>엘렉트론(호박)</b>에서 따온 이름이 마침내 진짜 주인을 만난 거랍니다!</div>
+        </div>
+      </article>
+
+      <!-- 12 밀리컨 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1909</span>
+          <span class="node-title">밀리컨 &mdash; 전기에도 최소 단위가 있다</span>
+          <span class="node-sub">기름방울을 공중에 둥둥 띄워서 알아낸 놀라운 사실</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Plates -->
+              <rect x="50" y="30" width="100" height="10" fill="#E3A72C"/>
+              <rect x="50" y="80" width="100" height="10" fill="#F1ECE1"/>
+              <!-- Drops -->
+              <circle cx="100" cy="55" r="4" fill="#C2703A"/>
+              <circle cx="80" cy="70" r="3" fill="#C2703A"/>
+              <circle cx="120" cy="45" r="5" fill="#C2703A"/>
+              <!-- Forces arrows on one drop -->
+              <line x1="100" y1="51" x2="100" y2="41" stroke="#F1ECE1" stroke-width="1"/>
+              <polygon points="100,38 97,42 103,42" fill="#F1ECE1"/>
+              <line x1="100" y1="59" x2="100" y2="69" stroke="#F1ECE1" stroke-width="1"/>
+              <polygon points="100,72 97,68 103,68" fill="#F1ECE1"/>
+            </svg>
+          </div>
+          <p>미국의 <b>로버트 밀리컨</b>은 아주 기발하고 끈기 있는 실험을 했어요. 캄캄한 통 속에 전기를 띤 미세한 기름방울을 뿌려놓고, 위아래로 전기장의 세기를 조절하며 기름방울이 떨어지지도 올라가지도 않고 <b>허공에 딱 멈추는 순간</b>을 현미경으로 관찰한 거예요.</p>
+          <p>수많은 기름방울로 실험을 반복한 결과, 기름방울들이 띠고 있는 전기의 양이 중구난방이 아니라 <b>반드시 어떤 특정한 값의 배수(1배, 2배, 3배...)로만 나타난다</b>는 걸 발견합니다.</p>
+          <p>이게 무슨 의미일까요? 전기는 물처럼 연속적으로 쭉 이어지는 게 아니라, 마치 바둑알처럼 <b>셀 수 있는 알갱이 단위로 똑똑 끊어져 존재한다</b>는 뜻이에요. 그가 찾아낸 '전자 1개의 전하량'은 아주아주 작은 숫자랍니다.</p>
+          <div class="eq">$$e = 1.602 \times 10^{-19} \text{ C}$$</div>
+        </div>
+      </article>
+
+      <!-- 13 러더퍼드 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1911</span>
+          <span class="node-title">러더퍼드 &mdash; 텅 빈 원자, 그리고 원자핵의 발견</span>
+          <span class="node-sub">"휴지 조각에 쏜 대포알이 튕겨져 나와 내 이마를 때린 기분이었다"</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Nucleus -->
+              <circle cx="120" cy="60" r="5" fill="#E3A72C"/>
+              <circle cx="120" cy="60" r="12" fill="none" stroke="#C2703A" stroke-width="1" stroke-dasharray="2,2"/>
+              <!-- Alpha particles paths -->
+              <path d="M 20 20 L 180 20" fill="none" stroke="#F1ECE1" stroke-width="1.5"/>
+              <path d="M 20 100 L 180 100" fill="none" stroke="#F1ECE1" stroke-width="1.5"/>
+              <path d="M 20 45 Q 115 45, 130 15" fill="none" stroke="#F1ECE1" stroke-width="1.5"/>
+              <path d="M 20 75 Q 115 75, 130 105" fill="none" stroke="#F1ECE1" stroke-width="1.5"/>
+              <!-- Deflected particle -->
+              <path d="M 20 58 Q 110 58, 80 10" fill="none" stroke="#E3A72C" stroke-width="2"/>
+            </svg>
+          </div>
+          <p>전자를 발견한 톰슨은 원자가 마치 '폭신한 빵 속에 건포도(전자)가 콕콕 박혀 있는 모습'일 거라고 귀엽게 상상했어요. 그런데 그의 똑똑한 제자 <b>러더퍼드</b>가 실험 하나로 이 상상을 완전히 깨버립니다.</p>
+          <p>눈에 보이지 않는 알파 입자(총알)를 아주 얇은 금박(종이)에 쏴봤는데, 기막힌 일이 벌어졌어요. <b>약 8000발을 쏠 때마다 1발꼴로 총알이 금박을 통과하지 못하고 정반대 방향으로 튕겨져 나온 거예요!</b> 러더퍼드는 너무 황당해서 "마치 화장지에 거대한 대포알을 쐈는데, 그게 튕겨 나와 나를 맞춘 기분이었다"고 회고했죠.</p>
+          <div class="note"><b>결론은 하나였습니다.</b> "원자 중심에는 엄청나게 무겁고 단단한 무언가가 아주 작게 뭉쳐있다!" 바로 <b>원자핵</b>의 발견입니다. 원자를 축구 경기장만 하게 확대하면, 가운데 있는 원자핵은 센터 서클 한가운데 놓인 완두콩 한 알 정도 크기밖에 안 됩니다. 우리 몸을 포함해 세상 모든 물질은 사실상 99.99%가 텅 비어 있는 셈이죠.</div>
+        </div>
+      </article>
+
+      <!-- 14 보어/채드윅 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">1913&ndash;1932</span>
+          <span class="node-title">보어와 채드윅 &mdash; 드디어 원자의 완벽한 지도가 그려지다</span>
+          <span class="node-sub">145년간의 긴 여행이 드디어 종착역에 도착했습니다</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <div class="node-img-wrap">
+            <svg viewBox="0 0 200 120">
+              <!-- Nucleus -->
+              <circle cx="100" cy="60" r="8" fill="#E3A72C"/>
+              <!-- Orbits -->
+              <ellipse cx="100" cy="60" rx="30" ry="12" fill="none" stroke="#F1ECE1" stroke-width="1" transform="rotate(30 100 60)"/>
+              <ellipse cx="100" cy="60" rx="30" ry="12" fill="none" stroke="#F1ECE1" stroke-width="1" transform="rotate(-30 100 60)"/>
+              <ellipse cx="100" cy="60" rx="30" ry="12" fill="none" stroke="#F1ECE1" stroke-width="1" transform="rotate(90 100 60)"/>
+              <!-- Electrons -->
+              <circle cx="125" cy="45" r="3" fill="#1D5E58" stroke="#F1ECE1" stroke-width="1"/>
+              <circle cx="75" cy="75" r="3" fill="#1D5E58" stroke="#F1ECE1" stroke-width="1"/>
+              <circle cx="100" cy="30" r="3" fill="#1D5E58" stroke="#F1ECE1" stroke-width="1"/>
+            </svg>
+          </div>
+          <p>러더퍼드의 원자 모형도 완벽하진 않았어요. 전자가 태양 주위를 도는 지구처럼 빙글빙글 돈다면, 에너지를 잃고 금방 핵으로 추락해 버려야 했거든요. <b>1913년, 천재 물리학자 닐스 보어</b>가 "전자는 아무 데나 있는 게 아니라 정해진 아파트 층수(에너지 준위)에만 살 수 있다!"라는 양자역학의 규칙을 가져와 이 문제를 멋지게 해결합니다.</p>
+          <p>그리고 <b>1932년 제임스 채드윅</b>이 원자핵 속에 숨어있던 전기 띠지 않는 <b>'중성자'</b>를 마저 찾아내면서, 우리가 과학 교과서에서 배우는 완벽한 원자의 구조(양성자, 중성자, 전자)가 완성되었답니다.</p>
+          <div class="note"><b>마침내 145년의 여행이 끝났습니다.</b> 프랭클린이 비바람 속에서 젖은 연줄을 날리던 1752년에서 시작해, 톰슨이 진공관에서 전자를 찾아내고 원자 구조가 완성될 때까지. 이제 200년 넘게 흩어져 있던 전기에 관한 수많은 퍼즐 조각들이 '원자'라는 하나의 커다란 그림으로 완벽하게 맞춰지게 되었습니다!</div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="section qna">
+  <div class="wrap">
+    <div class="eyebrow">Q &amp; A &nbsp;/&nbsp; 헷갈리는 지점들</div>
+    <h2>다들 여기서 한 번쯤은 고개를 갸우뚱해요</h2>
+    <p class="section-lede">
+      연표를 읽다 보면 누구나 머리가 복잡해지는 질문들이 있어요. 아래 질문들의 답을 알고 나면 앞의 이야기들이 머릿속에 훨씬 더 투명하게 그려질 거예요.
+    </p>
+
+    <div class="rail">
+
+     <!-- Q1 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">Q1</span>
+          <span class="node-title">"전자가 달팽이보다 느리다면서 스위치를 켜면 왜 불은 바로 켜지나요?"</span>
+          <span class="node-sub">이 단원에서 가장 우리의 상식을 기분 좋게 배신하는 사실</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <p>실제로 일반적인 가전제품 전선 안에서 전자 한 마리가 움직이는 속도는 <b>초속 0.1mm</b> 정도밖에 안 돼요. 우리가 걷는 속도보다도, 심지어 달팽이가 기어가는 것보다도 훨씬 느릿느릿하죠.</p>
+          <p>그런데 우리가 스위치를 켜면 천장의 전등은 0.1초도 안 걸려서 반짝! 하고 켜집니다. 대체 어떻게 된 걸까요?</p>
+          <p>정답은 간단해요. 스위치 쪽에 있던 전자 한 마리가 전등까지 땀 뻘뻘 흘리며 마라톤을 하는 게 아니기 때문입니다. 구리 전선 안에는 <b>이미 움직일 준비를 마친 수십억 개의 자유전자들이 꽉꽉 들어차 있어요.</b></p>
+          <div class="note"><b>이것도 물 호스에 비유하면 찰떡입니다.</b> 물이 이미 가득 차 있는 긴 호스를 상상해 보세요. 수도꼭지를 틀어 호스 이쪽 끝으로 물을 밀어 넣으면, 저쪽 끝에서 즉시 물이 뿜어져 나오죠? 하지만 방금 나온 그 물은 방금 수도꼭지에서 들어간 <b>새로운 물이 아닙니다.</b> 호스 끝에서 원래 대기하고 있던 물이 툭 밀려서 나온 거잖아요. 전선 안의 전자들도 완전히 똑같이 행동한답니다!</div>
+        </div>
+      </article>
+
+      <!-- Q2 -->
+      <article class="node">
+        <button class="node-head" aria-expanded="false">
+          <span class="year">Q2</span>
+          <span class="node-title">"왜 전자만 열심히 돌아다니고 무거운 원자핵은 가만히 있나요?"</span>
+          <span class="node-sub">사실 '전자만' 움직이는 것도 아니라는 조금 놀라운 이야기</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="node-body">
+          <h4>원자핵이 꼼짝 않는 이유</h4>
+          <ul>
+            <li>원자핵은 전자보다 <b>무려 2천 배 가까이 무겁거든요.</b> 아무리 밀어도 뚱뚱해서 꿈쩍도 안 하죠.</li>
+            <li>게다가 단단한 쇳덩이(금속) 안에서 원자핵들은 서로 <b>단단하게 뼈대를 이루며 묶여 있어요.</b></li>
+          </ul>
+          <p>반면 금속에 있는 전자들(자유전자)은 부모 곁을 떠난 아이들처럼 이 집 저 집을 마음껏 쏘다닐 수 있어요. 구리에 전기가 잘 통하고 프라이팬이 열을 잘 전달하는 것도 다 이 부지런한 전자들 덕분이죠.</p>
+
+          <h4>하지만 잠깐, 늘 '전자'만 움직이는 건 아니랍니다!</h4>
+          <p>"전기가 흐르는 건 전자의 이동이다!"라고 단정 짓는 건 사실 <b>고체 금속 전선 안에서만 통하는 이야기</b>예요. 소금물이나 이온 음료, 건전지 용액 안에서는 <b>원자핵을 통째로 포함한 뚱뚱한 '이온' 녀석들이 느릿느릿 직접 헤엄쳐 다니며</b> 전기를 나르거든요.</p>
+          <div class="note"><b>그래서 과학적으로 가장 멋진 표현은 이렇습니다.</b> 전류란 단순히 전자의 흐름이라기보다, 더 넓게 봐서 <b>'전기를 띤 어떤 알갱이(전하)의 흐름'</b>이라고 부르는 게 맞답니다.</div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="section closing">
+  <div class="wrap">
+    <div class="eyebrow">CLOSING &nbsp;/&nbsp; 단 한 문장</div>
+    <h2>파인만의 멋진 질문</h2>
+    <p style="margin-top:22px">
+      1961년, 유쾌한 천재 물리학자 <b>리처드 파인만</b>은 갓 입학한 대학 신입생들을 모아놓고 첫 강의에서 이런 흥미진진한 질문을 던졌어요.
+    </p>
+    <blockquote class="feynman">
+      "만약 끔찍한 대재앙이 닥쳐서 인류의 모든 과학 지식이 한순간에 날아가 버렸다고 칩시다. 
+      우리가 다음 세대에게 딱 한 문장만 남겨줄 수 있다면, 
+      가장 짧은 단어로 가장 위대한 정보를 담을 수 있는 그 문장은 과연 무엇일까요?"
+    </blockquote>
+    <p>
+      파인만 스스로 내린 정답은 바로 <b>'원자 가설'</b>이었습니다. "세상 모든 것은 아주 작은 알갱이(원자)로 이루어져 있고, 이 녀석들은 쉬지 않고 꼬물거리며 움직이는데, 조금 떨어져 있으면 서로 끌어당기지만 억지로 밀어붙이면 결사코 서로를 밀어낸다." 파인만은 이 한 문장만 잘 간직하고 있어도, <b>약간의 상상력만 보태면</b> 잃어버린 과학 지식을 금방 다시 세울 수 있을 거라고 장담했어요.
+    </p>
+    <p>
+      재미있는 건 이 문장의 핵심인 <b>'밀고 당기는 힘'의 정체가 결국은 우리가 2500년 동안 추적해 온 전기력</b>이라는 거예요. 
+      우리가 책상을 손으로 쾅 쳐도 손이 책상을 뚫고 들어가지 않는 이유, 물방울이 동그랗게 뭉쳐있는 이유, 포스트잇이 착 달라붙는 이유... 눈에 보이지 않는 우주의 중력이나 핵의 힘을 빼고 나면, 우리가 만지고 느끼고 살아가는 이 일상적인 세계는 사실상 100% 전기력으로 돌아가고 있답니다. 
+    </p>
+    <p>
+      마지막으로 재미있는 아이러니를 하나 들려드릴까요? 원자를 뜻하는 영어 단어 <b>아톰(Atom)</b>은 고대 그리스 철학자들이 "더 이상 쪼갤 수 없는 것"이라는 뜻으로 붙인 이름이에요. 그런데 어떡하죠? 과학이 발전하면서 원자는 전자와 핵으로, 다시 양성자와 중성자로 마구 쪼개지고 말았습니다. 
+      <b>이름의 뜻은 완전히 틀려버렸지만, 아이디어만큼은 굳건히 살아남았어요.</b> 이 세상이 하나의 덩어리가 아니라 '셀 수 있는 알갱이'로 이루어져 있다는 빛나는 생각 하나가 2400년의 세월을 뛰어넘어 지금도 숨 쉬고 있는 겁니다.
+    </p>
+    <p>
+      돌아보면 전기의 역사는, 인류가 무언가의 진짜 정체를 새카맣게 모르는 채로도 그걸 얼마나 엄청나게 써먹을 수 있는지를 잘 보여주는 위대한 여정이었어요. 
+      그리고 오랜 시간이 흘러 마침내 그 정체를 밝혀냈을 때, 흩어져 있던 퍼즐 조각들이 '원자'라는 하나의 커다란 그림으로 얼마나 아름답게 맞춰지는지를 보여주는 멋진 한 편의 드라마이기도 하답니다.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">전기의 역사와 원자의 발견 &nbsp;·&nbsp; 누구나 쉽게 읽는 과학 이야기</div>
+</footer>
+
+<script>
+/* 아코디언 메뉴 동작 스크립트 */
+document.querySelectorAll('.node-head').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var node = btn.closest('.node');
+    var open = node.classList.toggle('lit');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+});
+</script>
+
+</body>
+</html>
