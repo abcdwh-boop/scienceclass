@@ -1,402 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI서재(임시)</title>
-<meta name="description" content="과학 수업에서 쓰는 도구와 각종 내가 만든 웹페이지 저장.">
-<!-- 외부 폰트·CDN을 일부러 하나도 쓰지 않았습니다. 학교 네트워크에서 이 페이지가 열리면 도메인 허용이 제대로 됐다는 뜻입니다. -->
-<!-- 배경 사진은 같은 폴더의 library.jpg 입니다. -->
-<style>
-  :root{
-    --cream:#FBF3E2;
-    --paper:#F2E8D3;
-    --ink:#2B2118;
-    --ink-soft:#6A5844;
-    --gilt:#D9B96A;
-    --plank-hi:#7A4E2B;
-    --plank-lo:#3F2614;
-    --bay:rgba(30,18,9,.52);
-    --spine-font:1.04rem;
-    --spine-w:3.4rem;
-    --spine-min:12rem;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;}
-  body{
-    min-height:100vh;
-    color:var(--cream);
-    font-family:'Noto Serif KR','Noto Serif CJK KR','Nanum Myeongjo',Georgia,'Batang',serif;
-    -webkit-font-smoothing:antialiased;
-    background:#4A2E19;
-  }
-  /* 서재 사진: 살짝 흐리게 + 따뜻한 그늘 */
-  body::before,body::after{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:-2;
-  }
-  body::before{
-    inset:-24px;
-    background:url("library.jpg") center/cover no-repeat;
-    filter:blur(3px) saturate(.9) brightness(.92);
-  }
-  body::after{
-    z-index:-1;
-    background:
-      radial-gradient(ellipse at 50% 30%, rgba(40,22,10,.15), rgba(25,14,6,.62) 85%),
-      linear-gradient(rgba(30,17,8,.25), rgba(30,17,8,.25));
-  }
-
-  .wrap{
-    max-width:64rem;
-    margin:0 auto;
-    padding:clamp(2.2rem,6vh,4rem) 1.25rem 2.5rem;
-  }
-  header{
-    text-align:center;
-    margin-bottom:clamp(1.8rem,5vh,3rem);
-    text-shadow:0 2px 14px rgba(20,10,4,.75), 0 1px 2px rgba(20,10,4,.6);
-  }
-  h1{
-    margin:0;
-    font-size:clamp(2.3rem,7vw,3.6rem);
-    font-weight:700;
-    letter-spacing:-.02em;
-    line-height:1.2;
-  }
-  header p{
-    margin:.9rem auto 0;
-    max-width:30rem;
-    word-break:keep-all;
-    font-size:1.05rem;
-    line-height:1.85;
-    color:#F1E2C4;
-  }
-
-  /* 책장: 위 칸은 과학 수업, 아래는 두 칸으로 나눔 */
-  .case{
-    display:grid;
-    grid-template-columns:3fr 2fr;
-    grid-template-areas:"class class" "teach tools";
-    gap:1.6rem 1.4rem;
-  }
-  .bay{
-    position:relative;
-    background:var(--bay);
-    border-radius:3px 3px 0 0;
-    box-shadow:inset 0 10px 24px rgba(0,0,0,.45);
-    padding:1.4rem 1.1rem 0;
-    display:flex;
-    flex-direction:column;
-  }
-  .bay[data-area="class"]{grid-area:class;}
-  .bay[data-area="teach"]{grid-area:teach;}
-  .bay[data-area="tools"]{grid-area:tools;}
-
-  .row{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:flex-end;
-    flex:1;
-    align-content:flex-end;
-    gap:4px;
-    margin:0;
-    padding:0;
-    list-style:none;
-  }
-  .plank{
-    position:relative;
-    height:1.6rem;
-    margin:0 -1.1rem;
-    background:linear-gradient(var(--plank-hi), var(--plank-lo));
-    box-shadow:0 6px 14px rgba(0,0,0,.5);
-  }
-  .plaque{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    padding:.12rem .8rem;
-    font-size:.78rem;
-    font-weight:700;
-    color:#3A2A12;
-    white-space:nowrap;
-    background:linear-gradient(#E7CF8E,#B48D45);
-    border-radius:2px;
-    box-shadow:0 1px 0 rgba(255,255,255,.35) inset, 0 1px 3px rgba(0,0,0,.5);
-  }
-
-  /* 책등 */
-  .book{
-    --c:#5A3520;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    width:var(--w, var(--spine-w));
-    min-height:var(--spine-min);
-    padding:calc(1.6rem + var(--tall,0rem)) 0 1.5rem;
-    color:var(--gilt);
-    text-decoration:none;
-    writing-mode:vertical-rl;
-    text-orientation:mixed;
-    font-size:var(--spine-font);
-    font-weight:700;
-    letter-spacing:.06em;
-    line-height:1.1;
-    border-radius:3px 3px 1px 1px;
-    background:
-      linear-gradient(transparent .55rem, var(--gilt) .55rem, var(--gilt) .7rem, transparent .7rem, transparent .9rem, rgba(217,185,106,.7) .9rem, rgba(217,185,106,.7) .98rem, transparent .98rem),
-      linear-gradient(to top, transparent .55rem, var(--gilt) .55rem, var(--gilt) .7rem, transparent .7rem),
-      linear-gradient(90deg, rgba(0,0,0,.38), rgba(255,255,255,.13) 28%, rgba(255,255,255,0) 55%, rgba(0,0,0,.32)),
-      var(--c);
-    box-shadow:1px 0 0 rgba(0,0,0,.35);
-    text-shadow:0 1px 0 rgba(0,0,0,.45);
-    transition:transform .25s cubic-bezier(.22,.61,.36,1);
-  }
-  .book:hover,.book:focus-visible{transform:translateY(-.7rem);}
-  .book:focus-visible{outline:2px solid var(--gilt);outline-offset:3px;}
-  .book.pulled{transform:translateY(-1.4rem);}
-
-  footer{
-    margin-top:2.6rem;
-    text-align:center;
-    font-size:.88rem;
-    color:#E8D6B4;
-    text-shadow:0 1px 6px rgba(0,0,0,.7);
-  }
-
-  /* 펼친 책 */
-  dialog{
-    width:min(46rem, 94vw);
-    max-height:92vh;
-    padding:0;
-    border:0;
-    background:transparent;
-    color:var(--ink);
-    overflow:visible;
-  }
-  dialog::backdrop{background:rgba(20,11,5,.62);}
-  .open-book{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    perspective:1600px;
-    border-radius:4px;
-    padding:.55rem;
-    background:var(--cover, #5A3520);
-    box-shadow:0 24px 60px rgba(0,0,0,.55);
-  }
-  .page{
-    background:var(--paper);
-    padding:2.1rem 1.8rem 1.8rem;
-    min-height:19rem;
-    display:flex;
-    flex-direction:column;
-  }
-  .page.left{
-    border-radius:2px 0 0 2px;
-    background:linear-gradient(90deg, var(--paper) 82%, #DCCDAE);
-    transform-origin:right center;
-  }
-  .page.right{
-    border-radius:0 2px 2px 0;
-    background:linear-gradient(90deg, #DCCDAE, var(--paper) 18%);
-  }
-  .shelf-name{
-    margin:0;
-    font-size:.85rem;
-    color:var(--ink-soft);
-  }
-  .page h2,.desc{word-break:keep-all;}
-  .page h2{
-    margin:.6rem 0 0;
-    font-size:clamp(1.45rem,3.6vw,1.9rem);
-    line-height:1.35;
-    letter-spacing:-.01em;
-  }
-  .address{
-    margin-top:auto;
-    padding-top:1.5rem;
-    font-size:.8rem;
-    color:var(--ink-soft);
-    word-break:break-all;
-  }
-  .desc{
-    margin:0;
-    font-size:1.02rem;
-    line-height:1.9;
-  }
-  .actions{
-    margin-top:auto;
-    padding-top:1.6rem;
-    display:flex;
-    gap:.6rem;
-    flex-wrap:wrap;
-  }
-  .go,.close{
-    font:inherit;
-    font-size:.98rem;
-    font-weight:700;
-    padding:.6rem 1.15rem;
-    border-radius:3px;
-    cursor:pointer;
-    text-decoration:none;
-  }
-  .go{
-    color:var(--cream);
-    background:var(--cover, #5A3520);
-    border:1px solid rgba(0,0,0,.25);
-  }
-  .go:hover{filter:brightness(1.15);}
-  .close{
-    color:var(--ink);
-    background:transparent;
-    border:1px solid #B9A47E;
-  }
-  .close:hover{background:rgba(0,0,0,.05);}
-  .go:focus-visible,.close:focus-visible{outline:2px solid #8A6A2C;outline-offset:2px;}
-
-  dialog[open] .page.left{animation:unfold .55s cubic-bezier(.22,.61,.36,1);}
-  dialog[open] .open-book{animation:rise .3s ease-out;}
-  @keyframes unfold{from{transform:rotateY(-95deg);}to{transform:rotateY(0);}}
-  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-
-  @media (max-width:720px){
-    :root{--spine-font:.86rem;--spine-w:2.6rem;--spine-min:9rem;}
-    .case{grid-template-columns:1fr;grid-template-areas:"class" "teach" "tools";}
-    .bay{padding:1.1rem .8rem 0;}
-    .plank{margin:0 -.8rem;}
-    .open-book{grid-template-columns:1fr;}
-    .page{min-height:0;padding:1.5rem 1.3rem;}
-    .page.left{background:var(--paper);border-radius:2px 2px 0 0;border-bottom:1px solid #DCCDAE;}
-    .page.right{background:var(--paper);border-radius:0 0 2px 2px;}
-    .address{padding-top:.8rem;}
-    dialog[open] .page.left{animation:none;}
-  }
-  @media (prefers-reduced-motion:reduce){
-    .book{transition:none;}
-    dialog[open] .page.left, dialog[open] .open-book{animation:none;}
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24160e">
+  <meta name="description" content="수업과 평가, AI·에듀테크 자료를 차곡차곡 꽂아두는 기몬의 과학서재입니다.">
+  <title>기몬의 과학서재</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 수정할 곳: library-data.js / 나머지는 자동 작동합니다. -->
+  <script defer src="library-data.js"></script>
+  <script defer src="books-layout.js"></script>
+  <!-- 확정된 책 위치 좌표: 업로드해 주신 미세조정 결과 -->
+  <script defer src="books-layout-overrides.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>과학서재</h1>
-    <p>과학 수업에서 쓰는 도구와 각종 내가 만든 웹페이지들을 꽂아 두었습니다. 책을 고르면 펼쳐집니다.</p>
-  </header>
-
-  <!--
-    책 추가하는 법: 아래 <li> 한 줄을 복사해서
-    href(폴더명), data-title(펼쳤을 때 제목), data-desc(소개글), 책등 글자를 바꾸면 됩니다.
-    style의 --c는 책 색, --w는 책 두께, --tall은 책 키를 더 키우는 값입니다.
-  -->
-  <main class="case">
-    <section class="bay" data-area="class" aria-label="과학 수업">
-      <ul class="row">
-        <li><a class="book" href="/electrichistory/" style="--c:#6E2B22;--w:3.2rem"
-          data-title="전기의 역사와 원자의 발견"
-          data-desc="호박을 문지르던 고대의 관찰에서 전자의 발견까지, 2500년의 연표를 도선을 따라가며 읽는 이야기입니다.">전기의 역사와 원자의 발견</a></li>
-        <li><a class="book" href="/gas_simulation/" style="--c:#2E4A3C;--tall:.4rem"
-          data-title="기체 입자 시뮬레이션"
-          data-desc="입자를 넣고 온도를 올리고 내리며 기체 입자의 움직임이 어떻게 달라지는지 관찰합니다.">기체 입자 시뮬레이션</a></li>
-        <li><a class="book" href="/gas_interaction/" style="--c:#93643A;--w:3.1rem"
-          data-title="기체의 성질 카드 조합"
-          data-desc="모둠별로 요인 카드를 골라 기체의 상태를 바꾸는 요인을 정리하고, 결과를 캡처해 패들렛에 올리는 활동판입니다.">기체의 성질 카드 조합</a></li>
-        <li><a class="book" href="/laserreflection/" style="--c:#2A3B57;--tall:1.2rem"
-          data-title="레이저 반사 게임: 거울의 방"
-          data-desc="발사 각도를 정해 레이저를 쏘고, 거울에 반사된 빛으로 표적을 맞히는 반사의 법칙 게임입니다.">레이저 반사 게임</a></li>
-        <li><a class="book" href="/laserrefraction/" style="--c:#24485A;--tall:1.2rem"
-          data-title="레이저 굴절 게임: 거울과 물의 방"
-          data-desc="거울과 물을 지나며 꺾이는 빛의 경로를 예측해 표적을 맞히는 굴절 게임입니다.">레이저 굴절 게임</a></li>
-        <li><a class="book" href="/rgbmixer/" style="--c:#5A3520;--w:2.7rem;--tall:1.8rem"
-          data-title="RGB 서브픽셀 시뮬레이터"
-          data-desc="화면 속 빨강, 초록, 파랑 서브픽셀의 밝기를 조절하며 빛의 합성으로 색이 만들어지는 원리를 살펴봅니다.">RGB 서브픽셀</a></li>
-      </ul>
-      <div class="plank"><span class="plaque">과학 수업</span></div>
-    </section>
-
-    <section class="bay" data-area="teach" aria-label="선생님 연수">
-      <ul class="row">
-        <li><a class="book" href="/AIteacher_1/" style="--c:#2E4A3C;--w:3.3rem"
-          data-title="선생님을 위한 앱 만들기"
-          data-desc="기획부터 배포까지. 뽑기 룰렛 같은 정적 앱, 구글 시트에 데이터를 쌓는 앱, 실시간 방명록 같은 서비스형 앱을 직접 만들어 보는 연수 자료입니다.">선생님을 위한 앱 만들기</a></li>
-        <li><a class="book" href="/aigrading/" style="--c:#6E2B22;--w:3.1rem;--tall:.6rem"
-          data-title="AI와 함께하는 서술형 평가"
-          data-desc="AI로 서술형 문항을 검토하고 채점기준표를 만들어 채점과 피드백까지 이어 가는 7단계 안내와 지시문 모음입니다.">AI와 함께하는 서술형 평가</a></li>
-        <li><a class="book" href="/AIteacher_0/" style="--c:#93643A;--tall:0rem"
-          data-title="Gemini Canvas로 수업도구 만들기"
-          data-desc="대화하면서 실시간으로 코드를 고치고 미리 보는 Gemini Canvas로 퀴즈, 시뮬레이션 같은 수업 도구를 만드는 안내입니다.">Gemini Canvas로 도구 만들기</a></li>
-      </ul>
-      <div class="plank"><span class="plaque">선생님 연수</span></div>
-    </section>
-
-    <section class="bay" data-area="tools" aria-label="교실 도구">
-      <ul class="row">
-        <li><a class="book" href="/slotmachine/" style="--c:#7A2E3A;--w:3.2rem"
-          data-title="두근두근 발표자 뽑기"
-          data-desc="학생 수를 입력하고 슬롯머신 레버를 당겨 발표자를 뽑습니다. 숫자 세 개가 맞으면 당첨입니다.">두근두근 발표자 뽑기</a></li>
-        <li><a class="book" href="/colorpicker/" style="--c:#2A3B57;--tall:2.2rem"
-          data-title="웹 컬러 피커"
-          data-desc="색을 골라 HEX, RGB, HSL 값을 바로 확인하고 복사할 수 있는 도구입니다.">웹 컬러 피커</a></li>
-      </ul>
-      <div class="plank"><span class="plaque">교실 도구</span></div>
-    </section>
-  </main>
-
-  <footer>기몬</footer>
-</div>
-
-<dialog id="reader" aria-labelledby="reader-title">
-  <div class="open-book">
-    <div class="page left">
-      <p class="shelf-name" id="reader-shelf"></p>
-      <h2 id="reader-title"></h2>
-      <div class="address" id="reader-address"></div>
-    </div>
-    <div class="page right">
-      <p class="desc" id="reader-desc"></p>
-      <div class="actions">
-        <a class="go" id="reader-go" href="#">페이지 열기</a>
-        <button class="close" type="button" id="reader-close">닫기</button>
+  <a class="skip-link" href="#book-list">책 목록으로 바로 가기</a>
+  <div class="app-shell">
+    <header class="site-header">
+      <p class="eyebrow">THE SCIENCE LIBRARY · EST. 2026</p>
+      <p class="site-hint">책등에 커서를 올리고, 꺼내어 펼쳐 보세요.</p>
+      <div class="header-tools">
+        <button id="help-toggle" class="header-action" type="button" aria-expanded="false" aria-controls="help-panel">이용 안내</button>
+        <button id="list-toggle" class="header-action" type="button" aria-expanded="false" aria-controls="book-list">책 목록</button>
       </div>
-    </div>
+    </header>
+    <aside class="help-panel" id="help-panel" hidden>
+      <p>책등에 마우스를 올리면 책이 살짝 올라옵니다. 책을 클릭하면 내용이 펼쳐지고, <strong>페이지 열기</strong>를 누르면 등록된 링크가 새 탭에서 열립니다. 비어 있는 책도 미리 선택할 수 있어요.</p>
+    </aside>
+    <main>
+      <div class="shelf-scroll" role="region" aria-label="책장 이미지, 좁은 화면에서는 좌우로 스크롤하세요" tabindex="0">
+        <section class="shelf-stage" id="library-stage" aria-label="인터랙티브 과학서재 책장">
+          <img class="shelf-background" src="assets/library-background.webp" alt="식물과 지구본, 망원경, 현미경, 천문 기구가 놓인 고풍스러운 세 칸짜리 나무 책장" draggable="false">
+          <!-- 이미지에 새겨진 기존 글자를 가리고, 아래의 수정 가능한 제목을 표시합니다. -->
+          <h1 class="editable-plaque plaque-main" id="site-title">기몬의 과학서재</h1>
+          <p class="editable-plaque plaque-section plaque-lesson" id="section-lesson">수업</p>
+          <p class="editable-plaque plaque-section plaque-assessment" id="section-assessment">평가</p>
+          <p class="editable-plaque plaque-section plaque-edutech" id="section-edutech">AI&에듀테크</p>
+          <div class="book-layer" id="book-layer"></div>
+          <div class="book-tooltip" id="book-tooltip" role="status" aria-live="polite"></div>
+        </section>
+      </div>
+      <div class="below-shelf">
+        <p class="collection-caption"><span class="ornament" aria-hidden="true">❧</span> <span id="site-subtitle">과학을 더 가까이, 일상을 더 특별하게</span> <span class="ornament" aria-hidden="true">❧</span></p>
+        <p class="collection-count" id="collection-count">책을 정리하는 중...</p>
+      </div>
+      <section class="book-list" id="book-list" aria-label="등록된 책 목록" hidden>
+        <div class="book-list-header"><h2>서재 목록</h2><p>등록된 책만 모아볼 수 있습니다.</p></div>
+        <div id="book-list-body" class="book-list-body"></div>
+      </section>
+    </main>
+    <footer class="site-footer">KIMON’S SCIENCE LIBRARY <span aria-hidden="true">✦</span> MADE WITH CURIOSITY</footer>
   </div>
-</dialog>
 
-<script>
-  (function(){
-    var dlg = document.getElementById('reader');
-    if (!dlg || typeof dlg.showModal !== 'function') return; // 오래된 브라우저는 책을 누르면 바로 이동
-    var lastBook = null;
-    var $ = function(id){ return document.getElementById(id); };
-
-    document.querySelectorAll('.book').forEach(function(book){
-      book.addEventListener('click', function(e){
-        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return; // 새 탭 열기는 그대로
-        e.preventDefault();
-        lastBook = book;
-        var bay = book.closest('.bay');
-        var color = getComputedStyle(book).getPropertyValue('--c').trim();
-        $('reader-shelf').textContent = bay ? bay.getAttribute('aria-label') : '';
-        $('reader-title').textContent = book.dataset.title || book.textContent;
-        $('reader-desc').textContent = book.dataset.desc || '';
-        $('reader-address').textContent = location.host + book.getAttribute('href');
-        $('reader-go').href = book.getAttribute('href');
-        dlg.style.setProperty('--cover', color);
-        book.classList.add('pulled');
-        dlg.showModal();
-        $('reader-go').focus();
-      });
-    });
-
-    $('reader-close').addEventListener('click', function(){ dlg.close(); });
-    dlg.addEventListener('click', function(e){ if (e.target === dlg) dlg.close(); }); // 바깥 누르면 닫기
-    dlg.addEventListener('close', function(){
-      if (lastBook){ lastBook.classList.remove('pulled'); lastBook.focus(); }
-    });
-  })();
-</script>
+  <!-- 책을 클릭하면 열리는 '양쪽 페이지' 고전 서적. -->
+  <div class="book-overlay" id="book-overlay" hidden>
+    <div class="overlay-dim" id="overlay-dim"></div>
+    <section class="open-book" id="open-book" role="dialog" aria-modal="true" aria-labelledby="dialog-book-title" aria-describedby="dialog-book-description" tabindex="-1">
+      <button class="close-round" id="dialog-x" type="button" aria-label="책 덮기">×</button>
+      <div class="pages">
+        <div class="page page-left">
+          <div class="page-border">
+            <div class="page-top-decoration" aria-hidden="true">❦</div>
+            <p class="page-category" id="dialog-section">과학 수업</p>
+            <div class="page-rule" aria-hidden="true"></div>
+            <h2 class="book-name" id="dialog-book-title">레이저 반사 게임: 거울의 방</h2>
+            <div class="book-emblem" aria-hidden="true"><span>✦</span><span class="emblem-line"></span><span>✦</span></div>
+            <div class="book-link-block">
+              <p class="book-url-heading">BOOKMARK · WEB ADDRESS</p>
+              <p class="book-url" id="dialog-url">https://example.com</p>
+            </div>
+            <span class="page-num">— Ⅰ —</span>
+          </div>
+        </div>
+        <div class="page page-right">
+          <div class="page-border">
+            <div class="page-top-decoration" aria-hidden="true">❦</div>
+            <p class="page-category">책의 안내</p>
+            <div class="page-rule" aria-hidden="true"></div>
+            <p class="book-description" id="dialog-book-description">책 설명이 표시됩니다.</p>
+            <div class="book-actions">
+              <a class="btn btn-primary" id="dialog-open" href="#" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> 페이지 열기</a>
+              <button class="btn btn-secondary" id="dialog-close" type="button"><span aria-hidden="true">✕</span> 책 덮기</button>
+            </div>
+            <p class="unassigned-note" id="unassigned-note" hidden>아직 링크를 등록하지 않은 책입니다. <code>library-data.js</code>에 주소를 추가해 주세요.</p>
+            <span class="page-num">— Ⅱ —</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </body>
 </html>

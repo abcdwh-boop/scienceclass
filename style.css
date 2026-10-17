@@ -1,0 +1,280 @@
+/* ===================================================================
+   기몬의 과학서재 — 배경의 고전적인 질감을 유지하는 인터랙티브 스타일
+   책 제목/주소/구역명 수정은 이 파일 대신 library-data.js에서 하세요.
+   =================================================================== */
+:root {
+  --ink: #2b1b10;
+  --gold: #d9b77c;
+  --gold-light: #f6dcaa;
+  --wood: #23150d;
+  --paper: #ede0c5;
+  --paper-ink: #402c19;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html {scroll-behavior: smooth;}
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--gold-light);
+  background:
+     radial-gradient(ellipse 75% 45% at 50% 0%, #50311b 0%, transparent 75%),
+     linear-gradient(180deg, #22160f, #120b08 80%);
+  font-family: "Nanum Myeongjo", "Noto Serif CJK KR", "Batang", Georgia, serif;
+}
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; }
+a { color: inherit; }
+:focus-visible {outline: 2px solid #fae0a8; outline-offset: 4px;}
+.skip-link { position:fixed; left:1rem; top:-80px; background:#fae3b5; color:#27180d; padding:1rem; z-index:1000; }
+.skip-link:focus {top:1rem;}
+.app-shell {margin:0 auto; max-width:1800px; padding:0 22px 12px;}
+.site-header {
+  min-height:65px; display:flex; align-items:center; justify-content:space-between;
+  gap:14px; padding:9px 13px 7px;
+  color:#d6b78b; font-size:12px; letter-spacing:.1em;
+}
+.eyebrow {font-size:10px; opacity:.78; margin:0; letter-spacing:.24em; white-space:nowrap;}
+.site-hint {margin:0; color:#b79b76; letter-spacing:.025em; font-size:12px;}
+.header-tools {display:flex; gap:7px; flex-shrink:0;}
+.header-action {
+  border:1px solid #755637; background:linear-gradient(#3c2718,#21150e);
+  color:#ebcc98; border-radius:3px; font-size:12px; padding:8px 12px;
+  box-shadow:inset 0 1px #82604438;
+}
+.header-action:hover {border-color:#c79c5b; background:#4a2e1a;}
+.help-panel {
+  max-width:760px; margin:0 auto 12px; padding:13px 20px; border:1px solid #775735;
+  background:#2c1b10; line-height:1.8; color:#efdbba; text-align:center; font-size:13px;
+}
+.help-panel p {margin:0;}
+.shelf-scroll {
+  overflow-x:auto; overflow-y:hidden; max-width:100%; border-radius:4px;
+  box-shadow:0 17px 50px #070403b5, 0 0 0 1px #7b4f27;
+  scrollbar-width:thin; scrollbar-color:#96724c #28170c;
+}
+.shelf-stage {
+  width:100%; min-width:960px; max-width:1672px;
+  aspect-ratio:1672 / 941; position:relative; margin:0 auto;
+  container-type:inline-size; isolation:isolate;
+  background:#25160c;
+}
+.shelf-background {
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+  object-fit:cover; user-select:none; pointer-events:none;
+}
+/* 편집 가능한 나무 현판. 생성 그림 속 옛 글씨만 가리고,
+   실제 글씨는 HTML로 새로 넣기 때문에 설정 파일에서 변경됩니다. */
+.editable-plaque {
+  position:absolute; z-index:5; margin:0; text-align:center; display:flex;
+  align-items:center; justify-content:center; white-space:nowrap;
+  color:#f0c786; font-weight:700;
+  text-shadow:0 2px 2px #0e0805, 0 0 9px #a86c3380;
+  background:repeating-linear-gradient(1deg,transparent 0px,#b37b3210 2px,transparent 4px,transparent 7px),linear-gradient(90deg, #2d190d, #341d10 24%, #2d1a10 55%, #301b0f 76%, #2c190f);
+  box-shadow:inset 0 1px 1px #b4823c30, inset 0 -1px 1px #130a07;
+}
+/* 메인 현판: 원본 표시보다 약 80% 작은 글씨 */
+.plaque-main {left:40.0%; top:6.5%; width:20%; height:6.8%; font-size:clamp(16px,1.98cqw,34px); letter-spacing:-.035em;}
+.plaque-section {height:3.0%; top:17.6%; font-size:clamp(12px,1.27cqw,22px);}
+.plaque-lesson {left:14.4%; width:6%;}
+.plaque-assessment {left:47.45%; width:5.4%;}
+.plaque-edutech {left:77.1%; width:10.0%; font-size:clamp(11px,1.10cqw,19px);}
+.book-layer {position:absolute; inset:0; z-index:7; pointer-events:none;}
+/* 단색 책 이미지를 새로 만드는 게 아니라 원본의 해당 부분을 그대로 잘라 표시 */
+.shelf-book {
+  position:absolute; padding:0; margin:0; border:0; background:transparent;
+  color:inherit; pointer-events:auto; cursor:pointer;
+  isolation:isolate; overflow:visible;
+}
+.shelf-book::before {
+  content:""; position:absolute; z-index:0; inset:0;
+  background:linear-gradient(90deg,#120c07,#27170c 42%,#130b07);
+  opacity:0; transition:opacity .14s ease;
+}
+.book-art {
+  position:absolute; z-index:1; inset:0;
+  background-image:url('assets/library-background.webp'); background-repeat:no-repeat;
+  background-size:var(--sprite-bg-width) var(--sprite-bg-height);
+  background-position:var(--sprite-bg-x) var(--sprite-bg-y);
+  border-radius:2px 2px 0 0;
+  transform-origin:50% 97%;
+  transition:transform .22s cubic-bezier(.18,.71,.2,1.12), box-shadow .22s ease, filter .22s ease;
+  will-change:transform;
+}
+/* 새 링크가 등록된 책만 적당히 절제된 금색 제목을 표시 */
+.book-spine-title {
+  position:absolute; z-index:2; top:14%; bottom:11%; left:3%; right:3%;
+  writing-mode:vertical-rl; text-orientation:upright;
+  display:flex; align-items:center; justify-content:center; margin:auto;
+  color:#e9d4aa; font-size:clamp(10px,.84cqw,14px);
+  font-weight:700; line-height:1.05; letter-spacing:.04em;
+  text-shadow:0 1px 2px #0a0503, 1px 1px 3px #110905, 0 0 7px #000;
+  pointer-events:none; opacity:.95;
+}
+.shelf-book.book-placeholder .book-spine-title {display:none;}
+.shelf-book:hover::before, .shelf-book:focus-visible::before {opacity:1;}
+.shelf-book:hover .book-art, .shelf-book:focus-visible .book-art {
+  transform:translateY(-8%) scale(1.075);
+  box-shadow:-6px 4px 15px #000a, 5px 2px 12px #0008, inset 0 0 0 1px #e2b96a8c;
+  filter:brightness(1.19) saturate(1.07);
+}
+.shelf-book:active .book-art, .shelf-book.book-picked .book-art {
+  transform:translateY(-13%) scale(1.12);
+  box-shadow:0 18px 30px #000e; filter:brightness(1.23);
+}
+.shelf-book:focus-visible {outline:2px solid #f5d194; outline-offset:4px; z-index:20;}
+.shelf-book:hover, .shelf-book:focus-visible, .shelf-book.book-picked {z-index:19;}
+.book-tooltip {
+  position:absolute; z-index:30; left:0; top:0;
+  transform:translate(-50%, -130%);
+  background:#24170ef5; border:1px solid #b18a52; border-radius:2px;
+  color:#f5dfb4; font-size:clamp(11px,.92cqw,15px);
+  box-shadow:0 4px 20px #000b; padding:7px 12px;
+  text-align:center; white-space:nowrap; pointer-events:none;
+  opacity:0; transition:opacity .12s ease;
+}
+.book-tooltip.is-visible {opacity:1;}
+.below-shelf {display:flex; flex-direction:column; align-items:center; gap:4px; padding:20px 14px 17px;}
+.collection-caption {margin:0; font-size:clamp(13px,1.3vw,19px); color:#edd0a2; letter-spacing:.07em; text-align:center;}
+.ornament {color:#a47843; margin:0 11px;}
+.collection-count {font-size:11px; color:#b19877; letter-spacing:.11em; margin:5px 0 0;}
+.site-footer {padding:15px 0 10px; color:#876c51; text-align:center; font-size:10px; letter-spacing:.24em;}
+.site-footer span {margin:0 10px;}
+/* 아래 목록은 배경 분위기를 유지하면서 검색하기 쉬운 보조 메뉴입니다. */
+.book-list {
+  margin:8px auto 30px; max-width:1080px;
+  border:1px solid #7b5835; background:linear-gradient(150deg,#3b2718,#28190e);
+  box-shadow:0 12px 30px #0006; padding:22px;
+}
+.book-list-header {text-align:center; border-bottom:1px solid #81603a; padding-bottom:17px;}
+.book-list h2 {margin:0 0 7px; font-size:24px; font-weight:500;}
+.book-list p {margin:0; color:#c6a981; font-size:13px;}
+.book-list-body {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; margin-top:20px;}
+.book-list-section h3 {font-size:17px; color:#e7c28b; border-bottom:1px solid #7d5830; padding-bottom:9px; margin:0 0 10px;}
+.list-book {width:100%; display:block; text-align:left; color:#f3e2c9; border:0; border-bottom:1px solid #6b4b2b; padding:11px 7px; background:transparent; font-size:13px; line-height:1.5;}
+.list-book:hover {background:#ffffff12;}
+.list-book small {display:block; color:#bea380; font-size:11px; margin-top:4px;}
+/* ================================================================
+   펼쳐지는 고전 양장본 — 팝업 카드가 아니라 종이와 책등을 표현합니다.
+   ================================================================ */
+.book-overlay {
+  position:fixed; inset:0; z-index:100;
+  display:flex; align-items:center; justify-content:center;
+  padding:22px; overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.overlay-dim {
+  position:fixed; inset:0; background:rgba(11,7,5,.78);
+  backdrop-filter:blur(6px) saturate(.75);
+  animation:dim-in .26s ease both;
+}
+body.book-is-open {overflow:hidden;}
+.open-book {
+  position:relative; margin:auto;
+  width:min(940px, 95vw); max-height:calc(100dvh - 40px);
+  padding:13px 15px; border-radius:9px 15px 15px 9px;
+  background:linear-gradient(90deg,#4d2b18 0%,#8f6434 1.2%,#3b2011 2.3%,#432713 96%,#1e110b 100%);
+  border:2px solid #7b5831;
+  box-shadow:0 9px 0 #140c07,0 19px 0 #2b190d,0 26px 40px #000c,0 0 60px #000b,inset 0 0 0 3px #c5a06c50;
+  transform-origin:center;
+  animation:book-arrive .42s cubic-bezier(.17,.85,.32,1.03) both;
+  outline:0;
+}
+.open-book::after {content:""; position:absolute; left:50%; top:14px; bottom:13px; width:24px; transform:translateX(-50%); background:linear-gradient(90deg,#0004,transparent 30%,#573c2350 52%,transparent 80%,#0003); z-index:4; pointer-events:none;}
+.pages {display:grid; grid-template-columns:1fr 1fr; min-height:510px; border-radius:3px 10px 10px 3px; overflow:hidden; background:#efe0c2;}
+.page {
+  position:relative; padding:25px;
+  background:
+    radial-gradient(ellipse at 8% 12%, #fff4d4bb, transparent 64%),
+    radial-gradient(ellipse at 90% 88%, #ac825529, transparent 60%),
+    repeating-linear-gradient(12deg, #916b3204 0px, #916b3204 2px, transparent 2px,transparent 8px),
+    linear-gradient(90deg,#dcc49c,#f5e8cd 13%,#ebd8b8 88%,#ccad7c);
+  color:var(--paper-ink);
+}
+.page-right {
+  background:
+    radial-gradient(ellipse at 84% 13%,#fff3d3bb,transparent 64%),
+    repeating-linear-gradient(16deg,#79502208 0px,#79502208 1px,transparent 1px, transparent 8px),
+    linear-gradient(90deg,#c8a879,#eddcbd 12%,#f5e7ca 88%,#d7bb8e);
+  transform-origin:left center;
+  animation:page-unfold .50s ease-out both;
+  box-shadow:inset 15px 0 18px -18px #4b311e;
+}
+.page-left {box-shadow:inset -15px 0 18px -18px #4b311e;}
+.page-border {
+  min-height:460px; height:100%; position:relative; padding:35px 25px 40px;
+  border:1px solid #a57e50; outline:1px solid #c6a575; outline-offset:-8px;
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center;
+}
+.page-border::before,.page-border::after {
+  content:"❧"; position:absolute; top:10px; color:#a27d51; font-size:15px;
+}
+.page-border::before {left:14px; transform:rotate(-25deg);} .page-border::after {right:14px; transform:scaleX(-1) rotate(-25deg);}
+.page-top-decoration {color:#9c7146; font-size:25px; line-height:1; margin:-12px 0 13px;}
+.page-category {color:#83603c; font-size:13px; margin:0 0 11px; letter-spacing:.26em;}
+.page-rule {height:1px; width:80px; background:linear-gradient(90deg,transparent,#ae8450,transparent);}
+.book-name {
+  margin:32px auto 0; max-width:310px; font-size:clamp(24px,2.7vw,32px); line-height:1.52; word-break:keep-all; overflow-wrap:anywhere;
+  color:#342016; text-wrap:balance; letter-spacing:-.045em;
+}
+.book-emblem {display:flex; gap:10px; align-items:center; color:#a67b4c; margin:23px 0 auto;}
+.emblem-line {width:60px; height:1px; background:#a67b4c;}
+.book-link-block {margin:auto 0 17px; width:100%; max-width:310px;}
+.book-url-heading {font-family:Georgia,serif; font-size:9px; letter-spacing:.20em; color:#9a7650; margin:0 0 8px;}
+.book-url {font:12px/1.7 Georgia,"Nanum Myeongjo",serif; overflow-wrap:anywhere; color:#6d4d30; margin:0;}
+.book-description {font-size:clamp(16px,1.8vw,20px); line-height:2.05; text-align:left; white-space:pre-line; margin:37px 1px 20px; width:100%; flex:1; word-break:keep-all;}
+.book-actions {display:flex; flex-direction:column; gap:12px; width:100%; margin:auto 0 10px; max-width:260px;}
+.btn {min-height:44px; display:flex; justify-content:center; align-items:center; gap:11px; text-decoration:none; cursor:pointer; border-radius:2px; font-size:14px; font-weight:700; letter-spacing:.07em; padding:10px 14px;}
+.btn-primary {border:1px solid #9f773c; color:#f4e1b9; background:linear-gradient(#435470,#28374f); box-shadow:0 0 0 2px #d8be8c, inset 0 0 0 1px #64718c;}
+.btn-primary:hover {background:linear-gradient(#536783,#344860);}
+.btn-secondary {border:1px solid #b19a73; color:#553b27; background:linear-gradient(#f9ebce,#e3cfaa); box-shadow:inset 0 1px #fff7e6;}
+.btn-secondary:hover {background:#f8eacb;}
+.btn-disabled {opacity:.43; pointer-events:none; filter:grayscale(1);}
+.unassigned-note {max-width:275px; font-size:11px; color:#7b6045; line-height:1.65; margin:0 0 9px;}
+.unassigned-note code {font:11px Consolas,monospace;}
+.page-num {position:absolute; bottom:18px; font-size:11px; color:#a2855b;}
+.close-round {
+  position:absolute; z-index:12; right:-21px; top:-21px;
+  display:grid; place-items:center; width:42px; height:42px;
+  background:radial-gradient(circle at 30% 30%,#644328,#2c190e);
+  border:1px solid #c9a06b; color:#f8dda6; border-radius:50%;
+  font:29px/1 Georgia,serif; box-shadow:0 4px 12px #0009;
+}
+.close-round:hover {background:#684326;}
+@keyframes book-arrive {from {opacity:0; transform:perspective(900px) translateY(65px) scale(.72) rotateX(16deg);} to {opacity:1; transform:perspective(900px) translateY(0) scale(1) rotateX(0);}}
+@keyframes page-unfold {from {opacity:.45; transform:perspective(1300px) rotateY(-37deg);} to {opacity:1; transform:perspective(1300px) rotateY(0);}}
+@keyframes dim-in {from {opacity:0;} to{opacity:1;}}
+@media (max-width:900px) {
+  .app-shell {padding:0 8px 8px;}
+  .site-hint {display:none;}
+  .site-header {min-height:56px;}
+  .book-list-body {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media (max-width:650px) {
+  .eyebrow {font-size:9px;letter-spacing:.08em;}
+  .header-action {font-size:11px;padding:8px;}
+  .shelf-stage {min-width:960px;}
+  .below-shelf {padding-top:14px;}
+  .ornament {margin:0 4px;}
+  .collection-caption {font-size:12px;}
+  .book-list {padding:13px;}
+  .book-list-body {grid-template-columns:1fr;gap:16px;}
+  .book-overlay {align-items:start; padding:24px 9px;}
+  .open-book {width:min(480px,96vw); max-height:none; padding:10px; margin:auto;}
+  .open-book::after {display:none;}
+  .pages {display:flex; flex-direction:column;}
+  .page {padding:13px;}
+  .page-border {min-height:320px; padding:25px 24px 35px;}
+  .page-left {border-bottom:8px solid #74512f;}
+  .book-name {margin:18px auto 0;font-size:27px;}
+  .book-emblem {margin:16px 0;}
+  .book-link-block {margin:12px 0 5px;}
+  .book-description {margin:16px 0 22px; font-size:16px;}
+  .page-right .page-border {min-height:330px;}
+  .close-round {right:-8px; top:-18px; width:38px;height:38px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after {animation-duration:.01ms !important; transition-duration:.01ms !important;}
+  html {scroll-behavior:auto;}
+}
