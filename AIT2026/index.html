@@ -1,0 +1,1716 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교사의 웹앱 제작하기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    :root {
+      --desk: #ECEEFF;
+      --paper: #FFFEFB;
+      --ink: #3B3355;
+      --muted: #6E6787;
+      --line: #E6E1F4;
+      --shadow: #D8D1F2;
+      --tone: #DCD3FB; --tone-ink: #4D3A9E; --tone-soft: #F5F2FF;
+    }
+    [data-tone="lilac"] { --tone: #DCD3FB; --tone-ink: #4D3A9E; --tone-soft: #F5F2FF; }
+    [data-tone="pink"]  { --tone: #FFD3E2; --tone-ink: #9C3561; --tone-soft: #FFF1F6; }
+    [data-tone="peach"] { --tone: #FFDCC2; --tone-ink: #95481A; --tone-soft: #FFF5EC; }
+    [data-tone="butter"]{ --tone: #FFEEA3; --tone-ink: #735C00; --tone-soft: #FFFBE3; }
+    [data-tone="mint"]  { --tone: #C5EDD8; --tone-ink: #1D6847; --tone-soft: #EEFAF3; }
+    [data-tone="sky"]   { --tone: #C9E3FA; --tone-ink: #215788; --tone-soft: #EEF6FE; }
+    [data-tone="aqua"]  { --tone: #C3ECEA; --tone-ink: #1C6461; --tone-soft: #EDFAF9; }
+    [data-tone="rose"]  { --tone: #F9D2EE; --tone-ink: #8A2E78; --tone-soft: #FDF1FA; }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background-color: var(--desk);
+      background-image: radial-gradient(#D9DCF7 1.4px, transparent 1.6px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      font-family: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
+      line-height: 1.65;
+      word-break: keep-all;
+      overflow: hidden;
+    }
+    a { color: inherit; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--tone-ink); outline-offset: 2px; border-radius: 6px; }
+    h1, h2, h3, .tab, .brand, .cute { font-family: 'Jua', 'Pretendard', sans-serif; font-weight: 400; }
+
+    /* ---------- Desk & diary shell ---------- */
+    .desk {
+      height: 100vh; height: 100dvh;
+      display: flex; flex-direction: column;
+      padding: 12px clamp(10px, 2.4vw, 30px) 16px;
+      max-width: 1320px; margin: 0 auto;
+    }
+    .topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; min-height: 58px; }
+    .brand {
+      display: inline-flex; align-items: center; gap: 8px;
+      text-decoration: none; font-size: 1.12rem; color: var(--ink);
+      padding: 0 4px 12px; white-space: nowrap;
+    }
+    .brand .dot { width: 30px; height: 30px; border-radius: 50%; background: var(--tone); display: grid; place-items: center; font-size: 1rem; transition: background .3s; }
+
+    .tabs { display: flex; gap: 5px; align-items: flex-end; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 6px 4px 0; margin: 0 26px -2px 0; position: relative; z-index: 3; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      text-decoration: none;
+      flex: none; display: inline-flex; align-items: center; gap: 6px;
+      border: 2px solid var(--line); border-bottom: 0;
+      background: var(--tab-bg); color: var(--tab-ink);
+      border-radius: 16px 16px 0 0;
+      padding: 7px 14px 8px; font-size: 0.98rem; line-height: 1.2;
+      transform: translateY(7px); opacity: .78;
+      transition: transform .2s ease, opacity .2s ease, padding .2s ease;
+    }
+    .tab:hover { transform: translateY(2px); opacity: 1; }
+    .tab[aria-selected="true"] { transform: translateY(2px); opacity: 1; padding-bottom: 12px; border-color: var(--tab-bg); position: relative; z-index: 3; }
+    .tab .ico { font-size: 1.05rem; }
+    .tab[data-tone="lilac"]  { --tab-bg: #DCD3FB; --tab-ink: #4D3A9E; }
+    .tab[data-tone="pink"]   { --tab-bg: #FFD3E2; --tab-ink: #9C3561; }
+    .tab[data-tone="peach"]  { --tab-bg: #FFDCC2; --tab-ink: #95481A; }
+    .tab[data-tone="butter"] { --tab-bg: #FFEEA3; --tab-ink: #735C00; }
+    .tab[data-tone="mint"]   { --tab-bg: #C5EDD8; --tab-ink: #1D6847; }
+    .tab[data-tone="sky"]    { --tab-bg: #C9E3FA; --tab-ink: #215788; }
+    .tab[data-tone="aqua"]   { --tab-bg: #C3ECEA; --tab-ink: #1C6461; }
+    .tab[data-tone="rose"]   { --tab-bg: #F9D2EE; --tab-ink: #8A2E78; }
+
+    .book {
+      flex: 1; min-height: 0; position: relative; z-index: 2;
+      display: flex; flex-direction: column;
+      background: var(--paper);
+      border: 2px solid var(--line);
+      border-top: 10px solid var(--tone);
+      border-radius: 26px 8px 26px 26px;
+      box-shadow: 6px 8px 0 var(--shadow);
+      overflow: hidden;
+      transition: border-color .3s;
+    }
+    .book::before {
+      content: ""; position: absolute; left: 16px; top: 26px; bottom: 26px; width: 16px; z-index: 1; pointer-events: none;
+      background: radial-gradient(circle at 8px 8px, var(--desk) 5px, var(--line) 6px, transparent 7px) 0 0 / 16px 46px repeat-y;
+    }
+    .viewport { flex: 1; min-height: 0; overflow: hidden; overflow: clip; }
+    .track { display: flex; height: 100%; transition: transform .45s cubic-bezier(.22,.8,.3,1); }
+    .slide { flex: 0 0 100%; height: 100%; overflow-y: auto; padding: 34px clamp(20px, 5vw, 64px) 30px clamp(44px, 6vw, 84px); }
+    .slide-inner { max-width: 1020px; margin: 0 auto; }
+
+    .pager {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 10px 22px 12px 54px; border-top: 2px dashed var(--line);
+    }
+    .pager-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 2px solid var(--tone); background: var(--tone-soft); color: var(--tone-ink);
+      border-radius: 99px; padding: 7px 16px; font-weight: 700; font-size: .92rem;
+    }
+    .pager-btn:hover:not(:disabled) { background: var(--tone); }
+    .pager-btn:disabled { opacity: .35; cursor: default; }
+    .dots { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .dots button { width: 11px; height: 11px; border-radius: 99px; border: 0; padding: 0; background: var(--line); transition: width .25s, background .25s; }
+    .dots button[aria-current="true"] { width: 30px; background: var(--tone-ink); }
+    .count { font-size: .82rem; color: var(--muted); min-width: 44px; text-align: center; }
+
+    /* ---------- Slide heading ---------- */
+    .slide-head { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 22px; }
+    .sticker {
+      flex: none; width: 64px; height: 64px; border-radius: 22px;
+      background: var(--tone); display: grid; place-items: center;
+      font-size: 2rem; transform: rotate(-6deg);
+      box-shadow: 3px 4px 0 var(--tone-soft), 3px 4px 0 2px var(--line);
+    }
+    .step-pill { display: inline-block; margin: 2px 0 4px; padding: 2px 11px; border-radius: 99px; background: var(--tone-soft); color: var(--tone-ink); font-weight: 700; font-size: .85rem; }
+    .slide-head h2 { font-size: clamp(1.6rem, 3vw, 2.15rem); line-height: 1.3; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .section-intro { margin: 0 0 18px; color: var(--muted); max-width: 72ch; }
+    .slide-head .section-intro { margin: 0; }
+    .subsection-heading { font-size: 1.28rem; margin: 26px 0 8px; }
+
+    /* ---------- Cover ---------- */
+    .cover { min-height: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 30px; align-items: center; }
+    .cover h1 { font-size: clamp(2.3rem, 5.6vw, 4rem); line-height: 1.18; margin: 10px 0 12px; letter-spacing: -0.02em; }
+    .cover .lead { font-size: 1.12rem; color: var(--muted); margin: 0 0 22px; max-width: 46ch; }
+    .hello { display: inline-block; background: var(--tone); color: var(--tone-ink); padding: 4px 14px; border-radius: 99px; font-weight: 700; font-size: .9rem; transform: rotate(-2deg); }
+    .mascot { width: 100%; max-width: 340px; justify-self: center; }
+    .route { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .route a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      padding: 7px 13px; border-radius: 14px; font-weight: 600; font-size: .9rem;
+      background: var(--chip, #fff); border: 2px solid transparent;
+    }
+    .route a:hover { border-color: var(--ink); }
+
+    /* ---------- Shared components ---------- */
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .split, .preflight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .panel { background: #fff; border: 2px solid var(--line); border-radius: 22px; padding: 22px 24px; }
+    .panel h3 { margin: 0 0 6px; font-size: 1.22rem; }
+    .panel p { color: var(--muted); margin: 4px 0 12px; }
+    .panel ul { margin: 6px 0 14px; padding-left: 20px; color: var(--muted); }
+    .panel .meta, .meta { font-size: .82rem; color: var(--tone-ink); font-weight: 700; margin: 0 0 8px; }
+    .card-ico { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 16px; background: var(--c, var(--tone)); font-size: 1.6rem; margin-bottom: 12px; }
+    .panel.tinted { background: var(--c-soft, var(--tone-soft)); border-color: var(--c, var(--tone)); }
+
+    .cta {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      background: var(--tone); color: var(--tone-ink);
+      padding: 9px 18px; border: 2px solid var(--tone-ink); border-radius: 99px;
+      text-decoration: none; font-weight: 700; font-size: .92rem;
+      box-shadow: 0 3px 0 var(--tone-ink); transition: transform .1s, box-shadow .1s;
+    }
+    .cta:hover { transform: translateY(1px); box-shadow: 0 2px 0 var(--tone-ink); }
+    .cta:active { transform: translateY(3px); box-shadow: 0 0 0 var(--tone-ink); }
+    .cta.secondary { background: #fff; border-color: var(--tone); box-shadow: 0 3px 0 var(--tone); }
+    .cta.secondary:hover { box-shadow: 0 2px 0 var(--tone); }
+    .cta.big { font-size: 1.05rem; padding: 12px 24px; }
+    .small { font-size: .82rem !important; padding: 6px 13px !important; }
+    .mini { font-size: .88rem; color: var(--muted); }
+    .tag { display: inline-block; background: var(--tone-soft); color: var(--tone-ink); border-radius: 8px; padding: 3px 8px; font-size: .76rem; font-weight: 700; }
+    code { background: var(--tone-soft); border-radius: 6px; padding: 1px 6px; font-size: .92em; }
+
+    .step { display: flex; gap: 16px; padding: 16px 0; border-bottom: 2px dashed var(--line); }
+    .step:last-child { border: 0; }
+    .num { background: var(--tone); color: var(--tone-ink); border-radius: 12px; min-width: 34px; height: 34px; display: grid; place-items: center; font-family: 'Jua', sans-serif; font-size: 1.05rem; transform: rotate(-5deg); }
+    .step h3 { margin: 0 0 3px; font-size: 1.12rem; }
+    .step p { margin: 0; color: var(--muted); }
+    .step ul { margin: 6px 0 0; padding-left: 20px; color: var(--muted); }
+
+    .info, .notice { padding: 14px 18px; border-radius: 18px; display: flex; gap: 10px; align-items: flex-start; }
+    .info { background: #EEF6FE; color: #29496B; }
+    .notice { background: #FFF6D6; color: #5E4B00; }
+    .info::before { content: "💡"; } .notice::before { content: "📌"; }
+
+    .check { list-style: none; padding: 0 !important; margin: 8px 0 0; }
+    .check li {
+      position: relative; margin: 6px 0; padding: 7px 10px 7px 40px; border-radius: 12px;
+      cursor: pointer; color: var(--ink); transition: background .15s;
+    }
+    .check li:hover { background: var(--tone-soft); }
+    .check li::before {
+      content: ""; position: absolute; left: 10px; top: 10px; width: 20px; height: 20px;
+      border: 2px solid var(--tone-ink); border-radius: 7px; background: #fff;
+    }
+    .check li.done::before { content: "✓"; background: var(--tone); color: var(--tone-ink); font-weight: 900; font-size: .8rem; display: grid; place-items: center; }
+    .check li.done { color: var(--muted); }
+
+    .form-row { margin: 12px 0; }
+    .form-row label { font-size: .9rem; font-weight: 700; display: block; margin-bottom: 5px; }
+    .field { border: 2px solid var(--line); border-radius: 14px; background: #fff; padding: 9px 12px; width: 100%; min-height: 44px; }
+    .field:focus { outline: none; border-color: var(--tone-ink); background: var(--tone-soft); }
+    textarea.field { min-height: 76px; resize: vertical; }
+    .inline { display: flex; gap: 10px; align-items: flex-end; }
+    .inline > *:first-child { flex: 1; }
+
+    .prompt {
+      background: var(--tone-soft); color: var(--ink);
+      border: 2px dashed var(--tone); border-radius: 18px;
+      padding: 16px 18px; white-space: pre-wrap; font-family: inherit;
+      font-size: .9rem; line-height: 1.75; overflow-wrap: anywhere; margin: 10px 0 12px;
+    }
+    .resource-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+    .reference-note { font-size: .84rem; color: var(--muted); margin: 10px 0 0; }
+    .deploy-card ol { margin: 10px 0 16px; padding-left: 20px; color: var(--muted); }
+    .deploy-card li { margin-bottom: 6px; }
+    .deploy-card { display: flex; flex-direction: column; }
+    .deploy-card > .cta { align-self: flex-start; margin-top: auto; }
+    .ex-card { display: flex; flex-direction: column; }
+    .ex-card > .cta { align-self: flex-start; margin-top: auto; }
+
+    details { margin-top: 14px; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 10px 16px; }
+    summary { cursor: pointer; font-weight: 700; }
+    details li { margin: 4px 0; }
+
+    /* Decision wizard */
+    .decision-panel { max-width: 780px; }
+    .decision-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .decision-top h3 { margin: 0; }
+    .flow-progress { height: 12px; background: var(--tone-soft); border: 2px solid var(--line); border-radius: 99px; overflow: hidden; margin: 18px 0 6px; }
+    .flow-progress > div { height: 100%; width: 0; background: var(--tone); border-radius: 99px; transition: width .25s ease; }
+    .flow-node { border: 0; padding: 6px 0; margin: 8px 0; }
+    .flow-screen .flow-question, .flow-question { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.28rem; line-height: 1.45; margin: 0 0 6px; }
+    .flow-hint { font-size: .88rem; color: var(--muted); margin: 0 0 14px !important; }
+    .flow-opt { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; margin: 8px 0; border: 2px solid var(--line); border-radius: 16px; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; }
+    .flow-opt:hover { border-color: var(--tone); }
+    .flow-opt:has(input:checked) { border-color: var(--tone-ink); background: var(--tone-soft); }
+    .flow-opt input { margin: 5px 0 0; flex: none; accent-color: var(--tone-ink); }
+    .flow-nav { display: flex; justify-content: space-between; gap: 12px; margin: 14px 0; }
+    .flow-nav button:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+    .flow-grade { display: inline-block; font-size: .8rem; font-weight: 700; color: var(--tone-ink); background: var(--tone); padding: 2px 10px; border-radius: 99px; margin: 4px 0; }
+    .flow-result { background: var(--tone-soft); border: 2px solid var(--tone); border-radius: 20px; padding: 18px 20px; margin-top: 12px; }
+    .flow-result h3 { font-size: 1.35rem; margin: 6px 0 8px; }
+    .flow-result h4 { margin: 16px 0 4px; font-size: .92rem; }
+    .flow-result ul { padding-left: 20px; font-size: .9rem; }
+    .flow-result li { margin-bottom: 6px; }
+
+    /* Practice subpages */
+    .choice-grid { display: grid; gap: 10px; margin: 14px 0; }
+    .choice { text-align: left; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; transition: border-color .15s, background .15s; }
+    .choice:hover { border-color: var(--tone); }
+    .choice.selected { border-color: var(--tone-ink); background: var(--tone-soft); font-weight: 600; }
+    .feedback { background: var(--tone-soft); border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; min-height: 54px; }
+    .placeholder { display: grid; place-items: center; text-align: center; gap: 4px; min-height: 170px; border: 2px dashed var(--tone); border-radius: 18px; background: var(--tone-soft); color: var(--tone-ink); margin: 8px 0 12px; padding: 16px; font-weight: 700; }
+    .placeholder small { font-weight: 400; color: var(--muted); }
+    .architecture { display: grid; gap: 10px; justify-items: center; margin: 6px 0 12px; }
+    .arch-box { width: min(100%, 440px); text-align: center; background: #fff; border: 2px solid var(--line); border-radius: 18px; padding: 14px; font-weight: 700; }
+    .arch-box.strong { background: var(--tone-soft); border-color: var(--tone); }
+    .arch-box small { display: block; font-weight: 400; color: var(--muted); margin-top: 4px; }
+    .arch-arrow { color: var(--tone-ink); font-weight: 700; }
+    .nextlinks { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .endnote { margin-top: 26px; padding-top: 14px; border-top: 2px dashed var(--line); font-size: .86rem; color: var(--muted); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 900px) {
+      .grid.three { grid-template-columns: 1fr 1fr; }
+      .cover { grid-template-columns: 1fr; }
+      .mascot { max-width: 220px; order: -1; }
+    }
+    @media (max-width: 720px) {
+      .desk { padding: 8px 8px 10px; }
+      .topbar { flex-direction: column; align-items: stretch; gap: 4px; min-height: 0; }
+      .brand { padding: 2px 4px 0; font-size: 1rem; }
+      .tabs { margin-right: 6px; }
+      .tab .lbl { display: none; }
+      .tab[aria-selected="true"] .lbl { display: inline; }
+      .book { border-radius: 20px 6px 20px 20px; box-shadow: 4px 5px 0 var(--shadow); }
+      .book::before { display: none; }
+      .slide { padding: 22px 18px 24px; }
+      .pager { padding: 8px 10px; }
+      .pager-btn .lbl { display: none; }
+      .grid, .grid.three, .split, .preflight-grid { grid-template-columns: 1fr; }
+      .slide-head { gap: 12px; }
+      .sticker { width: 50px; height: 50px; font-size: 1.6rem; border-radius: 17px; }
+      .inline { flex-direction: column; align-items: stretch; }
+      .panel { padding: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .track, .tab, .dots button, .cta { transition: none !important; }
+    }
+    .big-sticker {
+      justify-self: center; width: min(260px, 60vw); aspect-ratio: 1; border-radius: 34%;
+      background: var(--tone); display: grid; place-items: center;
+      font-size: clamp(5rem, 12vw, 8.5rem); transform: rotate(-7deg);
+      box-shadow: 8px 10px 0 var(--tone-soft), 8px 10px 0 3px var(--line);
+    }
+    @media (max-width: 900px) { .big-sticker { width: 150px; font-size: 4.6rem; order: -1; } }
+
+    /* ---------- v6 추가 ---------- */
+    .slide-inner.wide { max-width: 1180px; }
+    .practice-box {
+      margin: 12px 0 2px; background: var(--tone-soft); border: 2px dashed var(--tone);
+      border-radius: 18px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px;
+    }
+    .practice-box p { margin: 2px 0 0; }
+
+    .slide.compact .slide-head { margin-bottom: 14px; align-items: center; }
+    .slide.compact .sticker { width: 52px; height: 52px; font-size: 1.6rem; border-radius: 17px; }
+    .slide.compact .slide-head h2 { font-size: clamp(1.4rem, 2.4vw, 1.8rem); }
+    .decision-wrap { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(250px, 1fr); gap: 18px; align-items: start; }
+    .decision-main { padding: 18px 24px 8px; }
+    .decision-main .flow-progress { margin: 10px 0 4px; }
+    .flow-opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .flow-opts .flow-opt { margin: 0; min-height: 56px; align-items: center; font-weight: 600; }
+    .flow-opts .flow-opt input { margin: 0; }
+    .flow-opts.five .flow-opt:last-child { grid-column: 1 / -1; }
+    .flow-nav { margin: 16px 0 10px; }
+    .decision-side h3 { margin: 0 0 10px; }
+    .flow-summary { list-style: none; padding: 0 !important; margin: 0 0 12px; display: grid; gap: 6px; }
+    .flow-summary button { width: 100%; text-align: left; display: grid; gap: 1px; background: var(--tone-soft); border: 2px solid transparent; border-radius: 14px; padding: 7px 12px; }
+    .flow-summary button:hover { border-color: var(--tone); }
+    .flow-summary button.on { border-color: var(--tone-ink); }
+    .flow-summary .q { font-size: .78rem; color: var(--muted); }
+    .flow-summary .a { font-weight: 700; font-size: .9rem; }
+    .flow-summary .empty { color: var(--muted); font-size: .9rem; padding: 6px 2px; }
+    .flow-result { margin-top: 4px; }
+    .result-head { display: flex; gap: 14px; align-items: center; }
+    .result-ico { width: 56px; height: 56px; flex: none; border-radius: 18px; background: #fff; display: grid; place-items: center; font-size: 1.9rem; transform: rotate(-6deg); }
+    .flow-result.kind-static { background: #FFF7FA; border-color: #FFD3E2; }
+    .flow-result.kind-gas { background: #F3FBF7; border-color: #C5EDD8; }
+    .flow-result.kind-firebase { background: #FFF8F2; border-color: #FFDCC2; }
+    .flow-result .nextlinks { margin-top: 14px; }
+
+    .cases { align-items: start; }
+    .case { margin: 0; padding: 0; border: 2px solid var(--c); border-radius: 20px; background: #fff; overflow: hidden; }
+    .case summary { list-style: none; display: flex; gap: 12px; align-items: flex-start; padding: 16px 18px; font-weight: 600; background: color-mix(in srgb, var(--c) 30%, #fff); }
+    .case summary::-webkit-details-marker { display: none; }
+    .case summary::after { content: "열어 보기 ▾"; margin-left: auto; flex: none; font-size: .78rem; color: var(--muted); padding-top: 3px; }
+    .case[open] summary::after { content: "접기 ▴"; }
+    .case-ico { font-size: 1.6rem; line-height: 1; }
+    .case p { margin: 0; padding: 14px 18px 16px; color: var(--ink); }
+
+    .plan-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 18px; align-items: start; }
+    .plan-grid h3 { margin-bottom: 4px; }
+    .tool-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 4px; }
+    .tool-card { position: relative; display: grid; justify-items: center; text-align: center; gap: 1px; padding: 12px 6px 10px; border: 2px solid var(--line); border-radius: 18px; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; }
+    .tool-card:hover { border-color: var(--c); }
+    .tool-card:has(input:checked) { border-color: var(--ink); background: var(--c); }
+    .tool-card:has(input:focus-visible) { outline: 3px solid var(--tone-ink); outline-offset: 2px; }
+    .tool-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .tool-card .t-ico { font-size: 1.7rem; }
+    .tool-card small { color: var(--muted); font-size: .76rem; }
+    .tool-extra { margin-top: 12px; background: var(--c-soft); border: 2px dashed var(--c); border-radius: 18px; padding: 10px 16px 4px; }
+    .tool-extra[hidden] { display: none; }
+    .extra-title { margin: 2px 0 0; font-weight: 700; }
+    .tool-extra .form-row { margin: 8px 0 10px; }
+    .tool-extra .form-row label { font-size: .84rem; }
+    .form-two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .plan-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 18px 0 6px; }
+    .plan-result { margin-top: 12px; scroll-margin-top: 16px; }
+    @media (max-width: 1000px) { .decision-wrap, .plan-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .flow-opts, .form-two { grid-template-columns: 1fr; } .tool-pick { grid-template-columns: 1fr 1fr 1fr; } }
+    [hidden] { display: none !important; }
+    .flow-summary button { grid-template-columns: auto 1fr; align-items: baseline; gap: 8px; padding: 5px 10px; border-radius: 12px; }
+    .flow-summary .q { white-space: nowrap; }
+    .flow-summary .a { font-size: .86rem; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .result-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+    .result-cols h4:first-child { margin-top: 12px; }
+    @media (max-width: 1000px) { .result-cols { grid-template-columns: 1fr; } }
+    #ai-ethics .panel { padding: 16px 20px; }
+    #ai-ethics .card-ico { width: 42px; height: 42px; font-size: 1.35rem; border-radius: 14px; margin-bottom: 8px; }
+    #ai-ethics .panel p { margin: 2px 0 0; }
+    /* ---------- AI 윤리 · 개인정보 ---------- */
+    .law-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
+    .law-card { padding: 18px 22px; }
+    .law-badge { display: inline-block; background: var(--tone); color: var(--tone-ink); border-radius: 12px; padding: 5px 12px; font-size: .86rem; font-weight: 600; }
+    .law-main { color: var(--ink) !important; font-size: 1.02rem; margin: 10px 0 12px !important; }
+    .law-two { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; }
+    .law-box { border-radius: 16px; padding: 10px 14px; font-size: .9rem; }
+    .law-box.yes { background: #FFF1F6; } .law-box.no { background: #EEFAF3; }
+    .law-box-title { margin: 0 0 4px !important; font-weight: 700; color: var(--ink) !important; }
+    .law-box ul { margin: 0 !important; padding-left: 18px !important; color: var(--ink) !important; }
+    .teacher-made { margin: 12px 0 10px; padding: 10px 14px; border: 2px dashed var(--tone-ink); border-radius: 16px; background: var(--tone-soft); font-size: .95rem; }
+    .flow-steps { list-style: none; padding: 0 !important; margin: 0 !important; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .flow-steps li { display: flex; align-items: center; gap: 6px; background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-size: .85rem; font-weight: 600; color: var(--ink); }
+    .flow-steps span { flex: none; width: 22px; height: 22px; border-radius: 8px; background: var(--tone); color: var(--tone-ink); display: grid; place-items: center; font-size: .78rem; }
+    .checker { padding: 18px 20px; }
+    .checker h3 { margin-bottom: 2px; }
+    .chk-q { margin: 10px 0; transition: opacity .2s; }
+    .chk-q.dim { opacity: .35; pointer-events: none; }
+    .chk-q > p { margin: 0 0 6px; color: var(--ink); font-size: .93rem; }
+    .chk-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chk-opts button { border: 2px solid var(--line); background: #fff; border-radius: 99px; padding: 5px 12px; font-size: .86rem; }
+    .chk-opts button:hover { border-color: var(--tone); }
+    .chk-opts button[aria-pressed="true"] { background: var(--tone); border-color: var(--tone-ink); color: var(--tone-ink); font-weight: 700; }
+    .chk-result { margin-top: 12px; padding: 12px 14px; border-radius: 16px; background: #F6F5FA; color: var(--muted); font-size: .92rem; }
+    .chk-result.must { background: #FFE3EC; color: #7A2148; }
+    .chk-result.maybe { background: #FFF3C8; color: #5E4B00; }
+    .chk-result.ok { background: #E1F5EA; color: #1D5A3F; }
+
+    .crit-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .crit { background: #fff; border: 2px solid var(--c); border-radius: 20px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .crit-n { width: 30px; height: 30px; border-radius: 10px; background: var(--c); display: grid; place-items: center; font-family: 'Jua', sans-serif; transform: rotate(-6deg); }
+    .crit b { display: block; font-size: 1.02rem; }
+    .crit small { display: block; color: var(--muted); font-size: .8rem; line-height: 1.4; }
+    .crit p { margin: 4px 0 0; font-size: .87rem; line-height: 1.6; padding-top: 8px; border-top: 2px dashed var(--line); }
+    .consent-row { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 14px; margin-top: 14px; }
+    .consent { padding: 16px 20px; }
+    .consent ol { margin: 6px 0 0; padding-left: 20px; }
+    .consent li { margin: 3px 0; }
+    .consent .prompt { font-size: .82rem; margin: 6px 0 10px; max-height: 170px; overflow-y: auto; }
+
+    .leak-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .devtools { background: #2F2B45; border-radius: 18px; overflow: hidden; color: #E9E6FA; box-shadow: 5px 6px 0 var(--tone); }
+    .dt-bar { display: flex; align-items: center; gap: 6px; padding: 9px 14px; background: #3B3657; font-size: .82rem; }
+    .dt-bar span { width: 11px; height: 11px; border-radius: 50%; background: #FFB3C8; }
+    .dt-bar span:nth-child(2) { background: #FFE08A; } .dt-bar span:nth-child(3) { background: #A9E6C6; }
+    .dt-bar b { margin-left: 8px; font-weight: 600; }
+    .dt-tabs { display: flex; gap: 14px; padding: 6px 14px; font-size: .78rem; color: #A8A2C8; border-bottom: 1px solid #4A4568; }
+    .dt-tabs i { font-style: normal; } .dt-tabs i.on { color: #fff; border-bottom: 2px solid #FFB3C8; padding-bottom: 3px; }
+    .dt-body { padding: 10px 14px 4px; }
+    .dt-req { margin: 0 0 6px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; color: #C9C3EA; }
+    .dt-req em { color: #A9E6C6; font-style: normal; margin-left: 8px; }
+    .dt-body pre { margin: 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; line-height: 1.6; color: #FFD7E4; white-space: pre-wrap; }
+    .dt-caption { margin: 0; padding: 10px 14px 14px; font-size: .86rem; color: #E9E6FA; border-top: 1px dashed #4A4568; }
+    .leak-cases { display: grid; gap: 8px; }
+    .leak-cases .case summary { padding: 10px 14px; }
+    .leak-cases .case p { padding: 10px 16px 12px; font-size: .9rem; }
+    @media (max-width: 1100px) { .crit-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 1000px) { .law-grid, .leak-grid, .consent-row { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .crit-list, .law-two { grid-template-columns: 1fr; } .flow-steps { grid-template-columns: 1fr 1fr; } }
+    /* ---------- 시연 · 고친 버전 ---------- */
+    .demo-wrap { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.6fr); gap: 18px; align-items: start; }
+    .demo-steps { display: grid; gap: 8px; }
+    .demo-step { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 10px; text-align: left; background: #fff; border: 2px solid var(--line); border-radius: 18px; padding: 10px 14px; }
+    .demo-step span { grid-row: 1 / 3; width: 32px; height: 32px; border-radius: 11px; background: var(--tone-soft); color: var(--tone-ink); display: grid; place-items: center; font-family: 'Jua', sans-serif; font-size: 1.05rem; align-self: center; }
+    .demo-step b { font-size: 1rem; }
+    .demo-step small { color: var(--muted); font-size: .82rem; }
+    .demo-step:hover { border-color: var(--tone); }
+    .demo-step[aria-selected="true"] { border-color: var(--tone-ink); background: var(--tone-soft); }
+    .demo-step[aria-selected="true"] span { background: var(--tone); }
+    .demo-steps .cta { justify-self: start; margin-top: 6px; }
+    .win { background: #fff; border: 2px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 5px 6px 0 var(--tone); }
+    .win-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--tone-soft); border-bottom: 2px solid var(--line); }
+    .win-bar > span { width: 11px; height: 11px; border-radius: 50%; background: #FFB3C8; flex: none; }
+    .win-bar > span:nth-child(2) { background: #FFE08A; } .win-bar > span:nth-child(3) { background: #A9E6C6; }
+    .win-url { margin-left: 8px; flex: 1; background: #fff; border-radius: 99px; padding: 3px 12px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .win-body { padding: 16px 18px; min-height: 300px; }
+    .pane-note { margin: 12px 0 0; font-size: .95rem; }
+    .fake-login { max-width: 300px; margin: 6px auto 0; border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 8px; }
+    .fl-title { margin: 0; font-family: 'Jua', sans-serif; font-size: 1.2rem; text-align: center; }
+    .fl-field { border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px; font-size: .86rem; color: var(--muted); display: flex; justify-content: space-between; }
+    .fl-field i { font-style: normal; color: var(--ink); }
+    .fl-btn { background: var(--tone); color: var(--tone-ink); border-radius: 99px; text-align: center; padding: 6px; font-weight: 700; }
+    .code-view { margin: 0; background: #2F2B45; color: #E9E6FA; border-radius: 14px; padding: 12px 14px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .82rem; line-height: 1.7; white-space: pre-wrap; overflow-x: auto; }
+    .code-view .ln { display: inline-block; width: 2.2em; color: #8D86B3; user-select: none; }
+    .code-view mark { background: #FF7FA8; color: #2F2B45; border-radius: 4px; padding: 0 3px; }
+    .code-view .prompt-mark { color: #8FD3FF; }
+    .code-view.light { background: #FBFAFF; color: var(--ink); border: 2px dashed var(--tone); }
+    .code-view.light mark { background: var(--tone); color: var(--tone-ink); }
+    .fake-photos { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .fake-photos figure { margin: 0; text-align: center; }
+    .fake-photos img { width: 120px; height: 120px; border-radius: 18px; border: 2px solid var(--line); display: block; }
+    .fake-photos figcaption { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .78rem; color: var(--muted); margin-top: 4px; }
+
+    .fix-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .fix-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 2px solid var(--line); border-radius: 18px; overflow: hidden; font-size: .92rem; }
+    .fix-table th, .fix-table td { padding: 8px 12px; text-align: left; border-bottom: 1px dashed var(--line); }
+    .fix-table tbody tr:last-child th, .fix-table tbody tr:last-child td { border-bottom: 0; }
+    .fix-table thead th { background: var(--tone-soft); font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1rem; }
+    .fix-table tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .fix-table td:nth-child(2) { background: #FFF5F8; }
+    .fix-table td:nth-child(3) { background: #F3FBF7; font-weight: 600; }
+    .fix-label { margin: 0 0 6px; font-weight: 700; }
+    .leak-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
+    .chip-title { font-weight: 700; margin-right: 4px; }
+    .chip { background: #fff; border: 2px solid var(--line); border-radius: 99px; padding: 4px 12px; font-size: .86rem; }
+    @media (max-width: 1000px) { .demo-wrap, .fix-grid { grid-template-columns: 1fr; } }
+    .promise-row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-top: 18px; }
+    .promise { display: flex; gap: 14px; align-items: center; background: var(--tone-soft); border: 2px solid var(--tone); border-radius: 20px; padding: 14px 18px; }
+    .promise.check1 { background: #FFF6D6; border-color: #FFE08A; }
+    .promise-ico { flex: none; width: 50px; height: 50px; border-radius: 16px; background: #fff; display: grid; place-items: center; font-size: 1.6rem; transform: rotate(-6deg); }
+    .promise b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.15rem; }
+    .promise p { margin: 2px 0 0; font-size: .93rem; }
+    @media (max-width: 1000px) { .promise-row { grid-template-columns: 1fr; } }
+    #ai-leak .promise-row { margin: 18px 0 0; }
+    #ai-leak .win-body { min-height: 0; }
+    /* ---------- 실습 페이지 v10 ---------- */
+    .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; padding: 0; }
+    .gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .gas-gallery { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 14px; align-items: start; }
+    .g-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; background: #fff; border: 2px solid var(--line); border-top: 10px solid var(--c); border-radius: 22px; padding: 16px 18px; transition: transform .15s, box-shadow .15s; }
+    a.g-card:hover { transform: translateY(-3px) rotate(-.5deg); box-shadow: 4px 6px 0 var(--c); }
+    .g-ico { width: 52px; height: 52px; border-radius: 17px; background: var(--c); display: grid; place-items: center; font-size: 1.7rem; transform: rotate(-6deg); margin-bottom: 4px; }
+    .g-card b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.15rem; line-height: 1.35; }
+    .g-card small { color: var(--muted); font-size: .88rem; line-height: 1.55; }
+    .g-go { margin-top: auto; padding-top: 8px; font-weight: 700; color: var(--tone-ink); font-size: .9rem; }
+    .g-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .sheet-thumb { display: block; margin-top: 8px; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .sheet-thumb img { width: 100%; display: block; }
+    .private-note { display: flex; gap: 12px; align-items: center; background: #FFF1F6; border: 2px dashed #C24D80; color: #7A2148; border-radius: 18px; padding: 10px 16px; margin: 0 0 14px; }
+    .private-note > span { font-size: 1.5rem; }
+
+    .group-app { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.6fr); gap: 18px; align-items: start; }
+    .group-set textarea { min-height: 150px; font-size: .95rem; }
+    .stepper { display: flex; align-items: center; gap: 10px; }
+    .stepper button { width: 38px; height: 38px; border-radius: 12px; border: 2px solid var(--tone-ink); background: var(--tone); color: var(--tone-ink); font-size: 1.2rem; font-weight: 700; }
+    .stepper output { min-width: 34px; text-align: center; font-family: 'Jua', sans-serif; font-size: 1.6rem; }
+    .group-result { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; align-content: start; min-height: 220px; }
+    .gm-empty { grid-column: 1 / -1; margin: 0; display: grid; place-items: center; min-height: 220px; border: 2px dashed var(--tone); border-radius: 22px; background: var(--tone-soft); color: var(--tone-ink); font-family: 'Jua', sans-serif; font-size: 1.3rem; }
+    .gm-card { background: #fff; border: 2px solid var(--c); border-radius: 20px; padding: 12px 14px; animation: pop .35s both; }
+    .gm-card b { display: inline-block; background: var(--c); border-radius: 99px; padding: 2px 12px; font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.1rem; }
+    .gm-card ul { list-style: none; padding: 0; margin: 8px 0 0; font-size: 1.1rem; font-weight: 600; }
+    .gm-card li { padding: 2px 0; }
+    @keyframes pop { from { opacity: 0; transform: scale(.85) rotate(-3deg); } to { opacity: 1; transform: none; } }
+
+    .kit-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .sched { background: #F7F5FF; }
+    .sched-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .sched-chips button { border: 2px solid var(--line); background: #fff; border-radius: 99px; padding: 2px 10px; font-size: .8rem; }
+    .sched-chips button[aria-pressed="true"] { background: #DCD3FB; border-color: #4D3A9E; font-weight: 700; }
+    .sched-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 300px; overflow-y: auto; }
+    .sched-card { position: relative; background: #fff; border-radius: 14px; border-top: 6px solid var(--c); padding: 8px 10px; display: grid; gap: 1px; font-size: .85rem; }
+    .sched-card.past { opacity: .45; }
+    .sched-card b { font-size: .92rem; }
+    .sched-card small { color: var(--muted); font-size: .74rem; }
+    .sc-dday { position: absolute; top: 6px; right: 8px; background: var(--c); border-radius: 99px; padding: 0 8px; font-size: .72rem; font-weight: 700; }
+    .kit-steps .step { padding: 12px 0; }
+
+    .code-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .code-card { padding: 16px 18px; }
+    .cc-title { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; font-family: 'Jua', sans-serif; font-size: 1.2rem; }
+    .code-card details { margin-top: 10px; padding: 6px 10px; }
+    .code-card .code-view { max-height: 260px; overflow: auto; font-size: .74rem; white-space: pre; }
+    .deploy-list { list-style: none; padding: 0 !important; margin: 6px 0 8px; display: grid; gap: 6px; }
+    .deploy-list li { background: var(--tone-soft); border-radius: 12px; padding: 6px 10px; font-size: .92rem; }
+
+    .quiz-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
+    .quiz-flow span { background: #fff; border: 2px solid var(--line); border-radius: 99px; padding: 4px 12px; font-size: .86rem; font-weight: 600; }
+    .quiz-flow i { font-style: normal; color: var(--tone-ink); font-weight: 700; }
+    .quiz-demo { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+    .qd-q { font-family: 'Jua', sans-serif; font-size: 1.2rem; margin: 0 0 8px; color: var(--ink) !important; }
+    .qd-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+    .qd-opts .flow-opt { margin: 0; padding: 7px 10px; align-items: center; }
+    .qd-opts .flow-opt input { margin: 0; }
+    .qd-ask .field { min-height: 40px; margin-bottom: 6px; }
+    .qd-row { display: flex; gap: 8px; align-items: center; }
+    .qd-row .field { margin: 0; }
+    .qd-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .qd-top p { margin: 0; color: var(--ink) !important; }
+    .qd-reveal { font-size: .85rem; display: inline-flex; gap: 6px; align-items: center; background: var(--tone-soft); border-radius: 99px; padding: 3px 12px; cursor: pointer; }
+    .qd-bar { margin: 8px 0; }
+    .qd-bar-top { display: flex; justify-content: space-between; font-size: .9rem; }
+    .qd-track { height: 16px; background: var(--tone-soft); border-radius: 99px; overflow: hidden; }
+    .qd-fill { height: 100%; background: var(--tone); border-radius: 99px; transition: width .4s; }
+    .qd-bar.correct .qd-fill { background: #8FD9AE; }
+    .qd-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; max-height: 170px; overflow-y: auto; }
+    .qd-card { background: var(--tone-soft); border-radius: 12px; padding: 6px 10px; font-size: .82rem; animation: pop .3s both; }
+    .qd-card.me { background: #FFEEA3; }
+    .qd-card b { display: block; font-size: .86rem; }
+
+    .name-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 760px; }
+    .name-card { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; background: #fff; border: 2px solid var(--line); border-top: 10px solid var(--c); border-radius: 24px; padding: 22px 24px; }
+    .name-card > span { width: 64px; height: 64px; border-radius: 20px; background: var(--c); display: grid; place-items: center; font-size: 2rem; transform: rotate(-6deg); }
+    .name-card b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.45rem; }
+    .name-card small { color: var(--muted); }
+
+    @media (max-width: 1100px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } .code-steps { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 1000px) { .gas-gallery, .group-app, .kit-grid, .quiz-demo { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .gallery, .code-steps, .name-cards { grid-template-columns: 1fr; } }
+    .qd-row .cta { white-space: nowrap; flex: none; }
+
+    /* ---------- v13: 표지 준비물 · 배포 경로 · 실습 표지 예시 ---------- */
+    .cover-top { min-height: 0; padding-top: 6px; }
+    .cover-top .mascot { max-width: 280px; }
+    .prep { margin-top: 18px; background: #fff; border: 2px dashed var(--tone); border-radius: 24px; padding: 14px 18px 16px; }
+    .prep-title { margin: 0 0 10px; font-family: 'Jua', sans-serif; font-size: 1.2rem; }
+    .prep-title small { font-family: 'Pretendard', sans-serif; font-size: .85rem; color: var(--muted); margin-left: 6px; }
+    .prep-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .prep-card { position: relative; display: grid; gap: 2px; text-decoration: none; background: var(--c); border-radius: 18px; padding: 12px 14px; transition: transform .15s; }
+    .prep-card:hover { transform: translateY(-2px) rotate(-.6deg); }
+    .prep-n { position: absolute; top: 8px; right: 10px; width: 22px; height: 22px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: .78rem; font-weight: 700; }
+    .prep-ico { font-size: 1.5rem; }
+    .prep-card > b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.1rem; }
+    .prep-card small { font-size: .82rem; line-height: 1.5; color: var(--ink); }
+
+    .deploy-routes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+    .route-box { border-radius: 24px; padding: 12px 14px 10px; }
+    .route-box.quick { background: #EDFAF9; }
+    .route-box.keep { background: #F4F1FF; }
+    .route-title { margin: 2px 4px 10px; font-family: 'Jua', sans-serif; font-size: 1.15rem; }
+    .chain { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+    .chain-arrow { font-size: 1.6rem; color: var(--tone-ink); font-weight: 700; }
+    .route-note { margin: 8px 4px 0; }
+    .deploy-card { padding: 16px 18px; }
+    .deploy-card .card-ico { margin-bottom: 8px; }
+
+    .cover-ex { margin-top: 18px; }
+    .cover-ex-title { margin: 0 0 8px; font-family: 'Jua', sans-serif; font-size: 1.1rem; }
+    .ex-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .ex-item { display: flex; gap: 10px; align-items: center; text-decoration: none; background: #fff; border: 2px solid var(--line); border-left: 8px solid var(--c); border-radius: 16px; padding: 9px 12px; }
+    a.ex-item:hover { border-color: var(--c); }
+    .ex-item > span { flex: none; font-size: 1.4rem; }
+    .ex-item b { display: block; font-size: .95rem; line-height: 1.35; }
+    .ex-item small { color: var(--muted); font-size: .78rem; }
+    .ex-item .ex-links { display: flex; gap: 8px; margin-top: 2px; font-size: .8rem; font-weight: 700; }
+    .ex-item .ex-links a { color: var(--tone-ink); }
+    .cover-ex .private-note { margin: 0 0 10px; padding: 8px 14px; font-size: .9rem; }
+    .slide .cover.cover-sub { min-height: 0; }
+    @media (max-width: 1000px) { .prep-list { grid-template-columns: 1fr 1fr; } .deploy-routes { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .chain { grid-template-columns: 1fr; } .chain-arrow { transform: rotate(90deg); justify-self: center; } }
+
+    .cover-top h1 { font-size: clamp(2rem, 4.2vw, 3.1rem); margin: 8px 0 8px; }
+    .cover-top .lead { margin-bottom: 12px; }
+    .cover-top .mascot { max-width: 230px; }
+    #top .slide-inner.wide { padding-top: 0; }
+
+    .multi-file { display: grid; grid-template-columns: minmax(200px, 320px) 1fr; gap: 16px; align-items: center; margin-top: 16px; background: #F3FBF7; border: 2px dashed #8FD9AE; border-radius: 22px; padding: 14px 16px; }
+    .mf-thumb { display: block; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+    .mf-thumb img { display: block; width: 100%; }
+    .multi-file > div > b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.15rem; }
+    .multi-file p { margin: 4px 0 8px; font-size: .92rem; }
+    .mf-files { display: flex; flex-wrap: wrap; gap: 5px; }
+    .mf-files span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .76rem; background: #fff; border: 2px solid var(--line); border-radius: 8px; padding: 1px 8px; }
+    @media (max-width: 720px) { .multi-file { grid-template-columns: 1fr; } }
+
+    /* ---------- 심화: 일정 추가 ---------- */
+    .adv-grid { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.6fr); gap: 18px; align-items: start; }
+    .sheet-menu { background: #fff; border: 2px solid var(--line); border-radius: 18px; padding: 10px 12px; }
+    .sm-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    .sm-bar b { color: var(--ink); background: var(--tone); border-radius: 8px; padding: 1px 8px; }
+    .sm-drop { margin: 6px 0 0 auto; width: max-content; background: #fff; border: 2px solid var(--tone); border-radius: 10px; padding: 5px 12px; font-size: .88rem; font-weight: 600; box-shadow: 3px 4px 0 var(--tone-soft); }
+    .sheet-menu .mini { margin: 8px 0 0; }
+    .adv-points { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+    .adv-points li { display: flex; gap: 10px; align-items: flex-start; background: var(--tone-soft); border-radius: 14px; padding: 8px 12px; }
+    .adv-points li > span { font-size: 1.3rem; }
+    .adv-points b { display: block; font-size: .95rem; }
+    .adv-points small { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .adv-form { background: #fff; border: 2px dashed #B9A8F5; border-radius: 14px; padding: 8px 12px; margin-bottom: 10px; }
+    .adv-form-title { margin: 0 0 6px; font-weight: 700; font-size: .92rem; }
+    .adv-form-title small { font-weight: 400; color: var(--muted); }
+    .adv-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+    .adv-row label { display: grid; gap: 1px; font-size: .74rem; font-weight: 700; flex: 1 1 90px; }
+    .adv-row label.wide { flex: 2 1 160px; }
+    .adv-row input { border: 2px solid var(--line); border-radius: 9px; padding: 4px 7px; font-size: .82rem; min-width: 0; }
+    .sched-card.new { outline: 3px solid #4D3A9E; }
+    #advGrid { max-height: 230px; }
+    @media (max-width: 1000px) { .adv-grid { grid-template-columns: 1fr; } }
+
+    .ex-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .ex-head .card-ico { margin-bottom: 0; }
+    .ex-card > .ex-head .cta { align-self: center; margin: 0; }
+    .brand.back { align-self: center; margin-bottom: 8px; background: #fff; border: 2px solid var(--tone-ink); border-radius: 99px; padding: 5px 16px 5px 6px; font-size: 1rem; color: var(--tone-ink); box-shadow: 0 3px 0 var(--tone-ink); transition: transform .1s, box-shadow .1s; }
+    .brand.back:hover { transform: translateY(1px); box-shadow: 0 2px 0 var(--tone-ink); }
+    .brand.back .dot { width: 26px; height: 26px; font-weight: 700; }
+    @media (max-width: 720px) { .brand.back { align-self: flex-start; margin-bottom: 4px; } }
+
+
+    /* ---------- 마무리 ---------- */
+    .thanks-wrap { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, .8fr); gap: 34px; align-items: center; min-height: 60vh; }
+    .thanks-title { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.2; margin: 12px 0 10px; letter-spacing: -0.02em; }
+    .thanks-lead { font-size: 1.08rem; color: var(--muted); margin: 0 0 18px; max-width: 52ch; }
+    .thanks-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .thanks-cards .panel { padding: 16px 18px; }
+    .thanks-cards .panel p { margin: 4px 0 0; }
+    .qr-card { justify-self: center; text-align: center; background: #fff; border: 2px solid var(--tone); border-radius: 26px; padding: 22px 22px 14px; box-shadow: 6px 7px 0 var(--tone-soft), 6px 7px 0 2px var(--line); transform: rotate(2deg); }
+    .qr-svg { display: block; width: min(240px, 60vw); height: auto; }
+    .qr-card p { margin: 10px 0 0; font-weight: 700; color: var(--tone-ink); font-size: .95rem; line-height: 1.5; }
+    @media (max-width: 900px) { .thanks-wrap { grid-template-columns: 1fr; } .thanks-cards { grid-template-columns: 1fr; } .qr-card { transform: none; } }
+  </style>
+</head>
+<body>
+  <div class="desk" data-tone="lilac">
+    <div class="topbar">
+      <a class="brand" href="#top"><span class="dot" aria-hidden="true">📒</span>교사의 웹앱 제작하기</a>
+      <nav class="tabs" role="tablist" aria-label="목차">
+        <a class="tab" role="tab" href="#top" data-tab="top" data-tone="lilac" aria-selected="false"><span class="ico" aria-hidden="true">🏠</span><span class="lbl">표지</span></a>
+        <a class="tab" role="tab" href="#planning" data-tab="planning" data-tone="pink" aria-selected="false"><span class="ico" aria-hidden="true">📝</span><span class="lbl">기획</span></a>
+        <a class="tab" role="tab" href="#decision" data-tab="decision" data-tone="peach" aria-selected="false"><span class="ico" aria-hidden="true">🧭</span><span class="lbl">방식 선택</span></a>
+        <a class="tab" role="tab" href="#ai-ethics" data-tab="ai-ethics" data-tone="rose" aria-selected="false"><span class="ico" aria-hidden="true">💗</span><span class="lbl">AI 윤리</span></a>
+        <a class="tab" role="tab" href="#examples" data-tab="examples" data-tone="butter" aria-selected="false"><span class="ico" aria-hidden="true">🧪</span><span class="lbl">실습</span></a>
+        <a class="tab" role="tab" href="#preflight" data-tab="preflight" data-tone="mint" aria-selected="false"><span class="ico" aria-hidden="true">✅</span><span class="lbl">점검</span></a>
+        <a class="tab" role="tab" href="#deploy" data-tab="deploy" data-tone="sky" aria-selected="false"><span class="ico" aria-hidden="true">🚀</span><span class="lbl">배포</span></a>
+        <a class="tab" role="tab" href="#thanks" data-tab="thanks" data-tone="aqua" aria-selected="false"><span class="ico" aria-hidden="true">💐</span><span class="lbl">마무리</span></a>
+      </nav>
+    </div>
+    <main class="book">
+      <div class="viewport">
+        <div class="track">
+      <!-- 표지 -->
+      <section class="slide" id="top" data-tab="top" data-tone="lilac" aria-label="표지">
+        <div class="slide-inner wide">
+        <div class="cover cover-top">
+          <div>
+            <span class="hello" style="width: 144px; height: 31px;">👋 길음중학교 짱</span>
+            <h1>선생님을 위한 웹앱 만들기</h1>
+            <p class="lead" style="translate: 5px 0px;">AI와 대화하며 수업에 쓸 웹앱을 기획하고, 만들고, 점검하고, 배포까지 </p><p class="lead" style="font-size: 16px;">(2026. 10.26. 길음중학교 AI 활용 연수)</p>
+            <div class="route" aria-label="오늘의 과정">
+              <a href="#planning" style="--chip:#FFD3E2">📝 기획</a>
+              <a href="#decision" style="--chip:#FFDCC2">🧭 방식 선택</a>
+              <a href="#ai-ethics" style="--chip:#F9D2EE">💗 AI 윤리</a>
+              <a href="#examples" style="--chip:#FFEEA3">🧪 실습</a>
+              <a href="#preflight" style="--chip:#C5EDD8">✅ 점검</a>
+              <a href="#deploy" style="--chip:#C9E3FA">🚀 배포</a>
+              <a href="#thanks" style="--chip:#C3ECEA">💐 마무리</a>
+            </div>
+            <div style="margin-top: 16px;"><a class="cta big" href="#planning">시작하기 ✨</a></div>
+          </div>
+          <svg class="mascot" viewBox="0 0 320 280" role="img" aria-label="웃고 있는 노트북 캐릭터">
+            <ellipse cx="160" cy="258" rx="118" ry="12" fill="#DCD3FB" opacity=".7"></ellipse>
+            <rect x="58" y="38" width="204" height="150" rx="26" fill="#FFFFFF" stroke="#3B3355" stroke-width="5"></rect>
+            <rect x="76" y="56" width="168" height="114" rx="16" fill="#E6F2FD"></rect>
+            <circle cx="128" cy="108" r="8" fill="#3B3355"></circle>
+            <circle cx="192" cy="108" r="8" fill="#3B3355"></circle>
+            <circle cx="131" cy="105" r="2.6" fill="#fff"></circle>
+            <circle cx="195" cy="105" r="2.6" fill="#fff"></circle>
+            <ellipse cx="110" cy="128" rx="12" ry="7" fill="#FFC2D6"></ellipse>
+            <ellipse cx="210" cy="128" rx="12" ry="7" fill="#FFC2D6"></ellipse>
+            <path d="M146 126 q14 14 28 0" fill="none" stroke="#3B3355" stroke-width="5" stroke-linecap="round"></path>
+            <path d="M34 196 h252 l-18 40 h-216 z" fill="#FFEEA3" stroke="#3B3355" stroke-width="5" stroke-linejoin="round"></path>
+            <rect x="136" y="208" width="48" height="10" rx="5" fill="#3B3355" opacity=".25"></rect>
+            <g transform="translate(262 34) rotate(18)">
+              <rect x="-7" y="-4" width="14" height="70" rx="4" fill="#C5EDD8" stroke="#3B3355" stroke-width="4"></rect>
+              <path d="M-7 66 l7 16 l7 -16 z" fill="#FFDCC2" stroke="#3B3355" stroke-width="4" stroke-linejoin="round"></path>
+            </g>
+            <path d="M40 60 l5 12 l12 5 l-12 5 l-5 12 l-5 -12 l-12 -5 l12 -5 z" fill="#FFD3E2"></path>
+            <path d="M286 150 l4 9 l9 4 l-9 4 l-4 9 l-4 -9 l-9 -4 l9 -4 z" fill="#C9E3FA"></path>
+            <circle cx="30" cy="150" r="6" fill="#C3ECEA"></circle>
+          </svg>
+        </div>
+        <div class="prep">
+          <p class="prep-title">🎒 연수 전에 계정을 준비해 주세요 <small>모두 무료이고, 본인 계정으로 하나씩 만들어 두면 돼요.</small></p>
+          <div class="prep-list">
+            <a class="prep-card" style="--c:#C5EDD8" href="https://accounts.google.com/" target="_blank" rel="noopener">
+              <span class="prep-n">1</span><span class="prep-ico" aria-hidden="true">🏫</span>
+              <b>학교 Google 계정</b><small>로그인만 확인해요. 구글 시트·Apps Script 실습에 써요.</small>
+            </a>
+            <a class="prep-card" style="--c:#DCD3FB" href="https://github.com/signup" target="_blank" rel="noopener">
+              <span class="prep-n">2</span><span class="prep-ico" aria-hidden="true">🐙</span>
+              <b>GitHub</b><small>내 앱을 보관하는 저장소예요. <b>가장 먼저</b> 가입해 주세요. (구글계정으로 가입해요)</small>
+            </a>
+            <a class="prep-card" style="--c:#C9E3FA" href="https://vercel.com/signup" target="_blank" rel="noopener">
+              <span class="prep-n">3</span><span class="prep-ico" aria-hidden="true">▲</span>
+              <b>Vercel</b><small>가입할 때 <b>'GitHub로 계속하기'</b>를 고르면 연동까지 한 번에 돼요.</small>
+            </a>
+            <a class="prep-card" style="--c:#C3ECEA" href="https://app.netlify.com/signup" target="_blank" rel="noopener">
+              <span class="prep-n">4</span><span class="prep-ico" aria-hidden="true">📦</span>
+              <b>Netlify</b><small>구글계정으로 가입합니다.  GitHub에 가입했을 경우, 동일 계정으로 가입하면 편해요. </small>
+            </a>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <!-- 01 기획하기 -->
+      <section class="slide" id="planning" data-tab="planning" data-tone="pink" aria-label="기획하기">
+        <div class="slide-inner">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">📝</span>
+            <div>
+              <span class="step-pill">01 기획하기</span>
+              <h2>구체화 하기 (PDR 작성해보기)</h2>
+              <p class="section-intro">앱의 목적, 사용자, 기능, 데이터 처리 방식을 정리합니다. 필요한 사항을 PRD(제품 요구사항 문서)로 정리하면 이후 수정 과정에서도 기준으로 활용할 수 있습니다.</p>
+            </div>
+          </header>
+
+          <div class="panel">
+            <div class="step">
+              <span class="num">1</span>
+              <div>
+                <h3>📄 PRD란?</h3>
+                <p><b>(Product Requirements Document:</b> 제품 요구사항 문서) 만들고자 하는 결과물에 대해서 작성하는 문서입니다. 앱의 제작 목적, 사용자, 주요 기능, 화면과 동작 규칙을 정리합니다.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="num">2</span>
+              <div>
+                <h3>🤔 왜 작성하는가?</h3>
+                <p>AI에 전달할 요구사항을 명확히 하고, 기능을 수정하거나 다른 제작 도구로 옮길 때 기준 문서로 사용합니다. </p><p><b>필수는 아닙니다.</b>  아주 간단한 형태의 앱을 만들 때에는 따로 작성하지 않고, 직접 AI에게 명령할 수도 있어요. </p><p> 하지만 , <b>복잡한 구조의 앱</b>을 만들때에는 많은 부분들에서 확정되어야 <b>효율적으로 앱 제작</b>이 가능합니다. </p>
+                <div class="practice-box">
+                  <div style="width: 648px; height: 77px; font-size: 15px;">
+                    <b>✍️ 연습해 보기</b>
+                    <p>   'PRD 작성 도우미' 로 PRD가 어떻게 생겼는지 직접 만들어볼 수 있어요. <br>  규격이 정해져있는 것은 아닙니다. 기본적으로 들어갈 내용들에 대한 참고사항으로 생각하시면 됩니다.</p>
+                  </div>
+                  <a class="cta" href="https://tjdr1517.github.io/prd/" target="_blank" rel="noopener noreferrer">PRD 작성 도우미 열기 ↗</a>
+                  <p class="reference-note" style="flex-basis: 100%; margin: 0; width: 591px; height: 24px;">참고 자료: 교사개발자해커톤 연수, 창동고 최성규 선생님</p>
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <span class="num">3</span>
+              <div>
+                <h3>💬 PRD 작성 : AI와 대화하며 함께 작성할 수 있습니다. <span style="color: #d92d20">[추천!]</span></h3>
+                <ul>
+                  <li>복잡한 구조의 앱을 제작할 때에는, <mark>제작자가 미처 생각하지 못하는 부분들</mark>이 있을 수 있어서 앱을 제작하기 전에 AI와 대화하며 구체적인 PRD를 작성할 수 있습니다. </li><li>AI에게 제작 의도와 목적, 사용자, 필요한 기능 등을 설명합니다.</li>
+                  <li>결정하지 못한 부분, 고민인 부분도 함께 전달하고 대안을 요청합니다.</li>
+                  <li>대화를 바탕으로 PRD를 정리해달라고 한 뒤 파일로 보관합니다.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="info" style="margin-top:16px;"><div>실습을 마치고 <b>내 앱</b>을 만들 때는 각 실습의 마지막 장 <b>도움자료: 내 앱 기획하기</b>에서 도구에 맞는 PRD 요청문을 만들 수 있어요.</div></div>
+        </div>
+      </section>
+
+
+      <!-- 02 방식 선택 -->
+      <section class="slide compact" id="decision" data-tab="decision" data-tone="peach" aria-label="제작 방식 선택">
+        <div class="slide-inner wide">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🧭</span>
+            <div>
+              <span class="step-pill">02 방식 선택</span>
+              <h2>어떤 방식으로 만들 것인가?</h2>
+              <p class="section-intro" style="width: 1030px; height: 24px; max-width: none;">아래 질문에 답해보면서 선생님이 만드실 앱에 적합한 방식을 확인해보세요.</p>
+            </div>
+          </header>
+
+          <div class="decision-wrap">
+            <div class="panel decision-main">
+              <div class="decision-top">
+                <p id="flowProgressText" class="mini" style="margin:0;"></p>
+                <button class="cta secondary small" id="flowReset" type="button">↺ 다시 시작</button>
+              </div>
+              <div class="flow-progress" aria-label="진행률"><div id="flowProgressBar"></div></div>
+              <div id="flowQuestions" aria-live="polite"></div>
+              <div id="flowResult" aria-live="polite"></div>
+              <div class="flow-nav">
+                <button type="button" class="cta secondary" id="flowPrev">← 이전</button>
+                <button type="button" class="cta" id="flowNext">다음 →</button>
+              </div>
+            </div>
+            <aside class="panel decision-side">
+              <h3>📒 내가 고른 답</h3>
+              <ol id="flowSummary" class="flow-summary"></ol>
+              <p class="mini">답을 누르면 그 질문으로 돌아가요. 추천은 초기 설계 참고용이니 실제 인원·요청 빈도·학교 계정 정책으로 꼭 시험해 보세요.</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- 03 AI 윤리 (1/2) -->
+      <section class="slide" id="ai-ethics" data-tab="ai-ethics" data-tone="rose" aria-label="AI 윤리 1">
+        <div class="slide-inner">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">💗</span>
+            <div>
+              <span class="step-pill">03 AI 윤리 · 1/4 만들기 전에 꼭!</span>
+              <h2>학생을 위한 앱, 사람을 먼저 생각해요</h2>
+              <p class="section-intro"> 교육부 「교육분야 인공지능 윤리원칙」(2022)의 정신을 교사 앱 제작 상황에 맞게 여섯 가지로 정리했습니다.</p>
+            </div>
+          </header>
+          <div class="grid three">
+            <div class="panel" style="--c:#FFD3E2"><span class="card-ico" aria-hidden="true">🙋</span><h3>학생이 주인공</h3><p>앱은 학생의 생각을 대신하지 않고 돕습니다. 정답을 바로 주기보다 스스로 따져 볼 기회를 남겨요.</p></div>
+            <div class="panel" style="--c:#FFDCC2"><span class="card-ico" aria-hidden="true">🔍</span><h3>최종 확인은 교사가</h3><p>AI가 만든 코드·설명·피드백은 교사가 확인한 뒤 씁니다. 개념 오류와 평가 판단의 책임은 사람에게 있어요.</p></div>
+            <div class="panel" style="--c:#FFEEA3"><span class="card-ico" aria-hidden="true">🤝</span><h3>모두에게 공정하게</h3><p>예시와 피드백에 성별·지역·문화 고정관념이 없는지 봅니다. 기기 사양이나 시력, 읽기 속도가 달라도 쓸 수 있게 만들어요.</p></div>
+            <div class="panel" style="--c:#C5EDD8"><span class="card-ico" aria-hidden="true">🔐</span><h3>데이터는 꼭 필요한 만큼</h3><p>실명·연락처 대신 번호나 별칭으로 충분한지 먼저 생각합니다. 모은 데이터는 언제 지울지 정해 둬요.</p></div>
+            <div class="panel" style="--c:#C9E3FA"><span class="card-ico" aria-hidden="true">💬</span><h3>투명하게 알리기</h3><p>AI로 만든 앱인지, 앱 안의 AI가 무엇을 하고 입력이 어디로 가는지 학생과 보호자가 알 수 있게 안내합니다.</p></div>
+            <div class="panel" style="--c:#DCD3FB"><span class="card-ico" aria-hidden="true">©️</span><h3>저작권과 출처</h3><p>AI가 만든 이미지·글, 인터넷 자료의 이용 조건을 확인하고 출처를 밝힙니다. 학생 작품을 쓸 때는 동의를 받아요.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 AI 윤리 (2/4) 학운위 심의 -->
+      <section class="slide" id="ai-law" data-tab="ai-ethics" data-tone="rose" aria-label="학습지원 소프트웨어 학운위 심의">
+        <div class="slide-inner wide">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🏛️</span>
+            <div>
+              <span class="step-pill">03 AI 윤리 · 2/4 2026년부터 달라진 것</span>
+              <h2>학생이 쓰는 앱, 이제 학운위 심의를 거쳐요</h2>
+              <p class="section-intro">교사가 직접 만든 앱도 예외가 아닙니다. 심의는 번거로운 절차가 아니라, 학생 정보를 지키고 앱을 만든 선생님을 지켜 주는 공식 승인입니다.</p>
+            </div>
+          </header>
+
+          <div class="law-grid">
+            <div class="panel law-card">
+              <div class="law-badge">📜 초·중등교육법 제29조의2 · 2025년 8월 개정 · <b>2026년 3월 1일 시행</b></div>
+              <p class="law-main">학교의 장이 학습지원 소프트웨어를 교육자료로 선정하려면 교육부 장관이 (개인정보보호위원회와 협의해) 정한 기준을 지키고 <b>학교운영위원회 심의</b>를 거쳐야 합니다.</p>
+              <div class="law-two">
+                <div class="law-box yes">
+                  <p class="law-box-title">✅ 심의 대상 (정규 교육과정에서 쓰는 것 중)</p>
+                  <ul>
+                    <li><b>학생 개인정보를 수집·이용·제공 등 처리</b>하는 소프트웨어</li>
+                    <li>교과 성취기준 관련 학습 콘텐츠를 담아, 교육과정 지원 목적으로 개발·보급된 소프트웨어</li>
+                    <li>둘 중 하나만 해당해도 대상이에요.</li>
+                  </ul>
+                </div>
+                <div class="law-box no">
+                  <p class="law-box-title">⭕ 대상이 아닌 것</p>
+                  <ul>
+                    <li>교사가 수업 준비·행정업무에 <b>학생 개인정보 처리 없이</b> 쓰는 도구</li>
+                    <li>방과후 수업, 국가·국제 수준의 일시적 평가</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="teacher-made">🧑‍🏫 <b>교사가 만든 앱도</b> 개인정보를 수집·처리하면 심의 대상입니다. 교사가 개발자라면 필수기준 체크리스트와 증빙을 교사가 직접 작성해요.</div>
+              <ol class="flow-steps">
+                <li><span>1</span>교원 의견 수렴</li>
+                <li><span>2</span>필수기준 충족 확인</li>
+                <li><span>3</span>학운위 상정·심의</li>
+                <li><span>4</span>학교장 최종 확정</li>
+              </ol>
+              <p class="mini" style="margin:8px 0 0;">학기 중에 새로 쓰려는 앱도 심의를 거친 뒤에 사용해요. 시기를 놓쳤다면 다음 학운위에 올립니다.</p>
+            </div>
+
+            <div class="panel checker" id="lawChecker">
+              <h3>🔎 내 앱은 심의 대상일까?</h3>
+              <p class="mini" style="margin-top:0;">세 가지만 답해 보세요.</p>
+              <div class="chk-q">
+                <p>① 정규 교과 수업에서 <b>학생이</b> 이 앱을 쓰나요?</p>
+                <div class="chk-opts" data-q="class">
+                  <button type="button" data-v="yes">네</button>
+                  <button type="button" data-v="prep">아니요, 교사만 수업 준비에 써요</button>
+                  <button type="button" data-v="after">방과후·일시 평가에만</button>
+                </div>
+              </div>
+              <div class="chk-q">
+                <p>② 학생을 알아볼 수 있는 정보를 받거나 저장하나요?</p>
+                <p class="mini" style="margin:-4px 0 6px;">실명, 학번, 이메일(구글 로그인 포함), 사진·목소리, 이런 정보와 연결된 학습 기록</p>
+                <div class="chk-opts" data-q="pi">
+                  <button type="button" data-v="yes">네</button>
+                  <button type="button" data-v="no">아니요, 전혀 안 받아요</button>
+                </div>
+              </div>
+              <div class="chk-q">
+                <p>③ 성취기준 학습 콘텐츠를 담아 여러 학교·교사에게 <b>보급</b>하나요?</p>
+                <div class="chk-opts" data-q="dist">
+                  <button type="button" data-v="yes">네</button>
+                  <button type="button" data-v="no">아니요, 우리 수업에서만</button>
+                </div>
+              </div>
+              <div class="chk-result" id="lawResult" aria-live="polite">답을 고르면 결과가 나와요.</div>
+            </div>
+          </div>
+          <p class="reference-note">근거: 교육부 보도자료 「학교의 안전하고 효과적인 학습지원 소프트웨어 선정을 위한 기준 안내」(2025.12.29.), 「2026학년도 학습지원 소프트웨어 교육자료 선정 학교운영위원회 심의 가이드(안)」(2026.1.). 세부 판단은 학교와 교육청 안내를 따르세요.</p>
+        </div>
+      </section>
+
+      <!-- 03 AI 윤리 (3/4) 필수기준 -->
+      <section class="slide" id="ai-privacy" data-tab="ai-ethics" data-tone="rose" aria-label="개인정보 필수기준">
+        <div class="slide-inner wide">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🔐</span>
+            <div>
+              <span class="step-pill">03 AI 윤리 · 3/4 내 앱이 갖출 것</span>
+              <h2>필수기준을 내 앱에 옮기면</h2>
+              <p class="section-intro">필수기준은 「개인정보 보호법」에서 반드시 지켜야 하는 사항이라, 하나라도 못 갖추면 사용할 수 없습니다. 교사 앱에서는 이렇게 준비해요.</p>
+            </div>
+          </header>
+
+          <div class="crit-list">
+            <div class="crit" style="--c:#FFD3E2">
+              <span class="crit-n">1</span>
+              <div><b>최소 처리</b><small>꼭 필요한 정보만, 목적·항목·보유기간을 밝히기</small></div>
+              <p>실명 대신 번호나 별칭으로 되는지 먼저 생각해요. "이 정보가 없으면 수업 활동이 안 되나?"에 답이 '아니요'면 받지 않습니다.</p>
+            </div>
+            <div class="crit" style="--c:#FFDCC2">
+              <span class="crit-n">2</span>
+              <div><b>안전조치</b><small>접근 권한 관리, 안전한 저장</small></div>
+              <p>시트는 학생에게 공유하지 않고, Firebase는 보안 규칙을 설정합니다. 관리자 비밀번호·API 키를 HTML 안에 쓰지 않아요.</p>
+            </div>
+            <div class="crit" style="--c:#FFEEA3">
+              <span class="crit-n">3</span>
+              <div><b>열람·정정·삭제·처리정지</b><small>언제든 요구할 수 있는 방법 안내</small></div>
+              <p>"내 기록 보기·지우기" 버튼을 두거나, 요청할 곳(담당 교사)을 앱에 적어 둡니다. 실제로 지울 수 있는지도 시험해요.</p>
+            </div>
+            <div class="crit" style="--c:#C5EDD8">
+              <span class="crit-n">4</span>
+              <div><b>만 14세 미만 보호</b><small>법정대리인(보호자) 동의 절차</small></div>
+              <p>중학교 1학년은 대부분 만 14세 미만입니다. 보호자 동의서를 미리 받고, 동의하지 않은 학생도 참여할 수 있는 대체 방법을 마련해요.</p>
+            </div>
+            <div class="crit" style="--c:#C9E3FA">
+              <span class="crit-n">5</span>
+              <div><b>처리방침 공개</b><small>보호책임자, 제3자 제공·위탁 안내</small></div>
+              <p>앱 첫 화면이나 링크로 '개인정보 처리 안내'를 보여 줍니다. 구글·Firebase·AI API처럼 데이터가 거쳐 가는 외부 서비스도 적어요.</p>
+            </div>
+          </div>
+
+          <div class="consent-row">
+            <div class="panel consent">
+              <h3>📝 동의를 받을 때 알릴 네 가지</h3>
+              <ol>
+                <li>무엇에 쓰는지 (수집·이용 목적)</li>
+                <li>무엇을 받는지 (수집 항목)</li>
+                <li>언제까지 갖고 있는지 (보유·이용 기간)</li>
+                <li>동의하지 않을 수 있고, 그때 불이익은 무엇인지</li>
+              </ol>
+            </div>
+            <div class="panel consent">
+              <h3>🤖 AI에게 안내문 초안 부탁하기</h3>
+              <pre class="prompt" id="privacyPrompt">내가 만든 수업용 웹앱의 「개인정보 처리 안내문」과 보호자 동의서 초안을 만들어 줘.
+- 수집 항목: (예: 학번 끝 두 자리, 학교 Google 계정 이메일, 활동 기록)
+- 이용 목적 / 보유 기간: (예: 2026학년도 2학기 과학 수업 활동, 학기 종료 후 삭제)
+- 데이터가 저장·전달되는 서비스: (예: Google 스프레드시트)
+- 보호책임자(담당 교사)와 열람·정정·삭제 요청 방법 포함
+- 만 14세 미만 학생의 보호자 동의란, 동의 거부 시 대체 활동 안내 포함
+- 중학생과 보호자가 읽기 쉬운 말로</pre>
+              <button class="cta secondary small" type="button" onclick="copyText('privacyPrompt', this)">📋 요청문 복사</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 AI 윤리 (4/5) 직접 열어 보기 시연 -->
+      <section class="slide compact" id="ai-leak" data-tab="ai-ethics" data-tone="rose" aria-label="로그인 앱 시연">
+        <div class="slide-inner wide">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🕵️</span>
+            <div>
+              <span class="step-pill">03 AI 윤리 · 4/4 직접 열어 보기</span>
+              <h2>로그인했는데 왜 다 보일까요?</h2>
+              <p class="section-intro">AI로 뚝딱 만든 '학생 정보 조회' 앱입니다. 아이디·비밀번호를 몰라도 네 단계면 모든 학생 정보가 보여요. 모든 정보는 가상입니다.</p>
+            </div>
+          </header>
+
+          <div class="demo-wrap">
+            <div class="demo-steps" role="tablist" aria-label="시연 단계">
+              <button type="button" role="tab" class="demo-step" data-step="0" aria-selected="true"><span>1</span><b>로그인 화면</b><small>비밀번호를 모르면 못 들어갈 것 같지만…</small></button>
+              <button type="button" role="tab" class="demo-step" data-step="1" aria-selected="false"><span>2</span><b>주소 끝에 /app.js</b><small>앱의 코드 파일을 그냥 열어 봐요</small></button>
+              <button type="button" role="tab" class="demo-step" data-step="2" aria-selected="false"><span>3</span><b>F12 → Console</b><small>STUDENTS 라고 입력해요</small></button>
+              <button type="button" role="tab" class="demo-step" data-step="3" aria-selected="false"><span>4</span><b>사진 주소 짐작하기</b><small>학번_이름 규칙이면 다 열려요</small></button>
+              <a class="cta" href="demo/bamti-unsafe/index.html" target="_blank" rel="noopener">🧪 예시 앱 직접 열기 ↗</a>
+            </div>
+
+            <div class="demo-screen">
+              <div class="win">
+                <div class="win-bar"><span></span><span></span><span></span><div class="win-url" id="demoUrl">https://우리반-앱.netlify.app/</div></div>
+                <div class="win-body">
+                  <div class="demo-pane" data-pane="0">
+                    <div class="fake-login">
+                      <p class="fl-title">🔒 학생 정보 조회</p>
+                      <div class="fl-field">아이디 <i>10101</i></div>
+                      <div class="fl-field">비밀번호 <i>••••</i></div>
+                      <div class="fl-btn">로그인</div>
+                    </div>
+                    <p class="pane-note">로그인을 거쳐야만 내 정보가 나오니 안전해 보입니다. 그런데 이 확인은 <b>학생 브라우저 안에서</b> 이뤄져요. 확인하려면 브라우저가 비밀번호 목록과 전체 학생 정보를 <b>미리 받아 와야</b> 합니다.</p>
+                  </div>
+                  <div class="demo-pane" data-pane="1" hidden="">
+<pre class="code-view"><span class="ln">1</span>const USERS = [
+<span class="ln">2</span>  { id: "admin", <mark>password: "2026"</mark>, role: "admin" },
+<span class="ln">3</span>  { id: "10101", <mark>password: "1234"</mark>, role: "student" },
+<span class="ln">4</span>  { id: "10102", <mark>password: "1234"</mark>, role: "student" },
+<span class="ln">…</span>
+<span class="ln">8</span>const STUDENTS = [
+<span class="ln">9</span>  { id: "10101", name: "김코딩",
+<span class="ln">12</span>    grades: { "정보 수행평가": "A", "웹앱 프로젝트": "92점" … },
+<span class="ln">20</span>    <mark>teacherMemo: "프론트엔드 구조 이해가 빠르며…"</mark> },</pre>
+                    <p class="pane-note">배포한 파일은 모두 공개 주소가 생깁니다. <b>관리자 비밀번호</b>와 모든 학생의 성적·교사 메모가 글자 그대로 보여요.</p>
+                  </div>
+                  <div class="demo-pane" data-pane="2" hidden="">
+<pre class="code-view console"><span class="prompt-mark">&gt;</span> STUDENTS
+  ▸ (3) [{…}, {…}, {…}]
+    0: {id: '10101', name: '김코딩', grades: {…}, teacherMemo: '…'}
+    1: {id: '10102', name: '박개발', grades: {…}, teacherMemo: '…'}
+    2: {id: '10103', name: '이교사', grades: {…}, teacherMemo: '…'}
+<span class="prompt-mark">&gt;</span> USERS[0]
+  ▸ {id: 'admin', <mark>password: '2026'</mark>, role: 'admin', name: '관리자'}</pre>
+                    <p class="pane-note">코드를 읽을 줄 몰라도 됩니다. 변수 이름만 치면 전체 명단이 표로 나와요. 관리자 비밀번호로 로그인하면 <b>관리자 대시보드</b>까지 열립니다.</p>
+                  </div>
+                  <div class="demo-pane" data-pane="3" hidden="">
+                    <div class="fake-photos">
+                      <figure><img src="demo/bamti-unsafe/assets/10101_김코딩.svg" alt=""><figcaption>10101_김코딩</figcaption></figure>
+                      <figure><img src="demo/bamti-unsafe/assets/10102_박개발.svg" alt=""><figcaption>10102_박개발</figcaption></figure>
+                      <figure><img src="demo/bamti-unsafe/assets/10103_이교사.svg" alt=""><figcaption>10103_이교사</figcaption></figure>
+                    </div>
+                    <p class="pane-note">사진도 <code>/assets/학번_이름.jpg</code> 주소로 로그인 없이 열립니다. 학번 순서를 알면 다른 학생 사진 주소도 짐작할 수 있어요. 공개 GitHub 저장소라면 폴더째 내려받을 수도 있습니다.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="promise-row">
+            <div class="promise">
+              <span class="promise-ico" aria-hidden="true">💗</span>
+              <div>
+                <b>우리의 약속: 학생 정보는 앱에 넣지 않아요</b>
+                <p>이름·학번·성적·사진 같은 실제 학생 정보로 앱을 만들거나 AI에게 붙여 넣지 않습니다. 연습은 '김코딩'처럼 가상 데이터로 해요.</p>
+              </div>
+            </div>
+            <div class="promise check1">
+              <span class="promise-ico" aria-hidden="true">⏱️</span>
+              <div>
+                <b>배포 전 1분 점검</b>
+                <p>내가 만든 앱을 열고 F12를 눌러 보세요. 다른 사람의 정보가 하나라도 보이면 배포하지 않아요.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 실습 예제 -->
+      <section class="slide" id="examples" data-tab="examples" data-tone="butter" aria-label="실습 예제">
+        <div class="slide-inner">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🧪</span>
+            <div>
+              <span class="step-pill">04 실습 예제</span>
+              <h2>실습 예제</h2>
+              <p class="section-intro" style="width: 928px; max-width: none; height: 34px;">앱을 만드는 세가지 방법을 직접 실습해보아요. </p>
+            </div>
+          </header>
+
+          <div class="grid three">
+            <article class="panel ex-card" style="--c:#FFD3E2">
+              <div class="ex-head"><span class="card-ico" aria-hidden="true">🎲</span><a class="cta" href="static.html">실습 열기 →</a></div>
+              <div class="meta">실습 1 · 정적 웹앱</div>
+              <h3>랜덤 모둠짜기 실습</h3>
+              <p>명단과 모둠 수만 넣으면 무작위로 모둠을 나눠 줘요.</p>
+              <ul>
+                <li>핵심: 입력·무작위 배정·결과 화면</li>
+                <li>저장: 서버 저장 없음</li>
+                <li>예시: 시뮬레이터, 게임, 계획서 앱</li>
+              </ul>
+            </article>
+
+            <article class="panel ex-card" style="--c:#C5EDD8">
+              <div class="ex-head"><span class="card-ico" aria-hidden="true">📊</span><a class="cta" href="gas.html">실습 열기 →</a></div>
+              <div class="meta">실습 2 · Google Sheets + Apps Script</div>
+              <h3>수행평가 일정표 실습</h3>
+              
+              <ul>
+                <li>기본: 수행평가 일정 안내판</li>
+                <li>심화: 앱에서 일정 추가 + 시트 메뉴 버튼</li>
+                <li>코드를 붙여 넣어 직접 배포</li>
+              </ul>
+            </article>
+
+            <article class="panel ex-card" style="--c:#FFDCC2">
+              <div class="ex-head"><span class="card-ico" aria-hidden="true">🔥</span><a class="cta" href="service.html">실습 열기 →</a></div>
+              <div class="meta">실습 3 · Firebase 확장</div>
+              <h3>실시간 데이터 앱</h3>
+              <p>여러 기기의 변경 사항 동기화, 로그인, 권한 설정이 필요한 앱을 AI에게 배우며 만들어요.</p>
+              <ul>
+                <li>핵심: 백엔드·인증·실시간 갱신</li>
+                <li>진행: PRD + 따라하기 요청문으로 AI와 한 단계씩</li>
+                <li>예시: 아나바다 앱, 창조주의 행성, 감염병 예방 시뮬레이션</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 배포 전 점검 -->
+      <section class="slide" id="preflight" data-tab="preflight" data-tone="mint" aria-label="배포 전 점검">
+        <div class="slide-inner">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">✅</span>
+            <div>
+              <span class="step-pill">05 배포 전 점검</span>
+              <h2>배포 전에 확인할 사항</h2>
+              <p class="section-intro">강의 중 제작한 앱을 다른 기기에서 확인하고, 공유 범위와 데이터 처리 조건을 점검합니다. 항목을 눌러 체크해 보세요.</p>
+            </div>
+          </header>
+          <div class="preflight-grid">
+            <div class="panel">
+              <span class="card-ico" aria-hidden="true">📱</span>
+              <h3>기능·화면 확인</h3>
+              <ul class="check">
+                <li>버튼과 입력 기능이 정상 작동하는가?</li>
+                <li>빈 입력 · 잘못된 입력에도 오류 없이 안내되는가?</li>
+                <li>휴대전화와 다른 브라우저에서도 정상 표시되는가?</li>
+                <li>새로고침 후 데이터가 의도대로 유지되는가?</li>
+              </ul>
+            </div>
+            <div class="panel">
+              <span class="card-ico" aria-hidden="true">🔒</span>
+              <h3>공개·데이터 확인</h3>
+              <ul class="check">
+                <li>학생 실명 등 불필요한 개인정보가 없는가?</li>
+                <li>비밀키·비밀번호·관리자 정보가 코드에 포함되지 않았는가?</li>
+                <li>시트·데이터베이스 읽기와 쓰기 권한을 확인했는가?</li>
+                <li>공개 URL을 누가 사용할 수 있는지 확인했는가?</li>
+              </ul>
+            </div>
+          </div>
+          <p class="reference-note">이 항목은 배포 직전 점검용입니다. 개인정보 및 AI 활용에 관한 상세 점검은 07단계에서 확인합니다.</p>
+        </div>
+      </section>
+
+      <!-- 06 배포하기 -->
+      <section class="slide" id="deploy" data-tab="deploy" data-tone="sky" aria-label="배포하기">
+        <div class="slide-inner wide">
+          <header class="slide-head">
+            <span class="sticker" aria-hidden="true">🚀</span>
+            <div>
+              <span class="step-pill">06 배포하기</span>
+              <h2>완성한 웹앱 배포하기</h2>
+              <p class="section-intro" style="width: 871px; max-width: none; height: 29px;">배포는 내 파일에 다른 사람도 열 수 있는 주소를 붙이는 일이에요. 내 기기에서만 사용할거라면 배포가 꼭 필요하지 않을수도 있어요. </p><p class="section-intro" style="width: 871px; max-width: none; height: 29px;">하지만 <mark>어떤 기기에서든 열어볼 수 있으려면</mark> 배포가 필수입니다.</p>
+            </div>
+          </header>
+
+          <div class="deploy-routes">
+            <div class="route-box quick">
+              <p class="route-title">⚡ 간단하게 쓰기</p>
+              <article class="panel deploy-card">
+                <span class="card-ico" aria-hidden="true" style="--c:#C3ECEA">📦</span>
+                <h3>Netlify (넷리파이) Drop</h3>
+                <p>완성한 폴더를 끌어다 놓기만 하면 주소가 생겨요. 오늘 수업, 이번 행사처럼 <b>단발성</b>으로 쓸 때 가장 빨라요.</p>
+                <ol>
+                  <li> 폴더를 하나 만들어요. </li><li> 코드가 적힌 파일(HTML 형식)의 이름을 index.html로 바꾸어 폴더에 넣어요.</li>
+                  <li>Netlify Drop 화면에 폴더째 끌어다 놓기</li>
+                  <li> 웹앱의 주소가 생성됩니다. </li>
+                </ol>
+                <a class="cta" href="https://app.netlify.com/drop" target="_blank" rel="noopener noreferrer">Netlify Drop 열기 ↗</a>
+              </article>
+              <p class="mini route-note">고칠 때마다 다시 끌어다 놓아야 하고, 파일이 여기저기 흩어지기 쉬워요.</p>
+            </div>
+
+            <div class="route-box keep">
+              <p class="route-title">🌱 계속 고치고, 포트폴리오로 모아 둘 생각이시라면</p>
+              <div class="chain">
+                <article class="panel deploy-card">
+                  <span class="card-ico" aria-hidden="true" style="--c:#DCD3FB">🐙</span>
+                  <div class="meta">보관할 장소가 필요해요</div>
+                  <h3>GitHub (깃헙) 저장소</h3>
+                  <p>배포하기 전에 앱 파일을 <b>저장소</b>에 올려 둡니다. 고친 기록이 남고, 내가 만든 앱이 한곳에 모여 포트폴리오가 돼요.</p>
+                  <ol>
+                    <li>새 저장소 만들기 (앱 하나에 저장소 하나)</li>
+                    <li>파일 올리기 (Add file → Upload files)</li>
+                    <li>고칠 때도 여기에 다시 올리기</li>
+                  </ol>
+                  <a class="cta" href="https://github.com/new" target="_blank" rel="noopener noreferrer">GitHub 저장소 만들기 ↗</a>
+                </article>
+                <span class="chain-arrow" aria-hidden="true">→</span>
+                <article class="panel deploy-card">
+                  <span class="card-ico" aria-hidden="true" style="--c:#C9E3FA">▲</span>
+                  <div class="meta">GitHub과 연동해서 배포</div>
+                  <h3>Vercel (버셀)</h3>
+                  <p>GitHub 저장소를 한 번 연결해 두면, 저장소에 새 파일을 올릴 때마다 <b>주소는 그대로 앱만 자동으로 업데이트</b>돼요.</p>
+                  <ol>
+                    <li>Add New → Project</li>
+                    <li>배포할 GitHub 저장소 고르기(Import)</li>
+                    <li>Deploy → 주소 확인, 이후는 자동 반영</li>
+                  </ol>
+                  <a class="cta" href="https://vercel.com/new" target="_blank" rel="noopener noreferrer">Vercel 프로젝트 만들기 ↗</a>
+                </article>
+              </div>
+              <p class="mini route-note">GitHub 저장소만으로도 GitHub Pages로 배포할 수 있지만, Vercel은 연결 한 번으로 고칠 때마다 바로바로 반영되어 편해요.</p>
+            </div>
+          </div>
+
+          <div class="notice" style="margin-top: 16px;">
+            <div><b>공개 범위</b> GitHub 저장소를 <b>공개(Public)</b>로 만들면 누구나 파일을 볼 수 있어요. 학생 정보·비밀번호·API 키는 절대 올리지 않습니다. Apps Script와 Firebase의 데이터·권한 설정은 각 서비스에서 따로 관리해요.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 AI·데이터 -->
+      <section class="slide" id="thanks" data-tab="thanks" data-tone="aqua" aria-label="연수를 마치며">
+        <div class="slide-inner wide">
+          <div class="thanks-wrap">
+            <div>
+              <span class="hello">07 연수를 마치며</span>
+              <h1 class="thanks-title">함께해 주셔서<br>감사합니다 💐</h1>
+              <p class="lead thanks-lead">오늘 만든 앱도, 앞으로 만들 앱도 함께 나눠요. 연수 후기와 내가 만든 앱을 패들렛 게시판에 남겨 주세요.</p>
+              <div class="thanks-cards">
+                <div class="panel tinted" style="--c:#FFD3E2; --c-soft:#FFF7FA">
+                  <h3>📝 연수 후기</h3>
+                  <p>좋았던 점, 어려웠던 점, 더 배우고 싶은 것을 한두 줄로 남겨 주세요.</p>
+                </div>
+                <div class="panel tinted" style="--c:#C9E3FA; --c-soft:#F4F9FF">
+                  <h3>📱 내가 만든 앱 공유</h3>
+                  <p>앱 이름, 주소, 어디에 쓸지 한 줄 소개를 올려 주세요. 학생 개인정보가 담긴 앱은 올리지 않아요.</p>
+                </div>
+              </div>
+              <div class="nextlinks"><a class="cta big" href="https://padlet.com/abcdwh/ai-s024tw6os1ardu8616bw" target="_blank" rel="noopener noreferrer">패들렛 게시판 열기 ↗</a><a class="cta secondary big" href="#top">처음으로</a></div>
+            </div>
+            <div class="qr-card">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 37" class="qr-svg" role="img" aria-label="패들렛 게시판 QR 코드" shape-rendering="crispEdges"><path class="qrline" stroke="#3b3355" d="M2 2.5h7m1 0h1m2 0h4m1 0h8m2 0h7m-33 1h1m5 0h1m1 0h1m1 0h4m2 0h1m1 0h1m1 0h5m1 0h1m5 0h1m-33 1h1m1 0h3m1 0h1m5 0h1m4 0h1m4 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m1 0h1m3 0h1m5 0h1m1 0h3m1 0h1m-33 1h1m1 0h3m1 0h1m4 0h2m1 0h1m2 0h1m2 0h1m1 0h1m3 0h1m1 0h3m1 0h1m-33 1h1m5 0h1m5 0h1m4 0h1m1 0h2m5 0h1m5 0h1m-33 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-25 1h2m7 0h2m1 0h1m2 0h1m-24 1h1m1 0h2m1 0h3m1 0h1m1 0h2m3 0h4m1 0h3m2 0h1m2 0h1m1 0h2m-33 1h1m2 0h2m2 0h3m4 0h1m3 0h4m1 0h1m2 0h2m1 0h4m-33 1h3m1 0h4m2 0h2m2 0h1m1 0h2m5 0h1m2 0h4m1 0h2m-33 1h1m1 0h2m1 0h1m3 0h6m1 0h1m1 0h2m4 0h1m2 0h1m1 0h1m1 0h1m-30 1h1m2 0h2m1 0h2m2 0h1m5 0h1m4 0h1m1 0h1m2 0h2m1 0h1m-32 1h1m1 0h1m7 0h1m2 0h1m2 0h3m2 0h2m8 0h1m-31 1h1m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h2m-26 1h1m1 0h2m3 0h2m1 0h1m1 0h1m1 0h1m1 0h4m3 0h3m1 0h2m-29 1h1m1 0h1m1 0h6m1 0h1m1 0h1m2 0h6m1 0h2m1 0h1m1 0h1m-30 1h1m3 0h1m1 0h2m3 0h4m1 0h2m1 0h1m1 0h3m1 0h1m1 0h2m2 0h1m-33 1h2m1 0h1m2 0h7m2 0h3m2 0h1m1 0h1m1 0h1m2 0h2m1 0h1m-31 1h1m1 0h3m5 0h1m3 0h1m4 0h1m3 0h4m1 0h1m-27 1h2m2 0h4m1 0h4m3 0h1m2 0h1m2 0h1m2 0h1m1 0h3m-32 1h1m1 0h3m3 0h3m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1m1 0h2m2 0h2m1 0h1m-31 1h6m1 0h2m5 0h1m1 0h1m1 0h2m1 0h1m2 0h3m1 0h3m-32 1h4m3 0h7m1 0h1m1 0h2m4 0h2m1 0h1m-28 1h1m1 0h1m2 0h3m3 0h3m1 0h1m1 0h1m4 0h1m1 0h6m-22 1h4m1 0h5m1 0h2m2 0h2m3 0h2m1 0h1m-32 1h7m1 0h6m5 0h6m1 0h1m1 0h1m2 0h1m-32 1h1m5 0h1m1 0h1m1 0h1m5 0h1m3 0h2m1 0h2m3 0h3m-31 1h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h1m1 0h1m1 0h10m1 0h1m1 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m1 0h2m4 0h3m1 0h1m1 0h1m3 0h1m1 0h1m2 0h1m-33 1h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h2m-28 1h1m5 0h1m2 0h1m1 0h7m1 0h1m2 0h3m1 0h3m3 0h1m-33 1h7m1 0h1m1 0h1m1 0h2m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1"/></svg>
+              <p>휴대폰 카메라로 찍으면<br>게시판이 열려요</p>
+            </div>
+          </div>
+          <p class="endnote"><b>교사의 웹앱 제작하기</b> · 실습 시 가상 데이터를 사용하고, 공개 범위와 권한을 확인합니다.</p>
+        </div>
+      </section>
+
+        </div>
+      </div>
+      <div class="pager">
+        <button type="button" class="pager-btn" id="slidePrev" aria-label="이전 화면">← <span class="lbl">이전</span></button>
+        <div style="display:flex;align-items:center;gap:12px;"><div class="dots"></div><span class="count"></span></div>
+        <button type="button" class="pager-btn" id="slideNext" aria-label="다음 화면"><span class="lbl">다음</span> →</button>
+      </div>
+    </main>
+  </div>
+  <script>
+    // 텍스트 클립보드 복사
+    function copyText(id, button) {
+      const target = document.getElementById(id);
+      const value = target ? target.innerText : '';
+      navigator.clipboard.writeText(value)
+        .then(() => {
+          if (button) {
+            const original = button.textContent;
+            button.textContent = '복사 완료';
+            setTimeout(() => { button.textContent = original; }, 1500);
+          }
+        })
+        .catch(() => alert('자동 복사가 제한되었습니다. 내용을 직접 선택하여 복사해주세요.'));
+    }
+
+    // ===== 제작 방식 선택 위저드 =====
+    function setupFlow() {
+      const area = document.getElementById('flowQuestions');
+      if (!area) return;
+      const out = document.getElementById('flowResult');
+      const prev = document.getElementById('flowPrev');
+      const next = document.getElementById('flowNext');
+      const progress = document.getElementById('flowProgressBar');
+      const progressText = document.getElementById('flowProgressText');
+      const summary = document.getElementById('flowSummary');
+      const resetBtn = document.getElementById('flowReset');
+      const ORDER = ['save', 'share', 'count', 'freq', 'latency', 'read', 'write', 'identity'];
+      const answers = {};
+      let position = 0;
+
+      const questions = {
+        save: { short: '저장', ico: '💾',
+          title: '입력한 내용이나 결과를 어디에 보관해야 하나요?',
+          hint: '기기 내 저장은 다른 기기에서 자동으로 조회할 수 없습니다.',
+          options: [['none', '저장하지 않음'], ['local', '사용 중인 기기에만 저장'], ['shared', '서버에 저장해 다시 사용']] },
+        share: { short: '함께 쓰기', ico: '👥',
+          title: '여러 사용자가 각자의 기기에서 같은 데이터를 함께 보거나 수정해야 하나요?',
+          hint: '각자 따로 쓰는 앱과 공동 기록을 함께 고치는 앱을 구분합니다.',
+          options: [['no', '아니요, 각자 자기 기록만 다뤄요'], ['yes', '예, 같은 기록을 함께 봐요']] },
+        count: { short: '동시 접속', ico: '🏫',
+          title: '동시에 몇 명 정도 접속하나요?',
+          hint: '인원만큼 중요한 것은 그 사람들이 얼마나 자주 요청을 보내느냐입니다.',
+          options: [['few', '주로 교사 또는 소수'], ['class', '한 학급 정도 (약 20~35명)'], ['many', '한 학급 초과 (여러 학급·행사)']] },
+        freq: { short: '요청 빈도', ico: '🔁',
+          title: '사용자들이 데이터를 얼마나 자주 불러오거나 고치나요?',
+          hint: '100명의 1회 제출과 30명의 수초 간격 갱신은 부담이 전혀 다릅니다.',
+          options: [['rare', '들어올 때나 제출할 때만'], ['regular', '활동 중 가끔 (1분 안팎)'], ['high', '활동 중 계속 (수초 간격)']] },
+        latency: { short: '반영 속도', ico: '⏱️',
+          title: '다른 사람이 바꾼 내용이 내 화면에 언제까지 보이면 되나요?',
+          hint: '내 화면이 아니라 다른 기기에 반영되는 시간입니다. 목표값이며 보장값은 아닙니다.',
+          options: [['sub1', '1초 이내 (게임·실시간 투표처럼)'], ['three', '3초 안팎'], ['ten', '10초 이내'], ['manual', '새로고침하면 보여도 됨']] },
+        read: { short: '보기 권한', ico: '👀',
+          title: '누가 저장된 기록을 볼 수 있나요?',
+          hint: '웹앱에 들어올 수 있는 사람과 각 기록을 볼 수 있는 사람은 다르게 정할 수 있습니다.',
+          options: [['public', '링크가 있는 누구나'], ['school', '우리 학교 계정 사용자 모두'], ['own', '본인 기록만 (교사는 전체)'], ['roles', '학급·역할별로 다르게']] },
+        write: { short: '쓰기 권한', ico: '✏️',
+          title: '누가 기록을 추가하거나 고칠 수 있나요?',
+          hint: '버튼을 숨기는 것만으로는 부족합니다. 서버에서 실제로 확인해야 합니다.',
+          options: [['public', '링크가 있는 누구나'], ['school', '우리 학교 계정 사용자 모두'], ['own', '본인이 쓴 기록만 수정'], ['roles', '교사·학생 등 역할별로 다르게']] },
+        identity: { short: '사용자 확인', ico: '🪪',
+          title: '사용자를 어떤 방법으로 구별하나요?',
+          hint: '교사와 학생이 같은 학교 Google Workspace 계정을 쓰면 Apps Script에서도 로그인한 사람의 이메일을 확인할 수 있습니다.',
+          options: [['none', '구별할 필요 없음'], ['nickname', '이름·닉네임을 입력해서'], ['school', '학교 Google 계정 (교사·학생 같은 학교 도메인)'], ['google_any', '서로 다른 Google 계정 (개인 Gmail 등 섞임)'], ['custom', '아이디·비밀번호 등 따로 회원가입']] }
+      };
+
+      function steps() {
+        if (!answers.save || answers.save !== 'shared') return ['save'];
+        if (!answers.share) return ['save', 'share'];
+        if (answers.share === 'no') return ['save', 'share', 'read', 'write', 'identity'];
+        return ORDER.slice();
+      }
+
+      function labelOf(id) {
+        const o = questions[id].options.find(([v]) => v === answers[id]);
+        return o ? o[1] : '';
+      }
+
+      // 결과 판정: Firebase는 Apps Script로 감당하기 어려운 조건이 있을 때만 추천
+      function evaluation() {
+        const a = answers;
+        if (a.save === 'none') {
+          return { kind: 'static', ico: '🎲', title: '정적 웹앱으로 충분해요', grade: '서버 저장 불필요',
+            why: ['선택·계산·시뮬레이션은 서버 없이 HTML 파일 하나로 만들 수 있습니다.'],
+            tips: ['화면과 동작은 얼마든지 복잡하게 만들 수 있어요.', '나중에 공동 기록이 필요해지면 그때 시트 연동을 붙입니다.'],
+            link: ['static.html', '실습 1 열기'] };
+        }
+        if (a.save === 'local') {
+          return { kind: 'static', ico: '📱', title: '정적 웹앱 + 브라우저 저장으로 충분해요', grade: '기기 안에 보관',
+            why: ['localStorage로 같은 기기·같은 브라우저 안에서 입력 내용을 보관할 수 있습니다.'],
+            tips: ['기기를 바꾸거나 브라우저 기록을 지우면 사라질 수 있어요.', '여러 기기에서 이어 써야 하면 시트 저장을 다시 검토합니다.'],
+            link: ['static.html', '실습 1 열기'] };
+        }
+
+        const needsOwner = ['own', 'roles'].includes(a.read) || ['own', 'roles'].includes(a.write);
+        const fb = [];   // Firebase가 꼭 필요한 이유
+        const alt = [];  // 조건을 바꾸면 Apps Script로 가능한 길
+        if (a.latency === 'sub1') {
+          fb.push('다른 기기에 1초 이내로 반영되어야 합니다. Apps Script는 화면이 주기적으로 다시 물어보는 방식이라 이 속도를 내기 어렵습니다.');
+          alt.push('반영 목표를 3~10초로 늦춰도 된다면 Apps Script로 만들 수 있어요.');
+        }
+        if (a.freq === 'high' && a.count === 'many') {
+          fb.push('여러 학급이 수초 간격으로 계속 읽고 씁니다. Apps Script는 동시에 처리할 수 있는 실행 수에 제한이 있어 요청이 몰리면 느려지거나 실패할 수 있습니다.');
+          alt.push('한 학급 단위로 나눠 쓰거나 새로고침 간격을 늘리면 Apps Script로도 가능해요.');
+        }
+        if (a.identity === 'custom') {
+          fb.push('아이디·비밀번호 회원가입은 비밀번호를 안전하게 저장·관리해야 해서 시트로 직접 만들면 위험합니다. Firebase Authentication 같은 인증 서비스를 씁니다.');
+          alt.push('학생 모두 학교 Google 계정이 있다면 회원가입 없이 Apps Script로 처리할 수 있어요.');
+        }
+        if (needsOwner && a.identity === 'google_any') {
+          fb.push('서로 다른 도메인의 Google 계정은 Apps Script 웹앱에서 이메일을 안정적으로 확인하기 어려워 "본인 기록만"을 보장하기 힘듭니다. Firebase의 Google 로그인과 보안 규칙이 적합합니다.');
+          alt.push('모두 같은 학교 도메인 계정을 쓰게 하면 Apps Script로도 본인 기록 구분이 가능해요.');
+        }
+
+        const tips = [];
+        if (a.identity === 'school' || needsOwner) {
+          tips.push('학교 계정으로 본인 구분: 배포 시 실행 주체를 "나", 액세스를 "우리 학교 도메인 사용자"로 하고, 서버에서 Session.getActiveUser().getEmail()로 작성자 이메일을 저장·비교합니다.');
+          tips.push('시트는 학생에게 공유하지 않습니다. 학생은 웹앱을 통해서만 읽고 쓰게 해야 다른 사람 기록을 고칠 수 없어요.');
+        }
+        if (a.read === 'own' || a.read === 'roles') tips.push('본인 기록만 보이게 하려면 서버에서 해당 사용자 행만 골라 보내야 합니다. 전체를 보낸 뒤 화면에서 숨기면 안 돼요.');
+        if (a.read === 'roles' || a.write === 'roles') tips.push('역할 구분은 "교사 명단" 시트를 두고 로그인한 이메일이 명단에 있는지 서버에서 확인하는 방식으로 만들 수 있어요.');
+        if (a.latency === 'three') tips.push('3초 안팎은 화면이 몇 초마다 다시 불러오는 방식으로 맞출 수 있지만, 학교 네트워크에서 실제로 시험해 봐야 합니다.');
+        if (a.freq === 'high' && a.count === 'class') tips.push('한 학급이 자주 갱신한다면 새로고침 간격을 5초 이상으로 두고, 수업 전 학급 인원으로 미리 시험합니다. 지연이 크면 그때 Firebase를 검토해요.');
+        if (a.count === 'many' && a.freq === 'regular') tips.push('여러 학급이 쓰면 한 번에 모아서 읽고 쓰도록 설계해 호출 수를 줄입니다.');
+        if (a.write === 'public') tips.push('링크만 있으면 누구나 쓸 수 있으니 장난·부적절한 입력에 대비해 글자 수 제한과 교사의 숨김 기능을 둡니다.');
+        if (a.identity === 'nickname') tips.push('닉네임은 표시용일 뿐 본인 확인이 아닙니다. 같은 이름을 누구나 입력할 수 있어요.');
+        tips.push('여러 사람이 동시에 쓰는 경우 LockService로 같은 행이 겹쳐 기록되지 않게 합니다.');
+
+        if (fb.length) {
+          return { kind: 'firebase', ico: '🔥', title: 'Firebase 같은 별도 백엔드가 필요해요', grade: 'Apps Script로는 어려운 조건이 있음',
+            why: fb, alt, tips: ['보안 규칙은 테스트 모드(누구나 읽기·쓰기)로 운영하지 않습니다.', '무료 요금제 사용량 안에서 운영되는지 확인합니다.'],
+            link: ['service.html', 'Firebase 개요 열기'] };
+        }
+        if (needsOwner && (a.identity === 'none' || a.identity === 'nickname')) {
+          return { kind: 'gas', ico: '🪪', title: '먼저 본인 확인 방법을 정해요', grade: '권한과 사용자 구분이 맞지 않음',
+            why: ['"본인 기록만" 보거나 고치려면 누가 누구인지 확실히 알아야 합니다. 이름·닉네임 입력으로는 다른 사람인 척할 수 있어요.',
+                  '학교 Google 계정을 쓸 수 있다면 구글 시트 + Apps Script로 충분하고, 그렇지 않다면 Firebase 로그인을 검토합니다.'],
+            tips: tips.slice(0, 2), link: ['gas.html', '실습 2 열기'], back: 'identity' };
+        }
+        return { kind: 'gas', ico: '📊',
+          title: needsOwner || a.identity === 'school' ? '구글 시트 + Apps Script로 만들 수 있어요' : '구글 시트 + Apps Script로 충분해요',
+          grade: needsOwner ? '학교 계정 설정과 서버 쪽 권한 확인 필요' : (a.share === 'no' ? '개인 기록을 서버에 보관' : '공동 기록 조회·수정'),
+          why: [a.share === 'no'
+            ? '각자 기록을 서버에 보관해 다른 기기에서도 이어 쓰는 앱은 시트와 Apps Script로 만들 수 있습니다.'
+            : '기존 기록을 불러오고 추가·수정하는 앱은 시트와 Apps Script로 만들 수 있습니다.'],
+          tips, link: ['gas.html', '실습 2 열기'] };
+      }
+
+      function el(tag, cls, text) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text;
+        return e;
+      }
+
+      function list(items) {
+        const ul = el('ul');
+        items.forEach(t => ul.append(el('li', '', t)));
+        return ul;
+      }
+
+      function renderSummary(listIds) {
+        summary.replaceChildren();
+        listIds.forEach((id, i) => {
+          if (!answers[id]) return;
+          const li = el('li');
+          const b = el('button', i === position ? 'on' : '');
+          b.type = 'button';
+          b.append(el('span', 'q', questions[id].ico + ' ' + questions[id].short), el('span', 'a', labelOf(id)));
+          b.addEventListener('click', () => { position = i; render(); });
+          li.append(b);
+          summary.append(li);
+        });
+        if (!summary.children.length) summary.append(el('li', 'empty', '아직 고른 답이 없어요.'));
+      }
+
+      function render() {
+        const ids = steps();
+        const total = ids.length;
+        position = Math.max(0, Math.min(position, total));
+        const finished = position === total && ids.every(id => answers[id]);
+        area.replaceChildren();
+        out.replaceChildren();
+        progress.style.width = Math.round((Math.min(position, total) / total) * 100) + '%';
+        progressText.textContent = finished ? '🎉 결과가 나왔어요' : `질문 ${position + 1} / ${total}${total === 1 || !answers.share ? ' (답에 따라 질문 수가 달라져요)' : ''}`;
+        renderSummary(ids);
+
+        if (finished) {
+          const r = evaluation();
+          const box = el('div', 'flow-result kind-' + r.kind);
+          const head = el('div', 'result-head');
+          head.append(el('span', 'result-ico', r.ico));
+          const ht = el('div');
+          ht.append(el('div', 'flow-grade', r.grade), el('h3', '', r.title));
+          head.append(ht);
+          const cols = el('div', 'result-cols');
+          const c1 = el('div'), c2 = el('div');
+          c1.append(el('h4', '', '왜 이런 결과인가요?'), list(r.why));
+          if (r.alt && r.alt.length) c1.append(el('h4', '', '이렇게 바꾸면 구글 시트로도 가능해요'), list(r.alt));
+          if (r.tips && r.tips.length) c2.append(el('h4', '', '만들 때 확인할 점'), list(r.tips));
+          cols.append(c1, c2);
+          box.append(head, cols);
+          const go = el('div', 'nextlinks');
+          const a = el('a', 'cta', r.link[1]);
+          a.href = r.link[0];
+          go.append(a);
+          if (r.back) {
+            const b = el('button', 'cta secondary', '사용자 확인 질문으로 돌아가기');
+            b.type = 'button';
+            b.addEventListener('click', () => { position = steps().indexOf(r.back); render(); });
+            go.append(b);
+          }
+          box.append(go);
+          out.append(box);
+          next.hidden = true;
+        } else {
+          const id = ids[position];
+          const q = questions[id];
+          const node = el('div', 'flow-node flow-screen');
+          node.append(el('h4', 'flow-question', q.ico + ' ' + q.title), el('p', 'flow-hint', q.hint));
+          const opts = el('div', 'flow-opts' + (q.options.length === 5 ? ' five' : ''));
+          q.options.forEach(([value, label]) => {
+            const row = el('label', 'flow-opt');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'flow-current';
+            radio.value = value;
+            radio.checked = answers[id] === value;
+            radio.addEventListener('change', () => {
+              const changed = answers[id] !== value;
+              answers[id] = value;
+              if (changed && (id === 'save' || id === 'share')) {
+                ORDER.slice(ORDER.indexOf(id) + 1).forEach(k => delete answers[k]);
+              }
+              render();
+            });
+            row.append(radio, document.createTextNode(label));
+            opts.append(row);
+          });
+          node.append(opts);
+          area.append(node);
+          next.hidden = false;
+          next.disabled = !answers[id];
+          next.textContent = position === total - 1 ? '결과 보기 →' : '다음 →';
+        }
+        prev.disabled = position === 0;
+      }
+
+      next.addEventListener('click', () => {
+        const ids = steps();
+        if (position < ids.length && answers[ids[position]]) { position++; render(); }
+      });
+      prev.addEventListener('click', () => { if (position > 0) { position--; render(); } });
+      resetBtn.addEventListener('click', () => {
+        Object.keys(answers).forEach(k => delete answers[k]);
+        position = 0;
+        render();
+      });
+      render();
+    }
+
+    document.addEventListener('DOMContentLoaded', setupFlow);
+
+    // ===== 학운위 심의 대상 확인 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const box = document.getElementById('lawChecker');
+      if (!box) return;
+      const res = document.getElementById('lawResult');
+      const ans = {};
+      const show = (cls, html) => { res.className = 'chk-result ' + cls; res.innerHTML = html; };
+      function judge() {
+        const qs = box.querySelectorAll('.chk-q');
+        qs[1].classList.toggle('dim', !!ans.class && ans.class !== 'yes');
+        qs[2].classList.toggle('dim', (!!ans.class && ans.class !== 'yes') || ans.pi === 'yes');
+        if (!ans.class) return show('', '답을 고르면 결과가 나와요.');
+        if (ans.class === 'prep') return show('ok', '<b>심의 대상이 아니에요.</b> 학생 개인정보 없이 교사가 수업 준비에만 쓰는 도구는 제외됩니다. 학생이 직접 쓰기 시작하면 다시 확인해요.');
+        if (ans.class === 'after') return show('ok', '<b>심의 대상에서 제외돼요.</b> 방과후 수업과 일시적 평가는 제외되지만, 개인정보 보호 원칙은 똑같이 지켜야 해요.');
+        if (!ans.pi) return show('', '②번에 답해 주세요.');
+        if (ans.pi === 'yes') return show('must', '<b>심의 대상이에요.</b> 필수기준 체크리스트와 증빙을 준비해 학운위 심의를 받은 뒤 사용합니다. 다음 장에서 무엇을 갖춰야 하는지 확인해요.');
+        if (!ans.dist) return show('', '③번에 답해 주세요.');
+        if (ans.dist === 'yes') return show('maybe', '<b>심의 대상일 수 있어요.</b> 성취기준 콘텐츠를 담아 교육과정 지원용으로 보급하는 소프트웨어는 개인정보가 없어도 대상입니다. 학교 담당자와 확인하세요.');
+        return show('ok', '<b>대상이 아닐 가능성이 높아요.</b> 학생 개인정보를 처리하지 않고 우리 수업용으로만 쓰는 경우예요. 판단 근거를 기록해 두고 학교 담당자와 한 번 확인해 두면 안심입니다.');
+      }
+      box.querySelectorAll('.chk-opts').forEach(group => {
+        group.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+          ans[group.dataset.q] = b.dataset.v;
+          group.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+          judge();
+        }));
+      });
+      judge();
+    });
+
+    // ===== 로그인 앱 시연 단계 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const steps = document.querySelectorAll('.demo-step');
+      if (!steps.length) return;
+      const panes = document.querySelectorAll('.demo-pane');
+      const url = document.getElementById('demoUrl');
+      const urls = ['https://우리반-앱.netlify.app/', 'https://우리반-앱.netlify.app/app.js', 'https://우리반-앱.netlify.app/   (F12 → Console)', 'https://우리반-앱.netlify.app/assets/10102_박개발.jpg'];
+      steps.forEach(b => b.addEventListener('click', () => {
+        const i = Number(b.dataset.step);
+        steps.forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false'));
+        panes.forEach(p => { p.hidden = Number(p.dataset.pane) !== i; });
+        url.textContent = urls[i];
+      }));
+    });
+
+
+    // ===== 슬라이드 & 인덱스 탭 엔진 =====
+    (function () {
+      const desk = document.querySelector('.desk');
+      const track = document.querySelector('.track');
+      const slides = [...document.querySelectorAll('.slide')];
+      const tabs = [...document.querySelectorAll('.tab')];
+      const dotsBox = document.querySelector('.dots');
+      const prevBtn = document.getElementById('slidePrev');
+      const nextBtn = document.getElementById('slideNext');
+      const countEl = document.querySelector('.count');
+      const viewport = document.querySelector('.viewport');
+      let current = 0;
+      // 앵커 이동 때문에 숨은 가로 스크롤이 생기지 않도록 고정
+      viewport.addEventListener('scroll', () => { viewport.scrollLeft = 0; viewport.scrollTop = 0; });
+
+      const dots = slides.map((s, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', (i + 1) + '번째 화면');
+        b.addEventListener('click', () => go(i));
+        dotsBox.append(b);
+        return b;
+      });
+
+      function indexFromHash() {
+        const id = decodeURIComponent(location.hash.slice(1));
+        if (!id) return 0;
+        const i = slides.findIndex(s => s.id === id);
+        return i < 0 ? 0 : i;
+      }
+
+      function go(i, opts = {}) {
+        i = Math.max(0, Math.min(slides.length - 1, i));
+        const changed = i !== current;
+        current = i;
+        viewport.scrollLeft = 0;
+        track.style.transform = `translateX(${-100 * i}%)`;
+        const slide = slides[i];
+        desk.dataset.tone = slide.dataset.tone;
+        slides.forEach((s, k) => {
+          const on = k === i;
+          s.inert = !on;
+          s.setAttribute('aria-hidden', on ? 'false' : 'true');
+        });
+        if (changed) slide.scrollTop = 0;
+        tabs.forEach(t => {
+          const on = t.dataset.tab === slide.dataset.tab;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          if (on && !opts.silent) t.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        });
+        dots.forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
+        prevBtn.disabled = i === 0;
+        nextBtn.disabled = i === slides.length - 1;
+        countEl.textContent = (i + 1) + ' / ' + slides.length;
+        if (slide.id && location.hash.slice(1) !== slide.id) history.replaceState(null, '', '#' + slide.id);
+      }
+
+      tabs.forEach(t => t.addEventListener('click', e => {
+        e.preventDefault();
+        go(slides.findIndex(s => s.dataset.tab === t.dataset.tab));
+      }));
+      prevBtn.addEventListener('click', () => go(current - 1));
+      nextBtn.addEventListener('click', () => go(current + 1));
+
+      // 같은 문서 안의 #링크는 슬라이드 이동으로 처리
+      document.addEventListener('click', e => {
+        const a = e.target.closest('a[href^="#"]');
+        if (!a || a.classList.contains('tab')) return;
+        const i = slides.findIndex(s => s.id === a.getAttribute('href').slice(1));
+        if (i >= 0) { e.preventDefault(); go(i); }
+      });
+      window.addEventListener('hashchange', () => go(indexFromHash()));
+
+      // 키보드: ← → (입력 중에는 무시)
+      document.addEventListener('keydown', e => {
+        if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+        if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+      });
+
+      // 터치 스와이프
+      let sx = 0, sy = 0, swiping = false;
+      track.addEventListener('touchstart', e => {
+        if (e.target.closest('input, textarea, select, .prompt')) { swiping = false; return; }
+        swiping = true; sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+      }, { passive: true });
+      track.addEventListener('touchend', e => {
+        if (!swiping) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        const dy = e.changedTouches[0].clientY - sy;
+        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(current + (dx < 0 ? 1 : -1));
+      }, { passive: true });
+
+      // 체크리스트 직접 체크
+      document.querySelectorAll('.check li').forEach(li => {
+        li.setAttribute('role', 'checkbox');
+        li.setAttribute('aria-checked', 'false');
+        li.tabIndex = 0;
+        const toggle = () => li.setAttribute('aria-checked', li.classList.toggle('done') ? 'true' : 'false');
+        li.addEventListener('click', toggle);
+        li.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+      });
+
+      track.style.transition = 'none';
+      go(indexFromHash(), { silent: true });
+      requestAnimationFrame(() => requestAnimationFrame(() => { track.style.transition = ''; }));
+    })();
+
+  </script>
+</body>
+</html>

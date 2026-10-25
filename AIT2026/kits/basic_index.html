@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; padding: 24px; background: #F5F2FF; color: #3B3355; font-family: 'Noto Sans KR', sans-serif; }
+    h1 { margin: 0 0 4px; }
+    .sub { color: #6E6787; margin: 0 0 16px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .chips button { border: 2px solid #E6E1F4; background: #fff; border-radius: 99px; padding: 4px 12px; cursor: pointer; }
+    .chips button.on { background: #DCD3FB; border-color: #4D3A9E; font-weight: bold; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .card { background: #fff; border-radius: 18px; padding: 14px 16px; border-top: 8px solid var(--c); }
+    .card.past { opacity: .45; }
+    .dday { float: right; font-weight: bold; background: var(--c); border-radius: 99px; padding: 2px 10px; font-size: 14px; }
+    .subject { font-weight: bold; color: #6E6787; font-size: 14px; }
+    .title { font-size: 18px; font-weight: bold; margin: 4px 0; }
+    .meta { font-size: 14px; color: #6E6787; }
+  </style>
+</head>
+<body>
+  <h1>📅 수행평가 일정 안내판</h1>
+  <p class="sub">시트를 고치면 이 화면도 바뀌어요.</p>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid">불러오는 중…</div>
+
+  <script>
+    const COLORS = ['#FFD3E2', '#FFDCC2', '#FFEEA3', '#C5EDD8', '#C9E3FA', '#DCD3FB', '#C3ECEA', '#F9D2EE'];
+    let items = [];
+    let pick = '전체';
+
+    function dday(dateText) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const d = new Date(dateText + 'T00:00:00');
+      const diff = Math.round((d - today) / 86400000);
+      return diff === 0 ? 'D-DAY' : diff > 0 ? 'D-' + diff : '지남';
+    }
+
+    function draw() {
+      const subjects = ['전체', ...new Set(items.map(it => it['과목']))];
+      const chips = document.getElementById('chips');
+      chips.innerHTML = '';
+      subjects.forEach(s => {
+        const b = document.createElement('button');
+        b.textContent = s;
+        if (s === pick) b.className = 'on';
+        b.onclick = () => { pick = s; draw(); };
+        chips.appendChild(b);
+      });
+
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      items
+        .filter(it => pick === '전체' || it['과목'] === pick)
+        .sort((a, b) => a['날짜'].localeCompare(b['날짜']))
+        .forEach(it => {
+          const card = document.createElement('div');
+          const d = dday(it['날짜']);
+          card.className = 'card' + (d === '지남' ? ' past' : '');
+          card.style.setProperty('--c', COLORS[subjects.indexOf(it['과목']) % COLORS.length]);
+          card.innerHTML = '<span class="dday"></span><div class="subject"></div><div class="title"></div><div class="meta"></div>';
+          card.querySelector('.dday').textContent = d;
+          card.querySelector('.subject').textContent = it['과목'] + ' · ' + it['날짜'];
+          card.querySelector('.title').textContent = it['평가명'];
+          card.querySelector('.meta').textContent = '준비물: ' + (it['준비물'] || '-') + (it['비고'] ? ' / ' + it['비고'] : '');
+          grid.appendChild(card);
+        });
+    }
+
+    google.script.run.withSuccessHandler(data => { items = data; draw(); }).getSchedule();
+  </script>
+</body>
+</html>
