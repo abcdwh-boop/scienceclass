@@ -50,7 +50,7 @@ const LIBRARY_DATA = {
       title: "레이저 반사&굴절 게임: 거울과 물의 방",
       url: "https://kmonsciclass.vercel.app/laserrefraction/",
       description: "발사 각도를 정해 레이저를 쏘고, 거울에 반사된 빛으로 표적을 맞히며 빛의 반사 법칙을 탐구하는 게임입니다."
-    }
+    },
 
     /* 아래는 배치와 글씨를 시험하기 위한 예시입니다. 실제 주소는 비워 두었습니다. */
     "lesson-2-05": {
