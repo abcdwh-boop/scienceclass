@@ -72,10 +72,10 @@ const LIBRARY_DATA = {
       description: "루브릭이나 채점 자료 등을 등록하는 예시입니다."
     },
     "edutech-1-04": {
-      spineTitle: "AI 수업",
-      title: "AI 활용 수업 사례 (예시)",
-      url: "",
-      description: "수업에서 사용한 AI 도구 또는 사례를 기록해 보세요."
+      spineTitle: "AI활용연수",
+      title: "AI 활용 앱만들기",
+      url: "https://kmonsciclass.vercel.app/AIT2026",
+      description: "선생님을 위한 앱만들기 기초 연수자료."
     },
     "edutech-2-04": {
       spineTitle: "도구 모음",
