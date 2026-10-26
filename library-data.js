@@ -51,7 +51,19 @@ const LIBRARY_DATA = {
       url: "https://kmonsciclass.vercel.app/laserrefraction/",
       description: "발사 각도를 정해 레이저를 쏘고, 거울에 반사된 빛으로 표적을 맞히며 빛의 반사 법칙을 탐구하는 게임입니다."
     },
-
+     "edutech-1-04": {
+      spineTitle: "AI활용연수",
+      title: "AI 활용 앱만들기",
+      url: "https://kmonsciclass.vercel.app/AIT2026",
+      description: "선생님을 위한 앱만들기 기초 연수자료."
+    },
+     "edutech-1-05": {
+      spineTitle: "HTML편집기",
+      title: "HTML편집기",
+      url: "https://kmonsciclass.vercel.app/editor",
+      description: "HTML편집기 : AI한테 일일이 설명하기 귀찮을때 직접 고치기."
+    },
+     
     /* 아래는 배치와 글씨를 시험하기 위한 예시입니다. 실제 주소는 비워 두었습니다. */
     "lesson-2-05": {
       spineTitle: "상태 변화",
@@ -77,12 +89,7 @@ const LIBRARY_DATA = {
       url: "",
       description: "루브릭이나 채점 자료 등을 등록하는 예시입니다."
     },
-    "edutech-1-04": {
-      spineTitle: "AI활용연수",
-      title: "AI 활용 앱만들기",
-      url: "https://kmonsciclass.vercel.app/AIT2026",
-      description: "선생님을 위한 앱만들기 기초 연수자료."
-    },
+    
     "edutech-2-04": {
       spineTitle: "도구 모음",
       title: "에듀테크 도구 모음 (예시)",
