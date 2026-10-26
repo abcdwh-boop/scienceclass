@@ -6,13 +6,13 @@
 
 const LIBRARY_DATA = {
   /* ① 책장 이름과 한 줄 소개를 바꾸는 곳 */
-  siteTitle: "기몬의 과학서재",       // ← 메인 제목
+  siteTitle: "과학서재",       // ← 메인 제목
   siteSubtitle: "과학을 더 가까이, 일상을 더 특별하게", // ← 아래 설명 문구
 
   /* ② 세 구역 이름을 바꾸는 곳 (id는 그대로 두세요) */
   sections: [
-    { id: "lesson",     title: "수업" },
-    { id: "assessment", title: "평가" },
+    { id: "lesson",     title: "수업&평가" },
+    { id: "assessment", title: "SCIENCE" },
     { id: "edutech",    title: "AI&에듀테크" }
   ],
 
