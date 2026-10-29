@@ -37,7 +37,20 @@ body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 header{padding:12px 20px 10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 h1{font-size:1.35rem;margin:0;font-weight:700;letter-spacing:-0.01em}
 header p{margin:0;color:var(--muted);font-size:.92rem}
-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0;border-top:1px solid var(--line)}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0}
+.tabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{flex:none;border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--muted);padding:8px 18px;border-radius:10px 10px 0 0;font:inherit;font-weight:600;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);border-bottom:1px solid var(--panel)}
+#missionPage{flex:1;min-height:0;overflow-y:auto;background:var(--panel);padding:20px}
+.mwrap{max-width:760px;margin:0 auto}
+.mwrap h2{font-size:1.1rem;margin:22px 0 4px}
+.mwrap h2:first-child{margin-top:0}
+.tblwrap{overflow-x:auto;margin-top:8px}
+.dtbl{width:100%;border-collapse:collapse;font-size:.8rem;font-variant-numeric:tabular-nums}
+.dtbl th,.dtbl td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.dtbl th{font-weight:600;color:var(--muted)}
+.dtbl th:first-child,.dtbl td:first-child{text-align:left;color:var(--muted);white-space:normal}
+.dtbl td.cur{color:var(--warm);font-weight:700}
 #stage{position:relative;background:var(--space);min-height:320px;overflow:hidden}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
 #overlay{position:absolute;inset:0;pointer-events:none}
@@ -131,6 +144,11 @@ summary{font-weight:700;cursor:pointer}
   <h1>멀어질수록 어두워지는 빛</h1>
   <p>빛이 퍼지는 구의 넓이로 밝기가 거리의 제곱에 반비례함을 확인해요</p>
 </header>
+<nav class="tabs" role="tablist" aria-label="화면 바꾸기">
+  <button type="button" role="tab" data-tab="light" aria-selected="true">💡 광원의 밝기</button>
+  <button type="button" role="tab" data-tab="star" aria-selected="false">⭐ 별</button>
+  <button type="button" role="tab" data-tab="mission" aria-selected="false">📝 탐구 미션</button>
+</nav>
 <main>
   <section id="stage" aria-label="3D 모형">
     <div id="overlay"></div>
@@ -141,10 +159,6 @@ summary{font-weight:700;cursor:pointer}
     <button id="orbitBtn" class="btn" type="button" hidden>지구 공전 멈추기</button>
   </section>
   <aside>
-    <div class="seg" role="group" aria-label="모드 선택">
-      <button type="button" id="modeLight" aria-pressed="true">💡 광원</button>
-      <button type="button" id="modeStar" aria-pressed="false">⭐ 별</button>
-    </div>
 
     <!-- 광원 모드 -->
     <div id="lightPanel">
@@ -171,12 +185,18 @@ summary{font-weight:700;cursor:pointer}
       <div class="group">
         <h2>궁금한 값 열어 보기</h2>
         <div class="reveals">
-          <details class="reveal formula-box"><summary>계산 공식</summary><div class="val">단위면적당 에너지 = 에너지 ÷ 구의 겉넓이(4πr²)</div></details>
-          <details class="reveal"><summary>1 m² 판에 도착한 빛 줄기</summary><div class="val" id="lHits"></div></details>
-          <details class="reveal"><summary>광원이 내보내는 빛 줄기</summary><div class="val" id="lRays"></div></details>
-          <details class="reveal"><summary>구의 겉넓이</summary><div class="val" id="lArea"></div></details>
-          <details class="reveal"><summary>단위면적당 에너지</summary><div class="val" id="lFlux"></div></details>
-          <details class="reveal"><summary>1 m일 때와 비교</summary><div class="val" id="lRatio"></div></details>
+          <details class="reveal part"><summary><span><b>① 단위면적당 에너지</b><span class="sub">단위면적당 에너지 = 광원의 에너지 ÷ 구의 겉넓이(4πr²)</span></span></summary>
+            <div class="val left calc" id="lFluxCalc"></div></details>
+          <details class="reveal part"><summary><span><b>② 세부 정보 보기</b></span></summary>
+            <div class="val left">
+              <div class="kv"><span>광원의 에너지</span><b id="lPow"></b></div>
+              <div class="kv"><span>총 빛 줄기 수</span><b id="lRays"></b></div>
+              <div class="tblwrap"><table class="dtbl">
+                <thead><tr><th></th><th>1 m (기준)</th><th id="lCurHead">현재</th><th>비교</th></tr></thead>
+                <tbody id="lTbody"></tbody>
+              </table></div>
+              <p class="sub" style="margin-top:6px">1 m²당 빛 줄기 수는 계산한 값이라, 화면의 판에 실제로 닿은 점 수와 조금 다를 수 있어요.</p>
+            </div></details>
         </div>
       </div>
     </div>
@@ -231,13 +251,19 @@ summary{font-weight:700;cursor:pointer}
       </div>
     </div>
 
-    <details id="missions">
-      <summary>탐구 미션</summary>
-      <div id="missionList"></div>
-    </details>
     <p class="foot">별의 거리·에너지·등급은 대략적인 값이에요. 겉보기 등급은 실제 관측 등급을 바탕으로 거리만 바꿔 계산해요. 여러 별을 함께 볼 때 별의 방향은 실제 하늘에서의 방향을 따랐고(거리는 줄여서 그림), 고른 별이 늘 정면에 오도록 돌려서 그려요. 연주시차는 단순하게 좌우 움직임으로 그렸어요.</p>
   </aside>
 </main>
+
+<section id="missionPage" hidden>
+  <div class="mwrap">
+    <h2>💡 광원의 밝기</h2>
+    <div id="missionLight"></div>
+    <h2>⭐ 별</h2>
+    <div id="missionStar"></div>
+    <p class="foot">적은 내용은 이 기기의 브라우저에만 남아요.</p>
+  </div>
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -695,19 +721,22 @@ new ResizeObserver(resize).observe(stage);
 /* ---------- UI ---------- */
 function setMode(m){
   state.mode = m;
-  $('#modeLight').setAttribute('aria-pressed', m==='light');
-  $('#modeStar').setAttribute('aria-pressed', m==='star');
   $('#lightPanel').hidden = m!=='light'; $('#starPanel').hidden = m!=='star';
   $('#exaggerate').hidden = m!=='star'; $('#orbitBtn').hidden = m!=='star'; $('#hitBadge').hidden = m!=='light';
   lightG.visible = m==='light'; starG.visible = m==='star';
   stopWalk(); if (m==='star' && state.plateView) setPlateView(false);
   if (m==='light' && state.earthView) setEarthView(false);
-  renderMissions(); updateAll(); if (!state.plateView && !state.earthView) fit(true);
+  updateAll(); if (!state.plateView && !state.earthView) fit(true);
 }
 $('#starOut').onclick = () => setEarthView(false);
 $('#starEarth').onclick = () => setEarthView(true);
-$('#modeLight').onclick = () => setMode('light');
-$('#modeStar').onclick = () => setMode('star');
+function setTab(t){
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  const mis = t === 'mission';
+  document.querySelector('main').hidden = mis; $('#missionPage').hidden = !mis;
+  if (!mis) setMode(t);
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
 
 $('#power').oninput = e => { state.P = +e.target.value; updateAll(); };
 $('#dist').oninput = e => { stopWalk(); setR(+e.target.value); };
@@ -793,12 +822,19 @@ function updateAll(){
     const r = state.r, A = 4*Math.PI*r*r, F = state.P/A;
     $('#powerOut').textContent = state.P + ' W';
     $('#distOut').textContent = r.toFixed(1).replace(/\.0$/,'') + ' m';
-    $('#lArea').innerHTML = fmt(A) + ' m²';
-    $('#lFlux').innerHTML = fmt(F) + ' W/m²';
-    $('#lRatio').innerHTML = r === 1 ? '기준' : '1/' + fmt(r*r) + ' (거리 ' + fmt(r) + '배)';
+    const rs = r.toFixed(1).replace(/\.0$/,'');
+    $('#lFluxCalc').innerHTML = '= ' + state.P + ' W ÷ (4π × ' + rs + '²)<br>= ' + state.P + ' ÷ ' + fmt(A) + '<br>= <b>' + fmt(F) + ' W/m²</b>';
     updateLightScene();
+    $('#lPow').textContent = state.P + ' W';
     $('#lRays').textContent = N + '개 (1개 = 0.25 W)';
-    $('#lHits').textContent = hitCount + '개 (약 ' + fmt(hitCount*W_PER_RAY) + ' W)';
+    $('#lCurHead').textContent = '현재 (' + rs + ' m)';
+    const A1 = 4*Math.PI, rows = [
+      ['구의 겉넓이 (m²)', A1, A],
+      ['1 m²당 빛 줄기 수 (개)', N/A1, N/A],
+      ['단위면적당 에너지 (W/m²)', state.P/A1, F]
+    ];
+    $('#lTbody').innerHTML = rows.map(([name, v1, v]) =>
+      '<tr><td>' + name + '</td><td>' + fmt(v1) + '</td><td class="cur">' + fmt(v) + '</td><td class="cur">' + (Math.abs(v/v1-1) < 1e-6 ? '1배' : ratioText(v/v1)) + '</td></tr>').join('');
     $('#hitBadge').textContent = '판에 닿은 빛 점 ' + hitCount + '개  (거리 ' + r.toFixed(1) + ' m)';
   } else {
     const s = STARS[state.star], d = state.d;
@@ -838,10 +874,11 @@ const MISSIONS = {
   ]
 };
 function store(k, v){ try{ if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); }catch(e){ return ''; } }
-function renderMissions(){
-  const list = $('#missionList'); list.innerHTML = '';
-  MISSIONS[state.mode].forEach((q,i) => {
-    const key = 'mission-' + state.mode + '-' + i;
+function renderMissions(){ renderMissionSet('light', $('#missionLight')); renderMissionSet('star', $('#missionStar')); }
+function renderMissionSet(mode, list){
+  list.innerHTML = '';
+  MISSIONS[mode].forEach((q,i) => {
+    const key = 'mission-' + mode + '-' + i;
     const box = document.createElement('div'); box.className = 'mission';
     const p = document.createElement('p'); p.textContent = (i+1) + '. ' + q;
     const ta = document.createElement('textarea'); ta.placeholder = '예측하고, 확인한 결과를 적어 보세요';
@@ -878,6 +915,7 @@ function loop(now){
 resize();
 
 $('#sdist').value = Math.log10(state.d);
+renderMissions();
 setMode('light');
 requestAnimationFrame(loop);
 })();
