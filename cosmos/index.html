@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>멀어질수록 어두워지는 빛</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f8; --panel:#ffffff; --ink:#18213d; --muted:#5a6585; --line:#d6dbea;
+  --warm:#c98a00; --warm-soft:#fff3d1; --earth:#1f8a78; --chip:#f3f5fb; --chip-on:#18213d; --chip-on-ink:#ffffff;
+  --space:#070d22; --abs:#e0468f;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1430; --panel:#141f42; --ink:#e7ebf6; --muted:#96a2c6; --line:#26335e;
+    --warm:#ffc94d; --warm-soft:#2a2a3a; --earth:#57c4b0; --chip:#1b2850; --chip-on:#ffc94d; --chip-on-ink:#141f42; --abs:#ff8cc6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1430; --panel:#141f42; --ink:#e7ebf6; --muted:#96a2c6; --line:#26335e;
+  --warm:#ffc94d; --warm-soft:#2a2a3a; --earth:#57c4b0; --chip:#1b2850; --chip-on:#ffc94d; --chip-on-ink:#141f42; --abs:#ff8cc6;
+  color-scheme: dark;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  font-size:15px;line-height:1.55;display:flex;flex-direction:column}
+header{padding:12px 20px 10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-size:1.35rem;margin:0;font-weight:700;letter-spacing:-0.01em}
+header p{margin:0;color:var(--muted);font-size:.92rem}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0;border-top:1px solid var(--line)}
+#stage{position:relative;background:var(--space);min-height:320px;overflow:hidden}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+#overlay{position:absolute;inset:0;pointer-events:none}
+.tag{position:absolute;left:0;top:0;font-size:.8rem;padding:2px 8px;border-radius:999px;
+  background:rgba(7,13,34,.72);color:#e7ebf6;white-space:nowrap;border:1px solid rgba(255,255,255,.14)}
+.tag.warm{color:#ffd875}.tag.earth{color:#7fe0cc}.tag.star{color:#fff}.tag.small{font-size:.72rem;color:#b9c3e0}
+.tag.side{background:transparent;border-color:transparent;padding:0 2px}
+.tag.abs{color:#ff8cc6;border-color:rgba(255,111,174,.6);font-weight:600}
+dt.abs,dd.abs{color:#e0468f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) dt.abs,:root:not([data-theme="light"]) dd.abs{color:#ff8cc6}}
+:root[data-theme="dark"] dt.abs,:root[data-theme="dark"] dd.abs{color:#ff8cc6}
+#exaggerate{position:absolute;left:12px;bottom:12px;max-width:min(420px,80%);font-size:.8rem;color:#c9d2ee;
+  background:rgba(7,13,34,.78);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px}
+#hint{position:absolute;right:12px;top:10px;font-size:.75rem;color:#8d99bf}
+#orbitBtn{position:absolute;right:12px;bottom:12px;pointer-events:auto}
+#earthHud{position:absolute;left:12px;top:10px;max-width:min(460px,85%);font-size:.85rem;color:#e7ebf6;background:rgba(7,13,34,.8);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 12px}
+#hitBadge{position:absolute;left:12px;top:10px;font-size:1rem;font-weight:700;color:#ffd875;background:rgba(7,13,34,.8);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;font-variant-numeric:tabular-nums}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.viewseg{margin-top:4px}
+.btn[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:transparent;font-weight:600}
+aside{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:16px 18px 24px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--chip);border-radius:12px;padding:4px;gap:4px}
+.seg button{border:0;border-radius:9px;padding:9px 6px;font:inherit;font-weight:600;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--warm);outline-offset:2px}
+.group{margin-top:18px}
+.group h2{font-size:.95rem;margin:0 0 8px;font-weight:700}
+.ctrl{margin-bottom:14px}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl label{font-weight:600;font-size:.9rem}
+.ctrl output{font-variant-numeric:tabular-nums;font-weight:700;color:var(--warm)}
+input[type=range]{width:100%;accent-color:var(--warm);margin:6px 0 0}
+.ticks{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+details.picker{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+details.picker summary{font-weight:700;cursor:pointer}
+details.picker .chips{margin-top:10px}
+.sub-inline{font-weight:400;font-size:.78rem;color:var(--muted);margin-left:4px}
+.selhint{font-size:.8rem;color:var(--muted);margin:0 0 4px}
+.selcard{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:8px 12px;margin-top:6px;font:inherit;cursor:pointer}
+.selcard.on{border-color:var(--warm);background:var(--warm-soft)}
+.selcard b{font-size:.95rem}
+.selcard .badge{font-size:.72rem;margin-left:6px;color:var(--warm);font-weight:700}
+.selcard span.desc{display:block;margin-top:2px;font-size:.83rem;color:var(--muted)}
+.sub{display:block;font-size:.8rem;color:var(--muted);font-weight:400;margin-top:2px}
+details.reveal .val.left{text-align:left;color:var(--ink);font-weight:400;font-size:.9rem}
+.kv{display:flex;justify-content:space-between;gap:10px;align-items:baseline;padding:5px 0;border-top:1px dashed var(--line)}
+.kv:first-child{border-top:0}
+.kv b{color:var(--warm);font-variant-numeric:tabular-nums;text-align:right}
+.abs-row span,.abs-row b{color:var(--abs)}
+.calc b{color:var(--warm)}
+.chips button{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:transparent;font-weight:600}
+.starnote{font-size:.83rem;color:var(--muted);margin:8px 0 0}
+.btn{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:9px;padding:6px 12px;font:inherit;font-size:.83rem;cursor:pointer}
+#stage .btn{background:rgba(20,31,66,.85);color:#e7ebf6;border-color:rgba(255,255,255,.18)}
+.formula{background:var(--warm-soft);border-radius:10px;padding:10px 12px;font-size:.9rem;margin:0 0 12px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:7px 12px;font-size:.88rem}
+dt{color:var(--muted)}
+dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+dd.big{font-size:1.05rem;color:var(--warm)}
+sup{font-size:.7em}
+#sky{width:100%;height:84px;border-radius:10px;background:#070d22;display:block;margin-top:4px}
+.cmp{margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.88rem}
+.cmp b{font-size:1.2rem;color:var(--warm);font-variant-numeric:tabular-nums}
+.reveals{display:grid;gap:6px}
+details.reveal{border:1px solid var(--line);border-radius:10px}
+details.reveal summary{list-style:none;cursor:pointer;padding:8px 12px;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::after{content:"보기 ▾";font-size:.75rem;color:var(--muted);flex:none}
+details.reveal[open] summary::after{content:"닫기 ▴"}
+details.reveal .val{padding:0 12px 10px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;font-size:1.02rem;color:var(--warm)}
+details.reveal.formula-box .val{text-align:left;font-weight:400;color:var(--ink);font-size:.9rem}
+details.reveal.abs summary{color:var(--abs)}
+.skycap{font-size:.8rem;color:var(--muted);margin-top:4px}
+details{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{font-weight:700;cursor:pointer}
+.mission{margin-top:12px}
+.mission p{margin:0 0 6px;font-size:.88rem}
+.mission textarea{width:100%;min-height:52px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:.85rem;padding:6px 8px;resize:vertical}
+.foot{font-size:.75rem;color:var(--muted);margin-top:14px}
+[hidden]{display:none!important}
+@media (max-width:860px){
+  main{grid-template-columns:1fr;grid-template-rows:56vh auto}
+  aside{border-left:0;border-top:1px solid var(--line)}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>멀어질수록 어두워지는 빛</h1>
+  <p>빛이 퍼지는 구의 넓이로 밝기가 거리의 제곱에 반비례함을 확인해요</p>
+</header>
+<main>
+  <section id="stage" aria-label="3D 모형">
+    <div id="overlay"></div>
+    <div id="hint">드래그해서 돌리고, 휠이나 두 손가락으로 확대해요</div>
+    <div id="hitBadge"></div>
+    <div id="earthHud" hidden>지구에서 바라본 하늘이에요. 지구가 공전하면 가까운 별이 아주 먼 배경 별들 앞에서 좌우로 왔다 갔다 해요. 점선은 6개월 간격의 두 위치를 이은 길이고, 움직인 각도의 절반이 연주시차예요. (각도는 과장됨)</div>
+    <div id="exaggerate" hidden>한 화면에 담기 위해 거리와 각도를 크게 과장해서 그렸어요. 거리 눈금은 1→10 pc, 10→100 pc, 100→1000 pc를 같은 길이로 줄여 그렸어요. <span style="color:#ff8cc6">분홍색 10 pc는 절대 등급을 정하는 기준 거리예요.</span> 오른쪽 숫자는 실제 값이에요.</div>
+    <button id="orbitBtn" class="btn" type="button" hidden>지구 공전 멈추기</button>
+  </section>
+  <aside>
+    <div class="seg" role="group" aria-label="모드 선택">
+      <button type="button" id="modeLight" aria-pressed="true">💡 광원</button>
+      <button type="button" id="modeStar" aria-pressed="false">⭐ 별</button>
+    </div>
+
+    <!-- 광원 모드 -->
+    <div id="lightPanel">
+      <div class="group">
+        <div class="ctrl">
+          <div class="row"><label for="power">광원이 내는 에너지</label><output id="powerOut">500 W</output></div>
+          <input type="range" id="power" min="100" max="1000" step="100" value="500">
+          <div class="ticks"><span>100 W</span><span>1000 W</span></div>
+        </div>
+        <div class="ctrl">
+          <div class="row"><label for="dist">광원에서 판까지의 거리</label><output id="distOut">1 m</output></div>
+          <input type="range" id="dist" min="1" max="5" step="0.1" value="1">
+          <div class="ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5 m</span></div>
+        </div>
+        <div class="seg viewseg" role="group" aria-label="보는 방법">
+          <button type="button" id="viewOut" aria-pressed="true">🔭 바깥에서 보기</button>
+          <button type="button" id="viewPlate" aria-pressed="false">✋ 판을 들고 보기</button>
+        </div>
+        <div class="btnrow">
+          <button type="button" class="btn" id="walkIn">광원 쪽으로 걸어가기</button>
+          <button type="button" class="btn" id="walkOut">뒤로 물러나기</button>
+        </div>
+      </div>
+      <div class="group">
+        <h2>궁금한 값 열어 보기</h2>
+        <div class="reveals">
+          <details class="reveal formula-box"><summary>계산 공식</summary><div class="val">단위면적당 에너지 = 에너지 ÷ 구의 겉넓이(4πr²)</div></details>
+          <details class="reveal"><summary>1 m² 판에 도착한 빛 줄기</summary><div class="val" id="lHits"></div></details>
+          <details class="reveal"><summary>광원이 내보내는 빛 줄기</summary><div class="val" id="lRays"></div></details>
+          <details class="reveal"><summary>구의 겉넓이</summary><div class="val" id="lArea"></div></details>
+          <details class="reveal"><summary>단위면적당 에너지</summary><div class="val" id="lFlux"></div></details>
+          <details class="reveal"><summary>1 m일 때와 비교</summary><div class="val" id="lRatio"></div></details>
+        </div>
+      </div>
+    </div>
+
+    <!-- 별 모드 -->
+    <div id="starPanel" hidden>
+      <div class="seg viewseg" role="group" aria-label="보는 위치" style="margin-top:14px">
+        <button type="button" id="starOut" aria-pressed="true">🔭 바깥에서 보기</button>
+        <button type="button" id="starEarth" aria-pressed="false">🌍 지구에서 보기</button>
+      </div>
+      <details class="picker" open>
+        <summary>별 고르기 <span class="sub-inline">여러 개를 함께 고를 수 있어요</span></summary>
+        <div class="chips" id="starChips"></div>
+        <div class="btnrow">
+          <button type="button" class="btn" id="selAll">모두 선택</button>
+          <button type="button" class="btn" id="selOne">중심 별만 남기기</button>
+        </div>
+      </details>
+      <div class="group">
+        <p class="selhint" id="selHint" hidden>카드를 누르면 그 별이 중심 별이 되어 연주시차와 값이 그 별 기준으로 바뀌어요.</p>
+        <div id="selList"></div>
+      </div>
+      <div class="group">
+        <div class="skycap" id="skyCap"></div>
+        <canvas id="sky" aria-label="지구에서 본 별의 밝기"></canvas>
+        <div class="cmp"><span>실제 거리일 때와 비교한 밝기</span><b id="skyRel">1배</b></div>
+        <div class="ctrl" style="margin-top:14px">
+          <div class="row"><label for="sdist">별까지의 거리</label><output id="sdistOut"></output></div>
+          <input type="range" id="sdist" min="0" max="3" step="0.005" value="0.42">
+          <div class="ticks"><span>1 pc</span><span>10 pc</span><span>100 pc</span><span>1000 pc</span></div>
+        </div>
+        <button type="button" class="btn" id="resetDist">실제 거리로 되돌리기</button>
+      </div>
+      <div class="group">
+        <h2>궁금한 값 열어 보기</h2>
+        <div class="reveals">
+          <details class="reveal part"><summary><span><b>① 연주시차로 별의 거리 구하기</b><span class="sub">별의 거리(pc) = 1 ÷ 연주시차(″)</span></span></summary>
+            <div class="val left" id="sParCalc"></div></details>
+          <details class="reveal part"><summary><span><b>② 별의 등급</b></span></summary>
+            <div class="val left">
+              <div class="kv"><span>겉보기 등급</span><b id="sMag"></b></div>
+              <div class="kv abs-row"><span>절대 등급 (10 pc 기준)</span><b id="sAbs"></b></div>
+            </div></details>
+          <details class="reveal part"><summary><span><b>③ 에너지</b></span></summary>
+            <div class="val left">
+              <div class="kv"><span>별이 내는 에너지</span><b id="sPower"></b></div>
+              <div class="kv"><span>지구에 도달하는 단위면적당 에너지</span><b id="sFlux"></b></div>
+              <div class="kv"><span>태양 빛(1361 W/m²)과 비교</span><b id="sSun"></b></div>
+              <p class="sub" style="margin:6px 0 0">단위면적당 에너지 = 별의 에너지 ÷ 4πd²</p>
+            </div></details>
+        </div>
+      </div>
+    </div>
+
+    <details id="missions">
+      <summary>탐구 미션</summary>
+      <div id="missionList"></div>
+    </details>
+    <p class="foot">별의 거리·에너지·등급은 대략적인 값이에요. 겉보기 등급은 실제 관측 등급을 바탕으로 거리만 바꿔 계산해요. 여러 별을 함께 볼 때 별의 방향은 실제 하늘에서의 방향을 따랐고(거리는 줄여서 그림), 고른 별이 늘 정면에 오도록 돌려서 그려요. 연주시차는 단순하게 좌우 움직임으로 그렸어요.</p>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const LSUN = 3.828e26, PC = 3.0857e16, LY_PER_PC = 3.2616, SOLAR = 1361;
+
+const STARS = [
+  {id:'proxima', name:'프록시마 센타우리', d:1.302, m:11.13, L:0.0017, color:0xff8a5c, ra:217,
+   note:'태양에서 가장 가까운 별이지만 에너지가 작아 맨눈으로는 보이지 않아요.'},
+  {id:'sirius', name:'시리우스', d:2.64, m:-1.46, L:25, color:0xcfe0ff, ra:101,
+   note:'큰개자리의 별로, 밤하늘에서 가장 밝게 보이는 별이에요. 가깝고 에너지도 커요.'},
+  {id:'mirzam', name:'미르잠', d:151, m:1.98, L:26600, color:0xb9ccff, ra:96,
+   note:'큰개자리에서 시리우스 가까이 보이는 별이에요. 겉보기에는 시리우스보다 어둡지만, 실제로 내는 에너지는 훨씬 커요. 거리와 에너지는 추정치예요.'},
+  {id:'altair', name:'견우성', d:5.13, m:0.76, L:10.6, color:0xf4f2ff, ra:298,
+   note:'독수리자리의 알타이르예요. 직녀성과 비교해 보세요.'},
+  {id:'vega', name:'직녀성', d:7.68, m:0.03, L:40, color:0xbcd2ff, ra:279,
+   note:'거문고자리의 베가예요. 견우성보다 멀지만 더 밝게 보여요.'},
+  {id:'betelgeuse', name:'베텔게우스', d:168, m:0.5, L:100000, color:0xff7a3d, ra:89,
+   note:'오리온자리의 붉은 별이에요. 아주 멀지만 에너지가 엄청나요. 거리와 에너지는 추정치이고, 밝기가 변하는 별이에요.'}
+];
+STARS.push(
+  {id:'spica', name:'스피카', d:77, m:0.97, L:22000, color:0xb8cbff, ra:201,
+   note:'처녀자리의 가장 밝은 별이에요. 푸른빛의 뜨거운 별로, 거리와 에너지는 추정치예요.'},
+  {id:'aldebaran', name:'알데바란', d:20, m:0.86, L:440, color:0xffa65c, ra:69,
+   note:'황소자리의 붉은 눈에 해당하는 별이에요.'},
+  {id:'rigel', name:'리겔', d:260, m:0.13, L:120000, color:0xbcd0ff, ra:79,
+   note:'오리온자리의 푸른 별이에요. 베텔게우스와 같은 별자리에 있어요. 거리와 에너지는 추정치예요.'},
+  {id:'antares', name:'안타레스', d:170, m:1.06, L:76000, color:0xff6a3d, ra:247,
+   note:'전갈자리의 심장에 해당하는 붉은 별이에요. 밝기가 변하고, 거리와 에너지는 추정치예요.'},
+  {id:'dschubba', name:'드슈바', d:150, m:2.32, L:38000, color:0xc4d4ff, ra:240,
+   note:'전갈자리의 머리 쪽에 있는 별이에요. 밝기가 변하는 별이고, 거리와 에너지는 추정치예요.'}
+);
+const CON_OF = {proxima:['cen','prx'], sirius:['cma','sir'], mirzam:['cma','mir'], altair:['aql','alt'], vega:['lyr','veg'],
+  betelgeuse:['ori','bet'], spica:['vir','spi'], aldebaran:['tau','ald'], rigel:['ori','rig'], antares:['sco','ant'], dschubba:['sco','dsc']};
+STARS.forEach(s => { s.con = CON_OF[s.id][0]; s.key = CON_OF[s.id][1]; });
+STARS.forEach(s => s.M = s.m - 5*Math.log10(s.d/10));
+
+const state = { mode:'light', P:500, r:1, star:1, d:STARS[1].d, orbiting:true, orbitA:0.6, plateView:false, sel:new Set([1]), earthView:false };
+
+/* ---------- number formatting ---------- */
+function fmt(x, sig=3){
+  if (!isFinite(x)) return '–';
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  if (a >= 0.01 && a < 1e5) return Number(x.toPrecision(sig)).toLocaleString('ko-KR',{maximumFractionDigits:6});
+  let e = Math.floor(Math.log10(a));
+  let mnt = Number((x/Math.pow(10,e)).toPrecision(sig));
+  if (Math.abs(mnt) >= 10){ mnt /= 10; e++; }
+  return mnt + '×10<sup>' + e + '</sup>';
+}
+function ratioText(k){ // k = factor (new/old)
+  if (Math.abs(k-1) < 1e-6) return '같아요';
+  return k > 1 ? fmt(k) + '배' : '1/' + fmt(1/k);
+}
+
+/* ---------- three.js setup ---------- */
+const stage = $('#stage'), overlay = $('#overlay');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 1.5));
+renderer.setClearColor(0x070d22);
+stage.insertBefore(renderer.domElement, overlay);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 800);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+controls.minDistance = 3; controls.maxDistance = 160;
+
+// glow texture
+const glowTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'); const gr = g.createRadialGradient(64,64,0,64,64,64);
+  gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(0.2,'rgba(255,255,255,.75)');
+  gr.addColorStop(0.5,'rgba(255,255,255,.18)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(c);
+})();
+function glow(color, size){
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex, color, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
+  s.scale.setScalar(size); return s;
+}
+
+// far background starfield
+(() => {
+  const n = 700, p = new Float32Array(n*3);
+  for (let i=0;i<n;i++){
+    const u = Math.random()*2-1, t = Math.random()*Math.PI*2, r = 400, q = Math.sqrt(1-u*u);
+    p[i*3]=r*q*Math.cos(t); p[i*3+1]=r*u; p[i*3+2]=r*q*Math.sin(t);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:0x8090c0, size:1.4, sizeAttenuation:false})));
+})();
+
+/* ---------- LIGHT MODE ---------- */
+const S = 2; // scene units per metre
+const W_PER_RAY = 0.25, NMAX = 4000; // 빛 줄기 1개 = 0.25 W
+const lightG = new THREE.Group(); scene.add(lightG);
+lightG.add(new THREE.Mesh(new THREE.SphereGeometry(0.14,24,16), new THREE.MeshBasicMaterial({color:0xfff2c0})));
+const bulbGlow = glow(0xffd36b, 2.2), bulbHalo = glow(0xffa630, 4);
+lightG.add(bulbHalo, bulbGlow);
+
+let N = 0; const dirs = [];
+function makeDirs(n){
+  N = n; dirs.length = 0;
+  for (let i=0;i<n;i++){
+    const y = 1 - 2*(i+0.5)/n, rad = Math.sqrt(1-y*y), th = i*Math.PI*(3-Math.sqrt(5));
+    dirs.push(new THREE.Vector3(Math.cos(th)*rad, y, Math.sin(th)*rad));
+  }
+}
+const rayPos = new Float32Array(NMAX*6), rayCol = new Float32Array(NMAX*6);
+const rayGeo = new THREE.BufferGeometry();
+rayGeo.setAttribute('position', new THREE.BufferAttribute(rayPos,3));
+rayGeo.setAttribute('color', new THREE.BufferAttribute(rayCol,3));
+lightG.add(new THREE.LineSegments(rayGeo, new THREE.LineBasicMaterial({vertexColors:true, transparent:true, opacity:0.35, depthWrite:false})));
+const dotPos = new Float32Array(NMAX*3);
+const dotGeo = new THREE.BufferGeometry();
+dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPos,3));
+const dotsObj = new THREE.Points(dotGeo, new THREE.PointsMaterial({size:0.05, color:0xc9a050}));
+lightG.add(dotsObj);
+const hitPos = new Float32Array(NMAX*3);
+const hitGeo = new THREE.BufferGeometry(); hitGeo.setAttribute('position', new THREE.BufferAttribute(hitPos,3));
+lightG.add(new THREE.Points(hitGeo, new THREE.PointsMaterial({size:0.14, color:0xfff3b0})));
+
+const lSphere = new THREE.Mesh(new THREE.SphereGeometry(1,48,24), new THREE.MeshBasicMaterial({color:0xffc94d, transparent:true, opacity:0.05, side:THREE.DoubleSide, depthWrite:false}));
+const lWire = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(1,24,12)), new THREE.LineBasicMaterial({color:0xffc94d, transparent:true, opacity:0.1}));
+lightG.add(lSphere, lWire);
+// fixed floor with distance marks (does not move with the plate)
+const FLOOR_Y = -1.3;
+const floor = new THREE.GridHelper(24, 24, 0x3a4a80, 0x22305c);
+floor.material.transparent = true; floor.material.opacity = 0.55;
+floor.position.set(0, FLOOR_Y, 4); lightG.add(floor);
+const tickPts = [];
+for (let k=1;k<=5;k++){ tickPts.push(new THREE.Vector3(-3,FLOOR_Y+0.01,k*S), new THREE.Vector3(3,FLOOR_Y+0.01,k*S)); }
+lightG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(tickPts), new THREE.LineBasicMaterial({color:0xffc94d, transparent:true, opacity:0.6})));
+
+// the plate: same look at every distance (count the dots, not the colour)
+const patch = new THREE.Mesh(new THREE.PlaneGeometry(S,S), new THREE.MeshBasicMaterial({color:0x8fa6e0, transparent:true, opacity:0.16, side:THREE.DoubleSide, depthWrite:false}));
+const patchEdge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(-S/2,-S/2,0), new THREE.Vector3(S/2,-S/2,0), new THREE.Vector3(S/2,S/2,0), new THREE.Vector3(-S/2,S/2,0)
+]), new THREE.LineBasicMaterial({color:0xdfe6ff}));
+const patchG = new THREE.Group(); patchG.add(patch, patchEdge); lightG.add(patchG);
+
+let hitCount = 0;
+function updateLightScene(){
+  const n = Math.round(state.P/W_PER_RAY);
+  if (n !== N) makeDirs(n);
+  const r = state.r, R = r*S, far = 5*S;
+  lSphere.scale.setScalar(far); lWire.scale.setScalar(far);
+  lSphere.visible = lWire.visible = dotsObj.visible = !state.plateView;
+  patchG.position.set(0,0,R);
+  hitCount = 0;
+  const hot = [1,0.88,0.45], cold = [0.24,0.19,0.1];
+  for (let i=0;i<N;i++){
+    const d = dirs[i]; let k = far, hit = false;
+    if (d.z > 0){
+      const x = d.x/d.z*r, y = d.y/d.z*r;
+      if (Math.abs(x) < 0.5 && Math.abs(y) < 0.5){ hit = true; k = R/d.z; }
+    }
+    if (hit){ hitPos.set([d.x*k, d.y*k, d.z*k+0.02], hitCount*3); hitCount++; }
+    rayPos.set([0,0,0, d.x*k, d.y*k, d.z*k], i*6);
+    const c = hit ? hot : cold;
+    rayCol.set([c[0],c[1],c[2], c[0],c[1],c[2]], i*6);
+    dotPos.set([d.x*k, d.y*k, d.z*k], i*3); // end of each ray (max distance, or the plate)
+  }
+  hitGeo.attributes.position.needsUpdate = true; hitGeo.setDrawRange(0, hitCount); hitGeo.computeBoundingSphere();
+  rayGeo.attributes.position.needsUpdate = true; rayGeo.attributes.color.needsUpdate = true;
+  rayGeo.setDrawRange(0, N*2); rayGeo.computeBoundingSphere();
+  dotGeo.attributes.position.needsUpdate = true; dotGeo.setDrawRange(0, N); dotGeo.computeBoundingSphere();
+  // the source itself gets brighter with more energy
+  const q = state.P/1000;
+  bulbGlow.scale.setScalar(1.2 + 2.6*Math.sqrt(q)); bulbGlow.material.opacity = 0.45 + 0.55*Math.sqrt(q);
+  bulbHalo.scale.setScalar(2 + 8*q); bulbHalo.material.opacity = 0.1 + 0.5*q;
+}
+
+/* ---------- STAR MODE ---------- */
+const starG = new THREE.Group(); scene.add(starG); starG.visible = false;
+const ORBIT = 3, BACK = 10;
+const sun = new THREE.Mesh(new THREE.SphereGeometry(0.35,24,16), new THREE.MeshBasicMaterial({color:0xffe08a}));
+starG.add(sun, glow(0xffd36b, 2.4));
+const orbitPts = []; for (let i=0;i<=96;i++){ const a=i/96*Math.PI*2; orbitPts.push(new THREE.Vector3(ORBIT*Math.cos(a),0,ORBIT*Math.sin(a))); }
+starG.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(orbitPts), new THREE.LineBasicMaterial({color:0x57c4b0, transparent:true, opacity:0.55})));
+const earth = new THREE.Mesh(new THREE.SphereGeometry(0.2,20,14), new THREE.MeshBasicMaterial({color:0x4fb3e6}));
+starG.add(earth);
+const E1 = new THREE.Vector3(ORBIT,0,0);
+const ghost = new THREE.Mesh(new THREE.RingGeometry(0.22,0.3,24), new THREE.MeshBasicMaterial({color:0x57c4b0, side:THREE.DoubleSide, transparent:true, opacity:0.7}));
+ghost.position.copy(E1); ghost.rotation.x = -Math.PI/2; starG.add(ghost);
+
+const starMat = new THREE.MeshBasicMaterial({color:0xffffff});
+const starMesh = new THREE.Mesh(new THREE.SphereGeometry(0.4,24,16), starMat);
+const starGlow = glow(0xffffff, 2);
+starG.add(starMesh, starGlow);
+
+const sSphereMat = new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.09});
+const sSphere = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(1,36,18)), sSphereMat);
+const sShellMat = new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.03, side:THREE.DoubleSide, depthWrite:false});
+const sShell = new THREE.Mesh(new THREE.SphereGeometry(1,48,24), sShellMat);
+starG.add(sSphere, sShell);
+
+// distance ruler in pc (log scale) with the 10 pc absolute-magnitude mark
+const RULER_Y = -1.6, ABS_COLOR = 0xff6fae, RULER_TICKS = [1,2,5,50,100,500,1000];
+(() => {
+  const pts = [new THREE.Vector3(0,RULER_Y,0), new THREE.Vector3(0,RULER_Y,-visD(1000)-0.6)];
+  RULER_TICKS.forEach(d => {
+    const z = -visD(d);
+    pts.push(new THREE.Vector3(-5,RULER_Y,z), new THREE.Vector3(5,RULER_Y,z));
+  });
+  starG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color:0x8a9ad0, transparent:true, opacity:0.3})));
+  const z10 = -visD(10);
+  const absMat = new THREE.LineBasicMaterial({color:ABS_COLOR});
+  starG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-5,RULER_Y,z10), new THREE.Vector3(5,RULER_Y,z10),
+    new THREE.Vector3(0,RULER_Y,z10), new THREE.Vector3(0,-1.4,z10)
+  ]), absMat));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.4,1.52,64), new THREE.MeshBasicMaterial({color:ABS_COLOR, side:THREE.DoubleSide, transparent:true, opacity:0.9}));
+  ring.position.set(0,0,z10); starG.add(ring);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(1.4,64), new THREE.MeshBasicMaterial({color:ABS_COLOR, side:THREE.DoubleSide, transparent:true, opacity:0.08, depthWrite:false}));
+  disc.position.set(0,0,z10); starG.add(disc);
+})();
+
+function mkLine(color, opacity, dashed){
+  const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+  const m = dashed ? new THREE.LineDashedMaterial({color, transparent:true, opacity, dashSize:0.5, gapSize:0.35})
+                   : new THREE.LineBasicMaterial({color, transparent:true, opacity});
+  const l = new THREE.Line(g, m); starG.add(l); return l;
+}
+function setLine(l, a, b){
+  const p = l.geometry.attributes.position; p.setXYZ(0,a.x,a.y,a.z); p.setXYZ(1,b.x,b.y,b.z); p.needsUpdate = true;
+  l.geometry.computeBoundingSphere(); if (l.material.isLineDashedMaterial) l.computeLineDistances();
+}
+const lineSunStar = mkLine(0xffe08a, 0.5, false);
+const lineE1Star = mkLine(0x7fe0cc, 0.65, false);
+const lineSunE1 = mkLine(0x7fe0cc, 0.65, false);
+const lineSight = mkLine(0xffffff, 0.55, true);
+const arc = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color:0xffd36b}));
+starG.add(arc);
+
+const bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(20,7), new THREE.MeshBasicMaterial({color:0x1a2550, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}));
+starG.add(bgPlane);
+const bgStars = (() => {
+  const n = 40, p = new Float32Array(n*3);
+  for (let i=0;i<n;i++){ p[i*3]=(Math.random()-0.5)*19; p[i*3+1]=(Math.random()-0.5)*6.4; p[i*3+2]=0.02; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  return new THREE.Points(g, new THREE.PointsMaterial({color:0xaab6dd, size:0.12}));
+})();
+bgPlane.add(bgStars);
+const swing = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.6}));
+starG.add(swing);
+const image = glow(0xffffff, 1.1); starG.add(image);
+
+function visD(d){
+  // each decade (1-10, 10-100, 100-1000 pc) gets the same length; inside a decade the scale is linear,
+  // so 5, 50, 500 sit near the middle of their decade
+  d = Math.min(1000, Math.max(1, d));
+  const dec = Math.min(2, Math.floor(Math.log10(d) + 1e-9)), base = Math.pow(10, dec);
+  return 8 + 6*(dec + (d/base - 1)/9);
+}
+const starPos = new THREE.Vector3();
+function updateStarScene(){
+  const s = STARS[state.star], D = visD(state.d);
+  starPos.set(0,0,-D);
+  starMesh.position.copy(starPos); starGlow.position.copy(starPos);
+  starMat.color.setHex(s.color); starGlow.material.color.setHex(s.color);
+  starGlow.scale.setScalar(1.2 + 0.45*Math.log10(s.L*10+1));
+  sSphere.position.copy(starPos); sShell.position.copy(starPos);
+  sSphereMat.color.setHex(s.color); sShellMat.color.setHex(s.color);
+  bgPlane.position.set(0,0,-(D+BACK));
+  setLine(lineSunStar, sun.position, starPos);
+  setLine(lineE1Star, E1, starPos);
+  setLine(lineSunE1, sun.position, E1);
+  const w = ORBIT*BACK/D;
+  const sp = swing.geometry.attributes.position;
+  sp.setXYZ(0,-w,0,-(D+BACK)+0.05); sp.setXYZ(1,w,0,-(D+BACK)+0.05); sp.needsUpdate = true;
+  swing.material.color.setHex(s.color); image.material.color.setHex(s.color);
+  // parallax arc at the star
+  const u1 = sun.position.clone().sub(starPos).normalize(), u2 = E1.clone().sub(starPos).normalize();
+  const ra = Math.min(3, D*0.35), pts = [];
+  for (let i=0;i<=20;i++){ pts.push(u1.clone().lerp(u2,i/20).normalize().multiplyScalar(ra).add(starPos)); }
+  arc.geometry.dispose(); arc.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+  arcMid.copy(pts[10]);
+  updateFarSwing();
+}
+const arcMid = new THREE.Vector3();
+const imgPos = new THREE.Vector3();
+function tickStar(){
+  earth.position.set(ORBIT*Math.cos(state.orbitA), 0, ORBIT*Math.sin(state.orbitA));
+  const rad = starPos.length(); // fixed: star-to-Sun distance (Earth's orbit change is negligible)
+  sSphere.scale.setScalar(rad); sShell.scale.setScalar(rad);
+  const D = -starPos.z, zp = -(D+BACK);
+  const t = (zp - earth.position.z)/(starPos.z - earth.position.z);
+  imgPos.copy(starPos).sub(earth.position).multiplyScalar(t).add(earth.position);
+  image.position.copy(imgPos).setZ(zp+0.1);
+  setLine(lineSight, earth.position, imgPos);
+}
+
+/* ---------- all stars together ---------- */
+// directions: rough real directions (right ascension) laid out around the Sun; the selected star is always drawn straight ahead
+const ghosts = STARS.map(s => {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12), new THREE.MeshBasicMaterial({color:s.color})));
+  g.add(glow(s.color, 0.9 + 0.3*Math.log10(s.L*10+1)));
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+    new THREE.LineBasicMaterial({color:s.color, transparent:true, opacity:0.25}));
+  starG.add(g, line); g.visible = line.visible = false; g.userData.line = line;
+  return g;
+});
+// real sky directions (right ascension & declination), turned so the selected star is straight ahead,
+// north is up and east is to the left (as seen from Earth)
+function eqVec(s){
+  const [rh, dec] = CONS[s.con].s[s.key], ra = rh*15*Math.PI/180, de = dec*Math.PI/180;
+  return new THREE.Vector3(Math.cos(de)*Math.cos(ra), Math.cos(de)*Math.sin(ra), Math.sin(de));
+}
+function skyVec(s, sel){
+  const v = eqVec(s), f = eqVec(sel), ra0 = Math.atan2(f.y, f.x);
+  const e = new THREE.Vector3(-Math.sin(ra0), Math.cos(ra0), 0), n = new THREE.Vector3().crossVectors(f, e);
+  return new THREE.Vector3(-v.dot(e), v.dot(n), -v.dot(f));
+}
+function placeGhosts(){
+  const sel = STARS[state.star];
+  STARS.forEach((s,i) => {
+    const g = ghosts[i], show = state.sel.has(i) && i !== state.star;
+    const D = visD(s.d);
+    g.position.copy(skyVec(s, sel)).multiplyScalar(D);
+    g.visible = show; g.userData.line.visible = show && !state.earthView;
+    setLine(g.userData.line, new THREE.Vector3(), g.position);
+  });
+}
+
+/* ---------- view from Earth ---------- */
+const FAR = 300;
+const farG = new THREE.Group(); farG.visible = false; starG.add(farG);
+(() => {
+  const n = 260, p = new Float32Array(n*3);
+  for (let i=0;i<n;i++){
+    const ax = (Math.random()-0.5)*1.1, ay = (Math.random()-0.5)*0.75;
+    const v = new THREE.Vector3(Math.sin(ax), Math.sin(ay), -1).normalize().multiplyScalar(FAR);
+    p[i*3]=v.x; p[i*3+1]=v.y; p[i*3+2]=v.z;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p,3));
+  farG.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xc4cdea, size:1.8, sizeAttenuation:false})));
+})();
+const farSwing = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+  new THREE.LineDashedMaterial({color:0xffd36b, transparent:true, opacity:0.7, dashSize:4, gapSize:3}));
+farG.add(farSwing);
+const CONS = {
+  cma:{name:'큰개자리', s:{sir:[6.752,-16.72],mir:[6.378,-17.96],adh:[6.977,-28.97],wez:[7.140,-26.39],alu:[7.402,-29.30],fur:[6.338,-30.06],mul:[7.062,-15.63]},
+       l:[['mir','sir'],['sir','mul'],['sir','wez'],['wez','adh'],['wez','alu'],['adh','fur']]},
+  ori:{name:'오리온자리', s:{bet:[5.919,7.41],rig:[5.242,-8.20],bel:[5.419,6.35],sai:[5.796,-9.67],alt:[5.679,-1.94],aln:[5.604,-1.20],min:[5.533,-0.30],mei:[5.585,9.93]},
+       l:[['mei','bet'],['mei','bel'],['bet','alt'],['bel','min'],['alt','aln'],['aln','min'],['alt','sai'],['min','rig']]},
+  tau:{name:'황소자리', s:{ald:[4.599,16.51],eln:[5.438,28.61],zet:[5.627,21.14],eps:[4.477,19.18],gam:[4.330,15.63],del:[4.382,17.54],lam:[4.011,12.49],ple:[3.791,24.10]},
+       l:[['lam','gam'],['gam','del'],['del','eps'],['eps','eln'],['gam','ald'],['ald','zet']]},
+  vir:{name:'처녀자리', s:{spi:[13.420,-11.16],gam:[12.694,-1.45],eps:[13.036,10.96],del:[12.927,3.40],zet:[13.578,-0.60],bet:[11.845,1.76],eta:[12.332,-0.67],the:[13.166,-5.54]},
+       l:[['bet','eta'],['eta','gam'],['gam','del'],['del','eps'],['del','zet'],['gam','the'],['the','spi'],['zet','spi']]},
+  sco:{name:'전갈자리', s:{ant:[16.490,-26.43],dsc:[16.006,-22.62],acr:[16.091,-19.81],pi:[15.981,-26.11],sig:[16.353,-25.59],tau:[16.598,-28.22],eps:[16.836,-34.29],mu:[16.865,-38.05],zet:[16.910,-42.36],eta:[17.203,-43.24],the:[17.622,-43.00],iot:[17.793,-40.13],kap:[17.708,-39.03],sha:[17.560,-37.10]},
+       l:[['acr','dsc'],['dsc','pi'],['dsc','sig'],['sig','ant'],['ant','tau'],['tau','eps'],['eps','mu'],['mu','zet'],['zet','eta'],['eta','the'],['the','iot'],['iot','kap'],['kap','sha']]},
+  lyr:{name:'거문고자리', s:{veg:[18.616,38.78],she:[18.835,33.36],sul:[18.982,32.69],del:[18.908,36.90],zet:[18.746,37.61],eps:[18.739,39.67]},
+       l:[['veg','eps'],['veg','zet'],['zet','del'],['del','sul'],['sul','she'],['she','zet']]},
+  aql:{name:'독수리자리', s:{alt:[19.846,8.87],tar:[19.771,10.61],als:[19.922,6.41],del:[19.425,3.11],zet:[19.090,13.86],lam:[19.104,-4.88],eta:[19.874,1.00],the:[20.188,-0.82]},
+       l:[['tar','alt'],['alt','als'],['alt','del'],['del','lam'],['del','zet'],['alt','eta'],['eta','the']]},
+  cen:{name:'센타우루스자리', s:{prx:[14.495,-62.68],alp:[14.660,-60.83],bet:[14.064,-60.37],eps:[13.665,-53.47],zet:[13.926,-47.29],eta:[14.592,-42.16],the:[14.111,-36.37],gam:[12.692,-48.96],del:[12.139,-50.72]},
+       l:[['alp','bet'],['bet','eps'],['eps','zet'],['zet','eta'],['eta','the'],['zet','gam'],['gam','del']]}
+};
+const conG = new THREE.Group(); farG.add(conG);
+const conLabelPos = new THREE.Vector3(); let conKey = '';
+function skyDir(dx, dy){
+  return new THREE.Vector3(Math.tan(dx*Math.PI/180), Math.tan(dy*Math.PI/180), -1).normalize().multiplyScalar(FAR*0.98);
+}
+function buildCon(){
+  const s = STARS[state.star]; if (conKey === s.id) return; conKey = s.id;
+  conG.children.slice().forEach(c => { conG.remove(c); c.geometry.dispose(); });
+  const c = CONS[s.con], c0 = c.s[s.key], cosd = Math.cos(c0[1]*Math.PI/180), pos = {};
+  for (const k in c.s){ const [ra, dec] = c.s[k]; pos[k] = skyDir(-(ra - c0[0])*15*cosd, dec - c0[1]); }
+  const pts = Object.keys(pos).filter(k => k !== s.key).map(k => pos[k]);
+  conG.add(new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.PointsMaterial({color:0xdfe6ff, size:3, sizeAttenuation:false, transparent:true, opacity:0.7})));
+  const seg = []; c.l.forEach(([a,b]) => seg.push(pos[a], pos[b]));
+  conG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),
+    new THREE.LineBasicMaterial({color:0x8fa6e0, transparent:true, opacity:0.3})));
+  let best = null; for (const k in pos){ if (!best || pos[k].y > best.y) best = pos[k]; }
+  conLabelPos.copy(best); conLabel.el.textContent = c.name;
+}
+function updateFarSwing(){
+  buildCon();
+  const a = starPos.clone().sub(new THREE.Vector3(ORBIT,0,0)).normalize().multiplyScalar(FAR);
+  const b = starPos.clone().sub(new THREE.Vector3(-ORBIT,0,0)).normalize().multiplyScalar(FAR);
+  const pa = farSwing.geometry.attributes.position;
+  pa.setXYZ(0,a.x,a.y,a.z); pa.setXYZ(1,b.x,b.y,b.z); pa.needsUpdate = true;
+  farSwing.geometry.computeBoundingSphere(); farSwing.computeLineDistances();
+}
+function setEarthView(on){
+  state.earthView = on;
+  $('#starOut').setAttribute('aria-pressed', !on); $('#starEarth').setAttribute('aria-pressed', on);
+  const keep = new Set([starMesh, starGlow, farG]);
+  starG.children.forEach(c => {
+    if (keep.has(c) || ghosts.includes(c)) return;
+    c.visible = !on;
+  });
+  farG.visible = on; controls.enabled = !on;
+  $('#earthHud').hidden = !on; $('#exaggerate').hidden = on || state.mode !== 'star'; $('#hint').hidden = on;
+  updateAll();
+  if (!on) fit(true);
+}
+
+/* ---------- labels ---------- */
+const labels = [];
+function addLabel(text, cls, getPos, mode, cond){
+  const el = document.createElement('div'); el.className = 'tag ' + cls; el.textContent = text;
+  overlay.appendChild(el); const l = {el, getPos, mode, cond}; labels.push(l); return l;
+}
+addLabel('광원', 'warm', () => new THREE.Vector3(0,0.2,0), 'light');
+addLabel('1 m² 판', 'warm', () => new THREE.Vector3(0,S*0.5+0.1,state.r*S), 'light');
+for (let k=1;k<=5;k++) addLabel(k + ' m', 'small', () => new THREE.Vector3(3.4, FLOOR_Y, k*S), 'light');
+addLabel('태양', 'warm', () => new THREE.Vector3(0,0.4,0), 'star');
+addLabel('지구', 'earth', () => earth.position.clone().setY(0.3), 'star');
+const starLabel = addLabel('', 'star', () => starPos.clone().setY(0.6), 'star'); starLabel.earth = true;
+addLabel('연주시차 p', 'warm', () => arcMid, 'star');
+addLabel('먼 배경 별에 비친 별의 위치', 'small', () => new THREE.Vector3(0,3.9,starPos.z-BACK), 'star');
+RULER_TICKS.forEach(d => addLabel(d + ' pc', 'small side', () => new THREE.Vector3(5.1,RULER_Y,-visD(d)), 'star'));
+addLabel('10 pc', 'abs side', () => new THREE.Vector3(5.1,RULER_Y,-visD(10)), 'star');
+STARS.forEach((s,i) => { addLabel(s.name, 'star', () => ghosts[i].position.clone().setY(0.45), 'star', () => state.sel.has(i) && i !== state.star).earth = true; });
+const conLabel = addLabel('', 'small', () => conLabelPos, 'star', () => state.earthView); conLabel.earth = true;
+const tmpV = new THREE.Vector3();
+function updateLabels(){
+  const w = stage.clientWidth, h = stage.clientHeight;
+  for (const l of labels){
+    if (l.mode !== state.mode || (l.cond && !l.cond()) || (state.mode === 'star' && state.earthView && !l.earth)){ l.el.hidden = true; continue; }
+    tmpV.copy(l.getPos()).project(camera);
+    if (tmpV.z > 1 || Math.abs(tmpV.x) > 1.1 || Math.abs(tmpV.y) > 1.1){ l.el.hidden = true; continue; }
+    l.el.hidden = false;
+    const off = l.el.classList.contains('side') ? 'translate(6px,-50%)' : 'translate(-50%,-120%)';
+    l.el.style.transform = `translate(${(tmpV.x+1)/2*w}px,${(1-tmpV.y)/2*h}px) ${off}`;
+  }
+}
+
+/* ---------- camera ---------- */
+const DIR_LIGHT = new THREE.Vector3(0.62,0.42,0.66).normalize();
+const DIR_STAR = new THREE.Vector3(1,0.75,0.25).normalize();
+function fit(resetDir){
+  let target, dist, dir;
+  if (state.mode === 'light'){ target = new THREE.Vector3(0,0,4.4); dist = 24; dir = DIR_LIGHT; }
+  else if (state.sel.size > 1){ const D = visD(state.d); target = new THREE.Vector3(0,0,-D*0.3); dist = 62; dir = DIR_STAR; }
+  else { const D = visD(state.d); target = new THREE.Vector3(0,0,-D*0.55); dist = D*1.9 + 10; dir = DIR_STAR; }
+  if (!resetDir) dir = camera.position.clone().sub(controls.target).normalize();
+  controls.target.copy(target);
+  camera.position.copy(target).add(dir.clone().multiplyScalar(dist));
+  controls.update();
+}
+
+function resize(){
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w/Math.max(1,h); camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ---------- UI ---------- */
+function setMode(m){
+  state.mode = m;
+  $('#modeLight').setAttribute('aria-pressed', m==='light');
+  $('#modeStar').setAttribute('aria-pressed', m==='star');
+  $('#lightPanel').hidden = m!=='light'; $('#starPanel').hidden = m!=='star';
+  $('#exaggerate').hidden = m!=='star'; $('#orbitBtn').hidden = m!=='star'; $('#hitBadge').hidden = m!=='light';
+  lightG.visible = m==='light'; starG.visible = m==='star';
+  stopWalk(); if (m==='star' && state.plateView) setPlateView(false);
+  if (m==='light' && state.earthView) setEarthView(false);
+  renderMissions(); updateAll(); if (!state.plateView && !state.earthView) fit(true);
+}
+$('#starOut').onclick = () => setEarthView(false);
+$('#starEarth').onclick = () => setEarthView(true);
+$('#modeLight').onclick = () => setMode('light');
+$('#modeStar').onclick = () => setMode('star');
+
+$('#power').oninput = e => { state.P = +e.target.value; updateAll(); };
+$('#dist').oninput = e => { stopWalk(); setR(+e.target.value); };
+function setR(r){ state.r = r; $('#dist').value = r; updateAll(); }
+let walk = 0;
+function stopWalk(){ walk = 0; $('#walkIn').textContent = '광원 쪽으로 걸어가기'; $('#walkOut').textContent = '뒤로 물러나기'; }
+$('#walkIn').onclick = () => { if (walk === -1) return stopWalk(); stopWalk(); if (state.r <= 1) return; walk = -1; $('#walkIn').textContent = '멈추기'; };
+$('#walkOut').onclick = () => { if (walk === 1) return stopWalk(); stopWalk(); if (state.r >= 5) return; walk = 1; $('#walkOut').textContent = '멈추기'; };
+$('#viewOut').onclick = () => setPlateView(false);
+$('#viewPlate').onclick = () => setPlateView(true);
+function setPlateView(on){
+  state.plateView = on;
+  $('#viewOut').setAttribute('aria-pressed', !on); $('#viewPlate').setAttribute('aria-pressed', on);
+  controls.enabled = !on; $('#hint').hidden = on;
+  updateAll();
+  if (!on) fit(true);
+}
+
+const chips = $('#starChips');
+STARS.forEach((s,i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = s.name;
+  b.onclick = () => toggleStar(i); chips.appendChild(b);
+});
+function toggleStar(i){
+  if (!state.sel.has(i)){ state.sel.add(i); selectStar(i); return; }
+  if (state.sel.size === 1) return; // keep at least one star
+  state.sel.delete(i);
+  if (i === state.star) selectStar([...state.sel].sort((a,b)=>a-b)[0]);
+  else { updateAll(); fit(false); }
+}
+function selectStar(i){
+  state.sel.add(i); state.star = i; state.d = STARS[i].d;
+  $('#sdist').value = Math.log10(state.d);
+  updateAll(); fit(false);
+}
+function renderSel(){
+  [...chips.children].forEach((b,j) => b.setAttribute('aria-pressed', state.sel.has(j)));
+  const list = $('#selList'); list.innerHTML = '';
+  const idx = [...state.sel].sort((a,b)=>a-b);
+  $('#selHint').hidden = idx.length < 2;
+  idx.forEach(i => {
+    const s = STARS[i], c = document.createElement('button');
+    c.type = 'button'; c.className = 'selcard' + (i === state.star ? ' on' : '');
+    c.setAttribute('aria-pressed', i === state.star);
+    const t = document.createElement('b'); t.textContent = s.name; c.appendChild(t);
+    if (idx.length > 1 && i === state.star){ const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = '중심 별'; c.appendChild(bd); }
+    const d = document.createElement('span'); d.className = 'desc'; d.textContent = s.note; c.appendChild(d);
+    c.onclick = () => { if (i !== state.star) selectStar(i); };
+    list.appendChild(c);
+  });
+}
+$('#selAll').onclick = () => { STARS.forEach((s,i) => state.sel.add(i)); updateAll(); fit(false); };
+$('#selOne').onclick = () => { state.sel = new Set([state.star]); updateAll(); fit(false); };
+$('#sdist').oninput = e => { state.d = Math.pow(10, +e.target.value); updateAll(); fit(false); };
+$('#resetDist').onclick = () => selectStar(state.star);
+$('#orbitBtn').onclick = e => {
+  state.orbiting = !state.orbiting;
+  e.target.textContent = state.orbiting ? '지구 공전 멈추기' : '지구 공전 다시 돌리기';
+};
+
+const sky = $('#sky');
+function drawSky(m, color){
+  const dpr = Math.min(window.devicePixelRatio||1, 2), w = sky.clientWidth, h = sky.clientHeight;
+  sky.width = w*dpr; sky.height = h*dpr;
+  const g = sky.getContext('2d'); g.scale(dpr,dpr);
+  g.fillStyle = '#070d22'; g.fillRect(0,0,w,h);
+  g.fillStyle = 'rgba(170,182,221,.5)';
+  for (let i=0;i<24;i++){ const x=(i*97)%w, y=(i*53)%h; g.fillRect(x,y,1,1); }
+  if (m <= 6){
+    const r = Math.max(1.2, 7.5 - 1.05*m);
+    const c = '#' + color.toString(16).padStart(6,'0');
+    const gr = g.createRadialGradient(w/2,h/2,0,w/2,h/2,r*2.6);
+    gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.35,c); gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(w/2,h/2,r*2.6,0,Math.PI*2); g.fill();
+  } else {
+    g.strokeStyle = 'rgba(150,162,198,.6)'; g.setLineDash([3,3]);
+    g.beginPath(); g.arc(w/2,h/2,9,0,Math.PI*2); g.stroke();
+  }
+}
+
+function updateAll(){
+  if (state.mode === 'light'){
+    const r = state.r, A = 4*Math.PI*r*r, F = state.P/A;
+    $('#powerOut').textContent = state.P + ' W';
+    $('#distOut').textContent = r.toFixed(1).replace(/\.0$/,'') + ' m';
+    $('#lArea').innerHTML = fmt(A) + ' m²';
+    $('#lFlux').innerHTML = fmt(F) + ' W/m²';
+    $('#lRatio').innerHTML = r === 1 ? '기준' : '1/' + fmt(r*r) + ' (거리 ' + fmt(r) + '배)';
+    updateLightScene();
+    $('#lRays').textContent = N + '개 (1개 = 0.25 W)';
+    $('#lHits').textContent = hitCount + '개 (약 ' + fmt(hitCount*W_PER_RAY) + ' W)';
+    $('#hitBadge').textContent = '판에 닿은 빛 점 ' + hitCount + '개  (거리 ' + r.toFixed(1) + ' m)';
+  } else {
+    const s = STARS[state.star], d = state.d;
+    const P = s.L*LSUN, A = 4*Math.PI*Math.pow(d*PC,2), F = P/A;
+    const m = s.M + 5*Math.log10(d/10), p = 1/d;
+    $('#sdistOut').innerHTML = fmt(d) + ' pc (' + fmt(d*LY_PER_PC) + ' 광년)';
+    $('#sPower').innerHTML = fmt(P) + ' W<br><span style="font-weight:400;color:var(--muted)">태양의 ' + fmt(s.L) + '배</span>';
+    $('#sFlux').innerHTML = fmt(F) + ' W/m²';
+    $('#sSun').innerHTML = ratioText(F/SOLAR);
+    { const k = Math.pow(s.d/d,2); $('#skyRel').innerHTML = (Math.abs(k-1) < 1e-3 ? '1' : fmt(k)) + '배'; }
+    { const ps = p >= 0.01 ? Number(p.toPrecision(3)) : Number(p.toPrecision(2));
+      $('#sParCalc').innerHTML = '<div class="calc">연주시차 = <b>' + ps + '″</b><br>별의 거리 = 1 ÷ ' + ps + ' = <b>' + fmt(1/ps) + ' pc</b><br><span class="sub">(약 ' + fmt(d*LY_PER_PC) + ' 광년)</span></div>'; }
+    $('#sMag').textContent = m.toFixed(2) + '등급';
+    $('#sAbs').textContent = s.M.toFixed(2) + '등급';
+    renderSel();
+    starLabel.el.textContent = s.name;
+    $('#skyCap').textContent = '지구에서 본 ' + s.name + ' · ' + (m > 6 ? '6등급보다 어두워 맨눈으로는 보이지 않아요.' : '맨눈으로 볼 수 있어요. (맨눈 한계 약 6등급)');
+    drawSky(m, s.color);
+    updateStarScene(); placeGhosts(); tickStar();
+  }
+}
+
+/* ---------- missions ---------- */
+const MISSIONS = {
+  light:[
+    '판을 들고 보기를 누른 뒤 5 m에서 광원 쪽으로 걸어가 보세요. 4 m, 2 m, 1 m에서 판에 닿은 빛 점은 각각 몇 개인가요?',
+    '거리를 1 m에서 2 m로 늘리면 1 m² 판에 도착하는 빛 줄기는 몇 분의 1이 될까요? 먼저 예측하고 확인해 보세요.',
+    '거리를 3배로 하면 단위면적당 에너지는 몇 분의 1이 되나요? 구의 겉넓이는 몇 배가 되었나요?',
+    '거리는 그대로 두고 에너지를 2배로 하면 단위면적당 에너지는 어떻게 바뀌나요?'
+  ],
+  star:[
+    '프록시마 센타우리와 시리우스 중 더 가까운 별은 무엇인가요? 더 밝게 보이는 별은요? 그 까닭은 무엇일까요?',
+    '시리우스와 미르잠은 하늘에서 비슷한 방향에 보여요. 어느 별이 더 밝게 보이나요? 두 별을 모두 10 pc로 옮기면 어느 별이 더 밝을까요?',
+    '시리우스를 실제보다 2배 먼 곳으로 옮기면 연주시차, 단위면적당 에너지, 겉보기 등급은 각각 어떻게 바뀌나요?',
+    '베텔게우스를 10 pc 거리로 옮겨 보세요. 이때 겉보기 등급과 절대 등급을 비교하면 어떤가요?',
+    '별을 멀리 옮길수록 먼 배경 별에 비친 별의 위치가 흔들리는 폭은 어떻게 되나요? 연주시차와 어떤 관계가 있을까요?'
+  ]
+};
+function store(k, v){ try{ if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); }catch(e){ return ''; } }
+function renderMissions(){
+  const list = $('#missionList'); list.innerHTML = '';
+  MISSIONS[state.mode].forEach((q,i) => {
+    const key = 'mission-' + state.mode + '-' + i;
+    const box = document.createElement('div'); box.className = 'mission';
+    const p = document.createElement('p'); p.textContent = (i+1) + '. ' + q;
+    const ta = document.createElement('textarea'); ta.placeholder = '예측하고, 확인한 결과를 적어 보세요';
+    ta.setAttribute('aria-label', (i+1) + '번 미션 답');
+    ta.value = store(key) || ''; ta.oninput = () => store(key, ta.value);
+    box.append(p, ta); list.appendChild(box);
+  });
+}
+
+/* ---------- loop ---------- */
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now;
+  if (state.mode === 'star'){
+    if (state.orbiting) state.orbitA += dt*(reduce ? 0.25 : 0.6);
+    tickStar();
+  }
+  if (state.mode === 'light' && walk){
+    let r = state.r + walk*dt*0.45;
+    if (r <= 1){ r = 1; stopWalk(); } else if (r >= 5){ r = 5; stopWalk(); }
+    setR(r);
+  }
+  if (state.mode === 'light' && state.plateView){
+    camera.position.set(0, 0.35, state.r*S + 2.6); camera.lookAt(0,0,0);
+  } else if (state.mode === 'star' && state.earthView){
+    camera.position.copy(earth.position); camera.lookAt(earth.position.x, 0, earth.position.z - 10);
+  } else controls.update();
+  renderer.render(scene, camera);
+  updateLabels();
+  requestAnimationFrame(loop);
+}
+
+resize();
+
+$('#sdist').value = Math.log10(state.d);
+setMode('light');
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
