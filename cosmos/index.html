@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>별과 우주 탐구</title>
+<title>멀어질수록 어두워지는 빛</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
@@ -37,11 +37,27 @@ body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 header{padding:12px 20px 10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 h1{font-size:1.35rem;margin:0;font-weight:700;letter-spacing:-0.01em}
 header p{margin:0;color:var(--muted);font-size:.92rem}
-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:0}
+main.with-missions{grid-template-columns:minmax(0,1fr) 360px 420px}
+.mtoggle{margin-left:auto!important;border-radius:10px!important;border:1px solid var(--line)!important;margin-bottom:6px!important;align-self:center}
+.mtoggle[aria-pressed="true"]{background:var(--chip-on)!important;color:var(--chip-on-ink)!important}
+.mhead{display:flex;justify-content:space-between;align-items:center}
+.mhead h2{margin:0;font-size:1.1rem}
+details.mset{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+details.mset summary{font-weight:700;cursor:pointer}
+details.mset[open]{border-color:var(--warm)}
+.objrow{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;font-size:.9rem}
+.objrow select{margin-left:auto;font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.tag.p1{color:#ff9a9a}.tag.p2{color:#9ad8ff}
+#parBadge{position:absolute;left:12px;top:10px;font-size:.95rem;font-weight:700;color:#e7ebf6;background:rgba(7,13,34,.8);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;font-variant-numeric:tabular-nums}
+@media (max-width:1200px){
+  main.with-missions{grid-template-columns:minmax(0,1fr) 420px}
+  main.with-missions > aside:not(#missionPanel){display:none}
+}
 .tabs{display:flex;gap:4px;padding:0 20px;border-bottom:1px solid var(--line);overflow-x:auto}
 .tabs button{flex:none;border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--muted);padding:8px 18px;border-radius:10px 10px 0 0;font:inherit;font-weight:600;cursor:pointer;margin-bottom:-1px}
 .tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);border-bottom:1px solid var(--panel)}
-#missionPage{flex:1;min-height:0;overflow-y:auto;background:var(--panel);padding:20px}
 .mwrap{max-width:760px;margin:0 auto}
 .mwrap h2{font-size:1.1rem;margin:22px 0 4px}
 .mwrap h2:first-child{margin-top:0}
@@ -134,26 +150,28 @@ summary{font-weight:700;cursor:pointer}
 .foot{font-size:.75rem;color:var(--muted);margin-top:14px}
 [hidden]{display:none!important}
 @media (max-width:860px){
-  main{grid-template-columns:1fr;grid-template-rows:56vh auto}
+  main,main.with-missions{grid-template-columns:1fr;grid-template-rows:56vh auto}
   aside{border-left:0;border-top:1px solid var(--line)}
 }
 </style>
 </head>
 <body>
 <header>
-  <h1>별과 우주</h1>
-  <p>도달할 수 없이 멀리 있는 별에 대한 정보를 지구에서 관측한 빛과 미세한 움직임만으로 어떻게 알아낼 수 있는가?</p>
+  <h1>멀어질수록 어두워지는 빛</h1>
+  <p>빛이 퍼지는 구의 넓이로 밝기가 거리의 제곱에 반비례함을 확인해요</p>
 </header>
 <nav class="tabs" role="tablist" aria-label="화면 바꾸기">
   <button type="button" role="tab" data-tab="light" aria-selected="true">💡 광원의 밝기</button>
+  <button type="button" role="tab" data-tab="parallax" aria-selected="false">👀 시차</button>
   <button type="button" role="tab" data-tab="star" aria-selected="false">⭐ 별</button>
-  <button type="button" role="tab" data-tab="mission" aria-selected="false">📝 탐구 미션</button>
+  <button type="button" class="mtoggle" id="missionToggle" aria-pressed="false">📝 탐구 미션</button>
 </nav>
 <main>
   <section id="stage" aria-label="3D 모형">
     <div id="overlay"></div>
     <div id="hint">드래그해서 돌리고, 휠이나 두 손가락으로 확대해요</div>
     <div id="hitBadge"></div>
+    <div id="parBadge" hidden></div>
     <div id="earthHud" hidden>지구에서 바라본 하늘이에요. 지구가 공전하면 가까운 별이 아주 먼 배경 별들 앞에서 좌우로 왔다 갔다 해요. 점선은 6개월 간격의 두 위치를 이은 길이고, 움직인 각도의 절반이 연주시차예요. (각도는 과장됨)</div>
     <div id="exaggerate" hidden>한 화면에 담기 위해 거리와 각도를 크게 과장해서 그렸어요. 거리 눈금은 1→10 pc, 10→100 pc, 100→1000 pc를 같은 길이로 줄여 그렸어요. <span style="color:#ff8cc6">분홍색 10 pc는 절대 등급을 정하는 기준 거리예요.</span> 오른쪽 숫자는 실제 값이에요.</div>
     <button id="orbitBtn" class="btn" type="button" hidden>지구 공전 멈추기</button>
@@ -198,6 +216,38 @@ summary{font-weight:700;cursor:pointer}
               <p class="sub" style="margin-top:6px">1 m²당 빛 줄기 수는 계산한 값이라, 화면의 판에 실제로 닿은 점 수와 조금 다를 수 있어요.</p>
             </div></details>
         </div>
+      </div>
+    </div>
+
+    <!-- 시차 모드 -->
+    <div id="parPanel" hidden>
+      <div class="seg viewseg" role="group" aria-label="보는 위치" style="margin-top:14px">
+        <button type="button" id="parOut" aria-pressed="true">🔭 전체 보기</button>
+        <button type="button" id="parEyeBtn" aria-pressed="false">👁 관측자 시선으로 보기</button>
+      </div>
+      <div class="group">
+        <div class="ctrl"><div class="row"><label for="ox">관측자 위치</label><output id="oxOut">0 m</output></div>
+          <input type="range" id="ox" min="-3" max="3" step="0.05" value="0">
+          <div class="ticks"><span>왼쪽 끝 −3 m</span><span>가운데</span><span>오른쪽 끝 +3 m</span></div></div>
+        <div class="btnrow"><button type="button" class="btn" id="parWalk">↔ 좌우로 움직이기</button></div>
+      </div>
+      <div class="group">
+        <h2>물체 놓기</h2>
+        <div class="objrow"><span class="dot" style="background:#ff6b6b"></span><label for="t1">물체 1</label><select id="t1"><option value="ball" selected>빨간 공</option><option value="tree">초록 나무</option><option value="pillar">파란 기둥</option><option value="flag">노란 깃발</option><option value="none">놓지 않기</option></select></div>
+        <div class="ctrl"><div class="row"><label for="d1">관측자에서의 거리</label><output id="d1Out">8 m</output></div>
+          <input type="range" id="d1" min="2" max="40" step="1" value="8">
+          <div class="ticks"><span>2 m</span><span>20 m</span><span>40 m</span></div></div>
+        <div class="objrow"><span class="dot" style="background:#6fc8ff"></span><label for="t2">물체 2</label><select id="t2"><option value="ball">빨간 공</option><option value="tree" selected>초록 나무</option><option value="pillar">파란 기둥</option><option value="flag">노란 깃발</option><option value="none">놓지 않기</option></select></div>
+        <div class="ctrl"><div class="row"><label for="d2">관측자에서의 거리</label><output id="d2Out">20 m</output></div>
+          <input type="range" id="d2" min="2" max="40" step="1" value="20">
+          <div class="ticks"><span>2 m</span><span>20 m</span><span>40 m</span></div></div>
+      </div>
+      <div class="group">
+        <h2>관측 결과</h2>
+        <div class="tblwrap"><table class="dtbl">
+          <thead><tr><th>물체</th><th>거리</th><th>배경 눈금</th><th>양 끝 각도 차이</th><th>시차</th></tr></thead>
+          <tbody id="parTbody"></tbody></table></div>
+        <p class="sub" style="margin-top:6px">배경 벽은 관측자에서 60 m 떨어져 있어요. 관측자가 양 끝(−3 m, +3 m)에서 본 방향의 각도 차이의 절반을 시차라고 해요.</p>
       </div>
     </div>
 
@@ -251,19 +301,18 @@ summary{font-weight:700;cursor:pointer}
       </div>
     </div>
 
-    <p class="foot">별의 거리·에너지·등급은 대략적인 값이에요. 겉보기 등급은 실제 관측 등급을 바탕으로 거리만 바꿔 계산해요. 여러 별을 함께 볼 때 별의 방향은 실제 하늘에서의 방향을 따랐고(거리는 줄여서 그림), 고른 별이 늘 정면에 오도록 돌려서 그려요. 연주시차는 단순하게 좌우 움직임으로 그렸어요.</p>
+    <p class="foot" id="starFoot">별의 거리·에너지·등급은 대략적인 값이에요. 겉보기 등급은 실제 관측 등급을 바탕으로 거리만 바꿔 계산해요. 여러 별을 함께 볼 때 별의 방향은 실제 하늘에서의 방향을 따랐고(거리는 줄여서 그림), 고른 별이 늘 정면에 오도록 돌려서 그려요. 연주시차는 단순하게 좌우 움직임으로 그렸어요.</p>
+  </aside>
+  <aside id="missionPanel" hidden>
+    <div class="mhead"><h2>📝 탐구 미션</h2><button type="button" class="btn" id="missionClose">닫기</button></div>
+    <p class="sub">탐구할 주제를 눌러 미션을 펼쳐 보세요. 화면을 조작하면서 답을 적을 수 있어요.</p>
+    <details class="mset" data-set="light"><summary>💡 광원의 밝기 탐구</summary><div id="missionLight"></div></details>
+    <details class="mset" data-set="parallax"><summary>👀 시차 탐구</summary><div id="missionParallax"></div></details>
+    <details class="mset" data-set="star"><summary>⭐ 별의 탐구</summary><div id="missionStar"></div></details>
+    <p class="foot">적은 내용은 이 기기의 브라우저에만 남아요.</p>
   </aside>
 </main>
 
-<section id="missionPage" hidden>
-  <div class="mwrap">
-    <h2>💡 광원의 밝기</h2>
-    <div id="missionLight"></div>
-    <h2>⭐ 별</h2>
-    <div id="missionStar"></div>
-    <p class="foot">적은 내용은 이 기기의 브라우저에만 남아요.</p>
-  </div>
-</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -303,7 +352,7 @@ const CON_OF = {proxima:['cen','prx'], sirius:['cma','sir'], mirzam:['cma','mir'
 STARS.forEach(s => { s.con = CON_OF[s.id][0]; s.key = CON_OF[s.id][1]; });
 STARS.forEach(s => s.M = s.m - 5*Math.log10(s.d/10));
 
-const state = { mode:'light', P:500, r:1, star:1, d:STARS[1].d, orbiting:true, orbitA:0.6, plateView:false, sel:new Set([1]), earthView:false };
+const state = { mode:'light', P:500, r:1, star:1, d:STARS[1].d, orbiting:true, orbitA:0.6, plateView:false, sel:new Set([1]), earthView:false, ox:0, parEye:false, parWalk:0 };
 
 /* ---------- number formatting ---------- */
 function fmt(x, sig=3){
@@ -667,6 +716,92 @@ function setEarthView(on){
   if (!on) fit(true);
 }
 
+/* ---------- PARALLAX MODE ---------- */
+const parG = new THREE.Group(); parG.visible = false; scene.add(parG);
+const WALL = 60, EYE = 1.5, TRACK = 3, WALL_W = 140, WALL_H = 140*640/2048;
+const pGrid = new THREE.GridHelper(140, 70, 0x3a4a80, 0x1c2850);
+pGrid.material.transparent = true; pGrid.material.opacity = 0.45; pGrid.position.set(0,0,-30); parG.add(pGrid);
+const wallTex = (() => {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 640; const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0,0,0,640); gr.addColorStop(0,'#0a1230'); gr.addColorStop(1,'#22336a');
+  g.fillStyle = gr; g.fillRect(0,0,2048,640);
+  g.fillStyle = 'rgba(225,232,255,.75)';
+  for (let i=0;i<320;i++){ const r = Math.random() < 0.1 ? 2.4 : 1.3; g.fillRect(Math.random()*2048, Math.random()*320, r, r); }
+  g.fillStyle = '#16224d'; g.beginPath(); g.moveTo(0,470);
+  for (let x=0;x<=2048;x+=32){ g.lineTo(x, 340 + 80*Math.abs(Math.sin(x*0.004)) + 35*Math.sin(x*0.017)); }
+  g.lineTo(2048,470); g.closePath(); g.fill();
+  g.fillStyle = '#0c1533'; g.fillRect(0,470,2048,170);
+  g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0,520); g.lineTo(2048,520); g.stroke();
+  g.textAlign = 'center'; g.font = 'bold 30px sans-serif';
+  for (let m=-70;m<=70;m+=2){
+    const px = (m+70)*2048/140, big = m%10 === 0;
+    g.strokeStyle = big ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.4)'; g.lineWidth = big ? 3 : 1.5;
+    g.beginPath(); g.moveTo(px,520); g.lineTo(px, big ? 478 : 502); g.stroke();
+    if (big){ g.fillStyle = '#e7ebf6'; g.fillText(String(m), px, 565); }
+  }
+  const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+})();
+const wallMesh = new THREE.Mesh(new THREE.PlaneGeometry(WALL_W, WALL_H), new THREE.MeshBasicMaterial({map:wallTex}));
+wallMesh.position.set(0, 0.6 - WALL_H*(640-520)/640 + WALL_H/2, -WALL); parG.add(wallMesh);
+const obsG = new THREE.Group(); parG.add(obsG);
+obsG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.3,1.2,16), new THREE.MeshBasicMaterial({color:0x2f8f7f})));
+obsG.children[0].position.y = 0.6;
+const headM = new THREE.Mesh(new THREE.SphereGeometry(0.24,16,12), new THREE.MeshBasicMaterial({color:0x9fe6d6})); headM.position.y = EYE; obsG.add(headM);
+parG.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(-TRACK,0.03,0), new THREE.Vector3(TRACK,0.03,0),
+  new THREE.Vector3(-TRACK,0.03,-0.4), new THREE.Vector3(-TRACK,0.03,0.4),
+  new THREE.Vector3(TRACK,0.03,-0.4), new THREE.Vector3(TRACK,0.03,0.4)
+]), new THREE.LineBasicMaterial({color:0x57c4b0})));
+const OBJ_NAMES = {ball:'빨간 공', tree:'초록 나무', pillar:'파란 기둥', flag:'노란 깃발'};
+const SLOT_COL = [0xff6b6b, 0x6fc8ff];
+function basic(geo, color, y, x){ const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color})); m.position.set(x||0, y, 0); return m; }
+function makeObj(type){
+  const g = new THREE.Group();
+  if (type === 'ball') g.add(basic(new THREE.SphereGeometry(0.45,24,16), 0xff5a5a, EYE));
+  if (type === 'tree'){ g.add(basic(new THREE.CylinderGeometry(0.12,0.16,1.0,10), 0x8a5a3c, 0.5)); g.add(basic(new THREE.ConeGeometry(0.75,2.2,16), 0x3fae5a, 2.1)); }
+  if (type === 'pillar') g.add(basic(new THREE.BoxGeometry(0.5,3,0.5), 0x4d8cff, 1.5));
+  if (type === 'flag'){ g.add(basic(new THREE.CylinderGeometry(0.05,0.05,2.6,8), 0xdfe6ff, 1.3)); g.add(basic(new THREE.BoxGeometry(0.9,0.55,0.04), 0xffd34d, 2.25, 0.45)); }
+  return g;
+}
+const slots = [{type:'ball', d:8, x:-1}, {type:'tree', d:20, x:1}].map((sl,i) => {
+  sl.g = new THREE.Group(); sl.built = '';
+  sl.line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+    new THREE.LineDashedMaterial({color:SLOT_COL[i], dashSize:1, gapSize:0.6, transparent:true, opacity:0.85}));
+  sl.mark = glow(SLOT_COL[i], 2.4); sl.wallP = new THREE.Vector3();
+  parG.add(sl.g, sl.line, sl.mark); return sl;
+});
+function wallPointAt(ex, sl){ const t = WALL/sl.d; return new THREE.Vector3(ex + (sl.x - ex)*t, EYE, -WALL + 0.05); }
+function updatePar(){
+  obsG.position.x = state.ox; obsG.visible = !state.parEye;
+  const eye = new THREE.Vector3(state.ox, EYE, 0), rows = [], badge = [];
+  $('#oxOut').textContent = (state.ox > 0 ? '+' : '') + state.ox.toFixed(1) + ' m';
+  slots.forEach((sl,i) => {
+    const on = sl.type !== 'none';
+    $('#d' + (i+1) + 'Out').textContent = sl.d + ' m';
+    if (sl.built !== sl.type){ sl.g.children.slice().forEach(c => sl.g.remove(c)); if (on) sl.g.add(makeObj(sl.type)); sl.built = sl.type; }
+    sl.g.position.set(sl.x, 0, -sl.d);
+    sl.g.visible = on; sl.line.visible = sl.mark.visible = on && !state.parEye;
+    if (!on) return;
+    sl.wallP.copy(wallPointAt(state.ox, sl)); sl.mark.position.copy(sl.wallP);
+    setLine(sl.line, eye, sl.wallP);
+    sl.label.el.textContent = OBJ_NAMES[sl.type];
+    sl.wlabel.el.textContent = sl.wallP.x.toFixed(1);
+    const diff = (Math.atan2(sl.x + TRACK, sl.d) - Math.atan2(sl.x - TRACK, sl.d))*180/Math.PI;
+    const col = i === 0 ? '#ff6b6b' : '#6fc8ff';
+    rows.push('<tr><td><span class="dot" style="display:inline-block;background:' + col + ';margin-right:4px"></span>' + OBJ_NAMES[sl.type] + '</td><td>' + sl.d + ' m</td><td class="cur">' + sl.wallP.x.toFixed(1) + '</td><td>' + diff.toFixed(1) + '°</td><td class="cur">' + (diff/2).toFixed(1) + '°</td></tr>');
+    badge.push(OBJ_NAMES[sl.type] + ' ' + sl.wallP.x.toFixed(1));
+  });
+  $('#parTbody').innerHTML = rows.join('') || '<tr><td colspan="5">물체를 놓아 보세요.</td></tr>';
+  $('#parBadge').textContent = badge.length ? '배경 눈금 · ' + badge.join(' · ') : '물체를 놓아 보세요';
+}
+function setParEye(on){
+  state.parEye = on;
+  $('#parOut').setAttribute('aria-pressed', !on); $('#parEyeBtn').setAttribute('aria-pressed', on);
+  controls.enabled = !on; $('#hint').hidden = on;
+  updatePar();
+  if (!on) fit(true);
+}
+
 /* ---------- labels ---------- */
 const labels = [];
 function addLabel(text, cls, getPos, mode, cond){
@@ -685,11 +820,17 @@ RULER_TICKS.forEach(d => addLabel(d + ' pc', 'small side', () => new THREE.Vecto
 addLabel('10 pc', 'abs side', () => new THREE.Vector3(5.1,RULER_Y,-visD(10)), 'star');
 STARS.forEach((s,i) => { addLabel(s.name, 'star', () => ghosts[i].position.clone().setY(0.45), 'star', () => state.sel.has(i) && i !== state.star).earth = true; });
 const conLabel = addLabel('', 'small', () => conLabelPos, 'star', () => state.earthView); conLabel.earth = true;
+addLabel('관측자', 'earth', () => new THREE.Vector3(state.ox, 2.2, 0), 'parallax');
+slots.forEach((sl,i) => {
+  sl.label = addLabel('', 'p' + (i+1), () => new THREE.Vector3(sl.x, sl.type === 'tree' ? 3.4 : (sl.type === 'pillar' || sl.type === 'flag') ? 3.2 : 2.2, -sl.d), 'parallax', () => sl.type !== 'none');
+  sl.label.eye = true;
+  sl.wlabel = addLabel('', 'p' + (i+1), () => sl.wallP.clone().setY(EYE + 1.6), 'parallax', () => sl.type !== 'none');
+});
 const tmpV = new THREE.Vector3();
 function updateLabels(){
   const w = stage.clientWidth, h = stage.clientHeight;
   for (const l of labels){
-    if (l.mode !== state.mode || (l.cond && !l.cond()) || (state.mode === 'star' && state.earthView && !l.earth)){ l.el.hidden = true; continue; }
+    if (l.mode !== state.mode || (l.cond && !l.cond()) || (state.mode === 'star' && state.earthView && !l.earth) || (state.mode === 'parallax' && state.parEye && !l.eye)){ l.el.hidden = true; continue; }
     tmpV.copy(l.getPos()).project(camera);
     if (tmpV.z > 1 || Math.abs(tmpV.x) > 1.1 || Math.abs(tmpV.y) > 1.1){ l.el.hidden = true; continue; }
     l.el.hidden = false;
@@ -700,10 +841,12 @@ function updateLabels(){
 
 /* ---------- camera ---------- */
 const DIR_LIGHT = new THREE.Vector3(0.62,0.42,0.66).normalize();
+const DIR_PAR = new THREE.Vector3(0.75,0.6,0.5).normalize();
 const DIR_STAR = new THREE.Vector3(1,0.75,0.25).normalize();
 function fit(resetDir){
   let target, dist, dir;
-  if (state.mode === 'light'){ target = new THREE.Vector3(0,0,4.4); dist = 24; dir = DIR_LIGHT; }
+  if (state.mode === 'parallax'){ target = new THREE.Vector3(0,2,-24); dist = 74; dir = DIR_PAR; }
+  else if (state.mode === 'light'){ target = new THREE.Vector3(0,0,4.4); dist = 24; dir = DIR_LIGHT; }
   else if (state.sel.size > 1){ const D = visD(state.d); target = new THREE.Vector3(0,0,-D*0.3); dist = 62; dir = DIR_STAR; }
   else { const D = visD(state.d); target = new THREE.Vector3(0,0,-D*0.55); dist = D*1.9 + 10; dir = DIR_STAR; }
   if (!resetDir) dir = camera.position.clone().sub(controls.target).normalize();
@@ -721,22 +864,45 @@ new ResizeObserver(resize).observe(stage);
 /* ---------- UI ---------- */
 function setMode(m){
   state.mode = m;
-  $('#lightPanel').hidden = m!=='light'; $('#starPanel').hidden = m!=='star';
+  $('#lightPanel').hidden = m!=='light'; $('#starPanel').hidden = m!=='star'; $('#parPanel').hidden = m!=='parallax';
+  $('#starFoot').hidden = m!=='star'; $('#parBadge').hidden = m!=='parallax';
   $('#exaggerate').hidden = m!=='star'; $('#orbitBtn').hidden = m!=='star'; $('#hitBadge').hidden = m!=='light';
-  lightG.visible = m==='light'; starG.visible = m==='star';
-  stopWalk(); if (m==='star' && state.plateView) setPlateView(false);
-  if (m==='light' && state.earthView) setEarthView(false);
-  updateAll(); if (!state.plateView && !state.earthView) fit(true);
+  lightG.visible = m==='light'; starG.visible = m==='star'; parG.visible = m==='parallax';
+  stopWalk(); stopParWalk(); if (m!=='light' && state.plateView) setPlateView(false);
+  if (m!=='parallax' && state.parEye) setParEye(false);
+  if (m!=='star' && state.earthView) setEarthView(false);
+  updateAll(); if (!state.plateView && !state.earthView && !state.parEye) fit(true);
 }
 $('#starOut').onclick = () => setEarthView(false);
 $('#starEarth').onclick = () => setEarthView(true);
 function setTab(t){
-  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-  const mis = t === 'mission';
-  document.querySelector('main').hidden = mis; $('#missionPage').hidden = !mis;
-  if (!mis) setMode(t);
+  document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  setMode(t);
 }
-document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function setMissions(on){
+  $('#missionToggle').setAttribute('aria-pressed', on);
+  document.querySelector('main').classList.toggle('with-missions', on);
+  $('#missionPanel').hidden = !on;
+  if (on) document.querySelectorAll('details.mset').forEach(d => d.open = d.dataset.set === state.mode);
+}
+$('#missionToggle').onclick = () => setMissions($('#missionPanel').hidden);
+$('#missionClose').onclick = () => setMissions(false);
+document.querySelectorAll('details.mset').forEach(d => d.addEventListener('toggle', () => {
+  if (d.open) document.querySelectorAll('details.mset').forEach(o => { if (o !== d) o.open = false; });
+}));
+$('#parOut').onclick = () => setParEye(false);
+$('#parEyeBtn').onclick = () => setParEye(true);
+function stopParWalk(){ state.parWalk = 0; $('#parWalk').textContent = '↔ 좌우로 움직이기'; }
+$('#parWalk').onclick = () => {
+  if (state.parWalk) return stopParWalk();
+  state.parWalk = 1; $('#parWalk').textContent = '■ 멈추기';
+};
+$('#ox').oninput = e => { stopParWalk(); state.ox = +e.target.value; updatePar(); };
+[1,2].forEach(i => {
+  $('#t' + i).onchange = e => { slots[i-1].type = e.target.value; updatePar(); };
+  $('#d' + i).oninput = e => { slots[i-1].d = +e.target.value; updatePar(); };
+});
 
 $('#power').oninput = e => { state.P = +e.target.value; updateAll(); };
 $('#dist').oninput = e => { stopWalk(); setR(+e.target.value); };
@@ -818,6 +984,7 @@ function drawSky(m, color){
 }
 
 function updateAll(){
+  if (state.mode === 'parallax'){ updatePar(); return; }
   if (state.mode === 'light'){
     const r = state.r, A = 4*Math.PI*r*r, F = state.P/A;
     $('#powerOut').textContent = state.P + ' W';
@@ -865,6 +1032,12 @@ const MISSIONS = {
     '거리를 3배로 하면 단위면적당 에너지는 몇 분의 1이 되나요? 구의 겉넓이는 몇 배가 되었나요?',
     '거리는 그대로 두고 에너지를 2배로 하면 단위면적당 에너지는 어떻게 바뀌나요?'
   ],
+  parallax:[
+    '관측자 시선으로 보기에서 관측자를 왼쪽 끝에서 오른쪽 끝으로 옮겨 보세요. 배경에 대해 물체는 어느 쪽으로 움직여 보이나요?',
+    '가까운 물체와 먼 물체 중 배경에 대해 더 많이 움직여 보이는 것은 무엇인가요? 관측 결과 표의 시차로 확인해 보세요.',
+    '물체의 거리를 2배로 늘리면 시차는 어떻게 바뀌나요? 여러 거리에서 시차를 재어 보고 규칙을 찾아보세요.',
+    '관측자가 움직이는 길이 지구의 공전 궤도라면, 이 실험의 물체와 배경 벽은 각각 무엇에 해당할까요?'
+  ],
   star:[
     '프록시마 센타우리와 시리우스 중 더 가까운 별은 무엇인가요? 더 밝게 보이는 별은요? 그 까닭은 무엇일까요?',
     '시리우스와 미르잠은 하늘에서 비슷한 방향에 보여요. 어느 별이 더 밝게 보이나요? 두 별을 모두 10 pc로 옮기면 어느 별이 더 밝을까요?',
@@ -874,7 +1047,7 @@ const MISSIONS = {
   ]
 };
 function store(k, v){ try{ if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); }catch(e){ return ''; } }
-function renderMissions(){ renderMissionSet('light', $('#missionLight')); renderMissionSet('star', $('#missionStar')); }
+function renderMissions(){ renderMissionSet('light', $('#missionLight')); renderMissionSet('parallax', $('#missionParallax')); renderMissionSet('star', $('#missionStar')); }
 function renderMissionSet(mode, list){
   list.innerHTML = '';
   MISSIONS[mode].forEach((q,i) => {
@@ -897,12 +1070,19 @@ function loop(now){
     if (state.orbiting) state.orbitA += dt*(reduce ? 0.25 : 0.6);
     tickStar();
   }
+  if (state.mode === 'parallax' && state.parWalk){
+    let x = state.ox + state.parWalk*dt*1.5;
+    if (x >= TRACK){ x = TRACK; state.parWalk = -1; } else if (x <= -TRACK){ x = -TRACK; state.parWalk = 1; }
+    state.ox = x; $('#ox').value = x; updatePar();
+  }
   if (state.mode === 'light' && walk){
     let r = state.r + walk*dt*0.45;
     if (r <= 1){ r = 1; stopWalk(); } else if (r >= 5){ r = 5; stopWalk(); }
     setR(r);
   }
-  if (state.mode === 'light' && state.plateView){
+  if (state.mode === 'parallax' && state.parEye){
+    camera.position.set(state.ox, EYE, 0); camera.lookAt(state.ox, EYE, -10);
+  } else if (state.mode === 'light' && state.plateView){
     camera.position.set(0, 0.35, state.r*S + 2.6); camera.lookAt(0,0,0);
   } else if (state.mode === 'star' && state.earthView){
     camera.position.copy(earth.position); camera.lookAt(earth.position.x, 0, earth.position.z - 10);
