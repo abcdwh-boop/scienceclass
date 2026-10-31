@@ -49,6 +49,56 @@ details.mset[open]{border-color:var(--warm)}
 .objrow{display:flex;align-items:center;gap:8px;margin:12px 0 4px;font-weight:600;font-size:.9rem}
 .objrow select{margin-left:auto;font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
 .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.page{flex:1;min-height:0;overflow-y:auto;background:var(--bg);padding:22px 20px 40px}
+.pwrap{max-width:1200px;margin:0 auto}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.hero h2{margin:0 0 8px;font-size:1.35rem}
+.hero p{margin:0 0 8px;max-width:72ch}
+.introgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+.introcard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:16px;font:inherit;cursor:pointer}
+.introcard:hover{border-color:var(--warm)}
+.introcard .ic{font-size:1.8rem}
+.introcard b{font-size:1.05rem}
+.introcard span:not(.ic){font-size:.88rem;color:var(--muted);flex:1}
+.introcard em{font-style:normal;font-size:.85rem;font-weight:600;color:var(--warm)}
+.tip{margin-top:16px;font-size:.9rem;color:var(--muted)}
+.stargrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px;align-items:start}
+.scard{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.scard:hover{border-color:var(--warm)}
+.scard.sun{border-style:dashed}
+.scard .others{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+.scard .more{display:inline-block;margin-top:8px;font-size:.84rem;font-weight:700;color:var(--warm)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,9,25,.72);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px))}
+.mbox{position:relative;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:18px;max-width:1040px;width:100%;max-height:100%;overflow-y:auto;padding:20px 22px}
+.mclose{position:absolute;right:14px;top:12px}
+.mhero{display:flex;gap:16px;align-items:center;padding-right:90px}
+.mhero h2{margin:0 0 4px;font-size:1.4rem}
+.mhero p{margin:6px 0 0;font-size:.92rem}
+.bigglow{width:96px;height:96px;border-radius:50%;flex:none;background:#070d22;position:relative;overflow:hidden}
+.bigglow i{position:absolute;inset:0}
+.mgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;margin-top:16px}
+.msub{font-size:.95rem;margin:0 0 6px}
+.spec.big{height:240px}
+.conCanvas{width:100%;height:320px;background:#070d22;border-radius:12px;display:block}
+@media (max-width:760px){.mgrid{grid-template-columns:1fr}.conCanvas{height:260px}.mhero{padding-right:0;flex-wrap:wrap;margin-top:28px}.bigglow{width:72px;height:72px}}
+.scard .top{display:flex;align-items:center;gap:12px}
+.sglow{width:58px;height:58px;border-radius:50%;flex:none;background:#070d22;position:relative;overflow:hidden}
+.sglow i{position:absolute;inset:0}
+.scard h3{margin:0;font-size:1.05rem}
+.scard .meta{font-size:.8rem;color:var(--muted)}
+.tbadge{display:inline-block;font-size:.75rem;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--chip);margin-right:4px}
+.scard .desc{font-size:.86rem;margin:10px 0 0}
+.scard details{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.scard summary{cursor:pointer;font-weight:700;font-size:.88rem;color:var(--warm)}
+.spec{width:100%;height:170px;display:block;border-radius:10px;background:#0b1430;margin-top:8px}
+.seen{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:.88rem}
+.seen .sw{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);flex:none}
+.scard .kv b{color:var(--ink)}
+.why{font-size:.83rem;color:var(--muted);margin:8px 0 0}
+.tag.pval{font-size:.72rem;color:#ffd875}
+@media (max-width:1100px){.introgrid,.stargrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.introgrid,.stargrid{grid-template-columns:1fr}}
+@media (max-width:860px){.page{flex:none;overflow:visible;padding:14px 12px 30px}}
 .tag.p1{color:#ff9a9a}.tag.p2{color:#9ad8ff}
 #parBadge{position:absolute;left:12px;top:10px;font-size:.95rem;font-weight:700;color:#e7ebf6;background:rgba(7,13,34,.8);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:6px 12px;font-variant-numeric:tabular-nums}
 @media (max-width:1200px){
@@ -67,6 +117,8 @@ details.mset[open]{border-color:var(--warm)}
 .dtbl th{font-weight:600;color:var(--muted)}
 .dtbl th:first-child,.dtbl td:first-child{text-align:left;color:var(--muted);white-space:normal}
 .dtbl td.cur{color:var(--warm);font-weight:700}
+.dtbl th.absc,.dtbl td.absc{color:var(--abs);font-weight:700}
+#cmpSky{width:100%;height:124px;border-radius:10px;background:#070d22;display:block;margin-top:4px}
 #stage{position:relative;background:var(--space);min-height:320px;overflow:hidden}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
 #overlay{position:absolute;inset:0;pointer-events:none}
@@ -150,8 +202,17 @@ summary{font-weight:700;cursor:pointer}
 .foot{font-size:.75rem;color:var(--muted);margin-top:14px}
 [hidden]{display:none!important}
 @media (max-width:860px){
-  main,main.with-missions{grid-template-columns:1fr;grid-template-rows:56vh auto}
-  aside{border-left:0;border-top:1px solid var(--line)}
+  body{height:auto;min-height:100%}
+  main,main.with-missions{flex:none;grid-template-columns:1fr;grid-template-rows:auto auto}
+  #stage{height:38vh;min-height:230px}
+  aside{border-left:0;border-top:1px solid var(--line);overflow:visible}
+  header{padding:10px 14px 8px}
+  header p{font-size:.82rem}
+  .tabs{padding:0 10px}
+  .tabs button{padding:7px 12px;font-size:.9rem}
+  #hint{display:none}
+  #exaggerate,#earthHud{font-size:.7rem;padding:6px 9px;max-width:75%}
+  #hitBadge,#parBadge{font-size:.8rem;padding:4px 9px}
 }
 </style>
 </head>
@@ -161,9 +222,11 @@ summary{font-weight:700;cursor:pointer}
   <p>빛이 퍼지는 구의 넓이로 밝기가 거리의 제곱에 반비례함을 확인해요</p>
 </header>
 <nav class="tabs" role="tablist" aria-label="화면 바꾸기">
-  <button type="button" role="tab" data-tab="light" aria-selected="true">💡 광원의 밝기</button>
+  <button type="button" role="tab" data-tab="intro" aria-selected="true">🌌 소개</button>
   <button type="button" role="tab" data-tab="parallax" aria-selected="false">👀 시차</button>
+  <button type="button" role="tab" data-tab="light" aria-selected="false">💡 광원의 밝기</button>
   <button type="button" role="tab" data-tab="star" aria-selected="false">⭐ 별</button>
+  <button type="button" role="tab" data-tab="color" aria-selected="false">🌈 별의 색과 온도</button>
   <button type="button" class="mtoggle" id="missionToggle" aria-pressed="false">📝 탐구 미션</button>
 </nav>
 <main>
@@ -281,7 +344,16 @@ summary{font-weight:700;cursor:pointer}
         <button type="button" class="btn" id="resetDist">실제 거리로 되돌리기</button>
       </div>
       <div class="group">
-        <h2>궁금한 값 열어 보기</h2>
+        <h2>10 pc에서 비교하기</h2>
+        <details class="reveal part" id="cmpBox" open><summary><span><b>선택한 별들을 모두 10 pc에 두면?</b><span class="sub">10 pc에서 보이는 등급 = 절대 등급</span></span></summary>
+          <div class="val left">
+            <p class="sub" id="cmpMsg" style="margin:0 0 4px"></p>
+            <canvas id="cmpSky" aria-label="10 pc에 둔 별들의 밝기 비교"></canvas>
+            <div class="tblwrap"><table class="dtbl">
+              <thead><tr><th>별</th><th>실제 겉보기 등급</th><th class="absc">10 pc에서 등급</th></tr></thead>
+              <tbody id="cmpBody"></tbody></table></div>
+          </div></details>
+        <h2 style="margin-top:18px">궁금한 값 열어 보기</h2>
         <div class="reveals">
           <details class="reveal part"><summary><span><b>① 연주시차로 별의 거리 구하기</b><span class="sub">별의 거리(pc) = 1 ÷ 연주시차(″)</span></span></summary>
             <div class="val left" id="sParCalc"></div></details>
@@ -313,6 +385,58 @@ summary{font-weight:700;cursor:pointer}
   </aside>
 </main>
 
+<section id="pageIntro" class="page" hidden>
+  <div class="pwrap">
+    <div class="hero">
+      <h2>별과 우주에 대해 알아보자</h2>
+      <p>밤하늘의 별은 모두 비슷한 점처럼 보이지만, 거리도, 밝기도, 색도 제각각이에요. 별은 너무 멀어서 직접 가 볼 수 없는데, 과학자들은 어떻게 별까지의 거리와 진짜 밝기, 온도를 알아냈을까요? 이 탐구실에서 직접 조작하며 답을 찾아봐요.</p>
+    </div>
+    <div class="introgrid">
+      <button type="button" class="introcard" data-go="parallax"><span class="ic">👀</span><b>시차</b><span>보는 위치를 바꾸면 가까운 물체는 왜 배경 앞에서 움직여 보일까?</span><em>탐구하러 가기 →</em></button>
+      <button type="button" class="introcard" data-go="light"><span class="ic">💡</span><b>광원의 밝기</b><span>빛은 멀어질수록 왜 어두워질까? 거리가 2배가 되면 밝기는 얼마나 줄어들까?</span><em>탐구하러 가기 →</em></button>
+      <button type="button" class="introcard" data-go="star"><span class="ic">⭐</span><b>별</b><span>연주시차로 별까지의 거리를 어떻게 잴까? 별의 진짜 밝기는 어떻게 비교할까?</span><em>탐구하러 가기 →</em></button>
+      <button type="button" class="introcard" data-go="color"><span class="ic">🌈</span><b>별의 색과 온도</b><span>별의 색은 별에 대해 무엇을 알려 줄까? 파란 별과 붉은 별 중 더 뜨거운 별은?</span><em>탐구하러 가기 →</em></button>
+    </div>
+    <p class="tip">💬 시차, 광원의 밝기, 별 화면에서는 오른쪽 위의 <b>📝 탐구 미션</b>을 열어 먼저 예측하고, 조작해 본 뒤 확인한 내용을 적어 보세요.</p>
+  </div>
+</section>
+
+<section id="pageColor" class="page" hidden>
+  <div class="pwrap">
+    <div class="hero">
+      <h2>별의 색과 온도</h2>
+      <p>별은 온도에 따라 여러 파장의 빛을 서로 다른 세기로 내보내요. 뜨거운 별일수록 세기가 가장 큰 파장(봉우리)이 짧은 쪽, 즉 파란 쪽으로 옮겨 가요. 그런데 우리 눈은 가시광선만 볼 수 있고, 그중에서도 초록~노랑 빛(약 555 nm)에 가장 민감해요. 그래서 별의 색은 <b>가시광선 안에서 어느 쪽 빛이 더 센지</b>와 <b>눈의 민감도</b>를 함께 따져서 정해져요.</p>
+      <p class="sub">별 카드를 누르면 큰 창이 열리고, 표면 온도에 따른 빛의 파장 분포 그래프, 우리 눈에 보이는 색, 그 별이 속한 별자리 그림을 볼 수 있어요. 온도는 대략적인 값이에요.</p>
+    </div>
+    <div class="stargrid" id="starGrid"></div>
+  </div>
+</section>
+
+
+<div id="starModal" class="modal" hidden>
+  <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="mName">
+    <button type="button" class="btn mclose" id="mClose" aria-label="닫기">✕ 닫기</button>
+    <div class="mhero"><div class="bigglow"><i id="mGlow"></i></div>
+      <div><h2 id="mName"></h2><div class="meta"><span class="tbadge" id="mType"></span> <span id="mCon"></span></div><p id="mDesc"></p></div></div>
+    <div class="mgrid">
+      <div>
+        <h3 class="msub">파장에 따른 빛의 세기</h3>
+        <canvas class="spec big" id="mSpec" aria-label="파장에 따른 빛의 세기 그래프"></canvas>
+        <p class="why" style="margin-top:4px">색 실선: 이 별이 내는 빛의 세기 · 흰 점선: 우리 눈의 민감도 · 노란 세로 점선: 가장 센 파장</p>
+        <div class="kv"><span>표면 온도</span><b id="mT"></b></div>
+        <div class="kv"><span>가장 센 빛의 파장</span><b id="mP"></b></div>
+        <div class="kv"><span>전체 에너지 중 가시광선 비율</span><b id="mS"></b></div>
+        <div class="seen"><span class="sw" id="mSw"></span><span>우리 눈에 보이는 색: <b id="mC"></b></span></div>
+        <p class="why" id="mWhy"></p>
+      </div>
+      <div>
+        <h3 class="msub" id="mConTitle"></h3>
+        <canvas class="conCanvas" id="mCons" aria-label="별자리 그림"></canvas>
+        <div id="mSibWrap"><h3 class="msub" style="margin-top:14px">같은 계열의 별</h3><div class="chips sibs" id="mSibs"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -814,7 +938,7 @@ for (let k=1;k<=5;k++) addLabel(k + ' m', 'small', () => new THREE.Vector3(3.4, 
 addLabel('태양', 'warm', () => new THREE.Vector3(0,0.4,0), 'star');
 addLabel('지구', 'earth', () => earth.position.clone().setY(0.3), 'star');
 const starLabel = addLabel('', 'star', () => starPos.clone().setY(0.6), 'star'); starLabel.earth = true;
-addLabel('연주시차 p', 'warm', () => arcMid, 'star');
+const pLabel = addLabel('연주시차 p', 'pval', () => arcMid, 'star');
 addLabel('먼 배경 별에 비친 별의 위치', 'small', () => new THREE.Vector3(0,3.9,starPos.z-BACK), 'star');
 RULER_TICKS.forEach(d => addLabel(d + ' pc', 'small side', () => new THREE.Vector3(5.1,RULER_Y,-visD(d)), 'star'));
 addLabel('10 pc', 'abs side', () => new THREE.Vector3(5.1,RULER_Y,-visD(10)), 'star');
@@ -875,10 +999,17 @@ function setMode(m){
 }
 $('#starOut').onclick = () => setEarthView(false);
 $('#starEarth').onclick = () => setEarthView(true);
+const PAGES = {intro:'#pageIntro', color:'#pageColor'};
 function setTab(t){
   document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-  setMode(t);
+  const isPage = t in PAGES;
+  Object.entries(PAGES).forEach(([k,sel]) => $(sel).hidden = k !== t);
+  document.querySelector('main').hidden = isPage;
+  $('#missionToggle').hidden = isPage;
+  if (isPage){ setMissions(false); if (t === 'color') buildStarGrid(); window.scrollTo(0,0); }
+  else setMode(t);
 }
+document.querySelectorAll('.introcard').forEach(b => b.onclick = () => setTab(b.dataset.go));
 document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.onclick = () => setTab(b.dataset.tab));
 function setMissions(on){
   $('#missionToggle').setAttribute('aria-pressed', on);
@@ -983,6 +1114,34 @@ function drawSky(m, color){
   }
 }
 
+function drawCompare(){
+  const idx = [...state.sel].sort((a,b) => STARS[a].M - STARS[b].M), many = idx.length >= 2, cv = $('#cmpSky');
+  $('#cmpMsg').textContent = many ? '왼쪽일수록 10 pc에서 더 밝게 보이는 별이에요.' : '별 고르기에서 별을 두 개 이상 고르면 비교할 수 있어요.';
+  cv.hidden = !many;
+  $('#cmpBody').innerHTML = idx.map(i => '<tr><td>' + STARS[i].name + '</td><td>' + STARS[i].m.toFixed(2) + '</td><td class="absc">' + STARS[i].M.toFixed(2) + '</td></tr>').join('');
+  if (!many || !cv.clientWidth) return;
+  const dpr = Math.min(window.devicePixelRatio||1, 2), w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w*dpr; cv.height = h*dpr;
+  const g = cv.getContext('2d'); g.scale(dpr,dpr);
+  g.fillStyle = '#070d22'; g.fillRect(0,0,w,h);
+  const colW = w/idx.length;
+  idx.forEach((i,k) => {
+    const s = STARS[i], cx = (k+0.5)*colW, cy = 46, M = s.M;
+    if (M <= 6){
+      const r = Math.min(13, Math.max(1.2, 7.5 - 1.05*M)), c = '#' + s.color.toString(16).padStart(6,'0');
+      const gr = g.createRadialGradient(cx,cy,0,cx,cy,r*2.4);
+      gr.addColorStop(0,'#ffffff'); gr.addColorStop(0.35,c); gr.addColorStop(1,'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(cx,cy,r*2.4,0,Math.PI*2); g.fill();
+    } else {
+      g.strokeStyle = 'rgba(150,162,198,.6)'; g.setLineDash([3,3]); g.beginPath(); g.arc(cx,cy,8,0,Math.PI*2); g.stroke(); g.setLineDash([]);
+    }
+    g.textAlign = 'center'; g.fillStyle = '#e7ebf6';
+    g.font = (colW < 46 ? '10px' : '12px') + ' "IBM Plex Sans KR", sans-serif';
+    g.fillText(s.name.split(' ')[0], cx, 96);
+    g.fillStyle = '#ff8cc6'; g.fillText(M.toFixed(1), cx, 113);
+  });
+}
+$('#cmpBox').addEventListener('toggle', drawCompare);
 function updateAll(){
   if (state.mode === 'parallax'){ updatePar(); return; }
   if (state.mode === 'light'){
@@ -1013,6 +1172,7 @@ function updateAll(){
     $('#sSun').innerHTML = ratioText(F/SOLAR);
     { const k = Math.pow(s.d/d,2); $('#skyRel').innerHTML = (Math.abs(k-1) < 1e-3 ? '1' : fmt(k)) + '배'; }
     { const ps = p >= 0.01 ? Number(p.toPrecision(3)) : Number(p.toPrecision(2));
+      pLabel.el.textContent = '연주시차 p = ' + ps + '″';
       $('#sParCalc').innerHTML = '<div class="calc">연주시차 = <b>' + ps + '″</b><br>별의 거리 = 1 ÷ ' + ps + ' = <b>' + fmt(1/ps) + ' pc</b><br><span class="sub">(약 ' + fmt(d*LY_PER_PC) + ' 광년)</span></div>'; }
     $('#sMag').textContent = m.toFixed(2) + '등급';
     $('#sAbs').textContent = s.M.toFixed(2) + '등급';
@@ -1020,9 +1180,201 @@ function updateAll(){
     starLabel.el.textContent = s.name;
     $('#skyCap').textContent = '지구에서 본 ' + s.name + ' · ' + (m > 6 ? '6등급보다 어두워 맨눈으로는 보이지 않아요.' : '맨눈으로 볼 수 있어요. (맨눈 한계 약 6등급)');
     drawSky(m, s.color);
+    drawCompare();
     updateStarScene(); placeGhosts(); tickStar();
   }
 }
+
+/* ---------- star colour & temperature ---------- */
+const CS = {
+  naos:{name:'나오스', con:'고물자리', type:'O', T:40000, ck:['pup','zet'], desc:'고물자리의 별로, 맨눈으로 보이는 별 가운데 가장 뜨거운 별에 속해요.'},
+  spica:{name:'스피카', con:'처녀자리', type:'B', T:22400, ck:['vir','spi'], desc:'처녀자리에서 가장 밝은 별이에요. 봄철 남쪽 하늘에서 청백색으로 빛나요.'},
+  rigel:{name:'리겔', con:'오리온자리', type:'B', T:12100, ck:['ori','rig'], desc:'오리온자리의 발에 해당하는 청백색 초거성이에요.'},
+  vega:{name:'베가 (직녀성)', con:'거문고자리', type:'A', T:9600, ck:['lyr','veg'], desc:'여름철 밤하늘의 직녀성으로, 백색 별의 대표예요.'},
+  altair:{name:'알타이르 (견우성)', con:'독수리자리', type:'A', T:7700, ck:['aql','alt'], desc:'여름철 밤하늘의 견우성이에요. 직녀성과 은하수를 사이에 두고 마주 보고 있어요.'},
+  procyon:{name:'프로키온', con:'작은개자리', type:'F', T:6530, ck:['cmi','pro'], desc:'겨울철 대삼각형을 이루는 별 중 하나로, 황백색으로 빛나요.'},
+  polaris:{name:'북극성', con:'작은곰자리', type:'F', T:6000, ck:['umi','pol'], desc:'하늘의 북극 가까이에 있어서 밤새 거의 움직이지 않는 것처럼 보이는 별이에요.'},
+  capella:{name:'카펠라', con:'마차부자리', type:'G', T:5000, ck:['aur','cap'], desc:'겨울철 머리 위에서 노란빛으로 빛나는 별이에요. 사실은 노란 거성 두 개가 짝을 이룬 쌍성이에요.'},
+  sun:{name:'태양', con:'별자리에 속하지 않음', type:'G', T:5772, ck:null, desc:'우리에게 가장 가까운 별이에요. 가장 센 빛의 파장이 가시광선 영역에 있어요.'},
+  arcturus:{name:'아크투루스', con:'목동자리', type:'K', T:4290, ck:['boo','arc'], desc:'봄철 밤하늘에서 주황빛으로 밝게 빛나는 거성이에요.'},
+  aldebaran:{name:'알데바란', con:'황소자리', type:'K', T:3900, ck:['tau','ald'], desc:'황소자리의 눈에 해당하는 주황색 거성이에요.'},
+  betelgeuse:{name:'베텔게우스', con:'오리온자리', type:'M', T:3600, ck:['ori','bet'], desc:'오리온자리의 어깨에 있는 적색 초거성이에요.'},
+  antares:{name:'안타레스', con:'전갈자리', type:'M', T:3570, ck:['sco','ant'], desc:'전갈자리의 심장에 해당하는 적색 초거성이에요.'}
+};
+const TYPE_COLOR = {O:'청색', B:'청백색', A:'백색', F:'황백색', G:'황색', K:'주황색', M:'적색'};
+const GROUPS = [
+  {main:'naos', others:[]}, {main:'spica', others:['rigel']}, {main:'vega', others:['altair']}, {main:'procyon', others:['polaris']},
+  {main:'capella', others:['sun']}, {main:'arcturus', others:['aldebaran']}, {main:'betelgeuse', others:['antares']},
+  {main:'sun', others:['capella'], sun:true}
+];
+const CONS2 = {
+  pup:{name:'고물자리', s:{zet:[8.060,-40.00],pi:[7.286,-37.10],rho:[8.126,-24.30],xi:[7.822,-24.86],nu:[6.629,-43.20],tau:[6.832,-50.61],sig:[7.487,-43.30]},
+       l:[['rho','xi'],['xi','pi'],['pi','nu'],['nu','tau'],['tau','sig'],['sig','zet'],['zet','rho']]},
+  cmi:{name:'작은개자리', s:{pro:[7.655,5.22],gom:[7.453,8.29]}, l:[['pro','gom']]},
+  umi:{name:'작은곰자리', s:{pol:[2.530,89.26],del:[17.537,86.59],eps:[16.766,82.04],zet:[15.734,77.79],eta:[16.292,75.76],gam:[15.345,71.83],bet:[14.845,74.16]},
+       l:[['pol','del'],['del','eps'],['eps','zet'],['zet','bet'],['bet','gam'],['gam','eta'],['eta','zet']]},
+  aur:{name:'마차부자리', s:{cap:[5.278,46.00],men:[5.992,44.95],the:[5.995,37.21],eln:[5.438,28.61],iot:[4.950,33.17],eps:[5.033,43.82],eta:[5.109,41.23]},
+       l:[['cap','men'],['men','the'],['the','eln'],['eln','iot'],['iot','cap'],['cap','eps'],['eps','eta']]},
+  boo:{name:'목동자리', s:{arc:[14.261,19.18],eps:[14.750,27.07],del:[15.258,33.31],bet:[15.032,40.39],gam:[14.535,38.31],rho:[14.530,30.37],eta:[13.911,18.40],zet:[14.686,13.73]},
+       l:[['arc','eps'],['eps','del'],['del','bet'],['bet','gam'],['gam','rho'],['rho','arc'],['arc','eta'],['arc','zet']]}
+};
+const C2 = 0.014387769; // m·K
+function planck(nm, T){ const l = nm*1e-9; return 1/(Math.pow(l,5)*(Math.exp(C2/(l*T)) - 1)); }
+function cmf(l){ // CIE 1931 colour matching functions (Wyman, Sloan & Shirley 2013 fit)
+  const g = (x,mu,a,b) => { const t = (x-mu)/(x<mu ? a : b); return Math.exp(-0.5*t*t); };
+  return [1.056*g(l,599.8,37.9,31.0) + 0.362*g(l,442.0,16.0,26.7) - 0.065*g(l,501.1,20.4,26.2),
+          0.821*g(l,568.8,46.9,40.5) + 0.286*g(l,530.9,16.3,31.1),
+          1.217*g(l,437.0,11.8,36.0) + 0.681*g(l,459.0,26.0,13.8)];
+}
+function seenRGB(T){
+  let X=0, Y=0, Z=0;
+  for (let l=380;l<=780;l+=5){ const p = planck(l,T), c = cmf(l); X += p*c[0]; Y += p*c[1]; Z += p*c[2]; }
+  const S = X+Y+Z; X/=S; Y/=S; Z/=S;
+  let rgb = [3.2406*X - 1.5372*Y - 0.4986*Z, -0.9689*X + 1.8758*Y + 0.0415*Z, 0.0557*X - 0.2040*Y + 1.0570*Z].map(v => Math.max(0,v));
+  const mx = Math.max(...rgb); rgb = rgb.map(v => v/mx).map(v => v <= 0.0031308 ? 12.92*v : 1.055*Math.pow(v,1/2.4) - 0.055);
+  return rgb.map(v => Math.round(255*Math.min(1,v)));
+}
+function visibleShare(T){
+  let v = 0; for (let l=380;l<=750;l+=1) v += planck(l,T)*1e-9;
+  const total = Math.pow(Math.PI,4)/15*Math.pow(T/C2,4);
+  return v/total;
+}
+function wlColor(l){ // rough rainbow colour for the visible band
+  let r=0,g=0,b=0;
+  if (l<440){ r=(440-l)/60; b=1; } else if (l<490){ g=(l-440)/50; b=1; } else if (l<510){ g=1; b=(510-l)/20; }
+  else if (l<580){ r=(l-510)/70; g=1; } else if (l<645){ r=1; g=(645-l)/65; } else r=1;
+  return `rgba(${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},0.28)`;
+}
+function drawSpectrum(cv, T){
+  const dpr = Math.min(window.devicePixelRatio||1, 2), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  cv.width = w*dpr; cv.height = h*dpr; const g = cv.getContext('2d'); g.scale(dpr,dpr);
+  const L0 = 50, L1 = 2000, pl = 8, pr = 8, pt = 18, pb = 24, W = w-pl-pr, H = h-pt-pb;
+  const X = l => pl + (l-L0)/(L1-L0)*W, Yv = v => pt + H*(1-v);
+  g.fillStyle = '#0b1430'; g.fillRect(0,0,w,h);
+  for (let l=380;l<750;l+=2){ g.fillStyle = wlColor(l); g.fillRect(X(l), pt, X(l+2)-X(l)+0.5, H); }
+  g.fillStyle = '#96a2c6'; g.font = '11px "IBM Plex Sans KR", sans-serif'; g.textAlign = 'center';
+  g.fillText('자외선', X(215), pt-5); g.fillText('가시광선', X(565), pt-5); g.fillText('적외선', X(1375), pt-5);
+  [500,1000,1500,2000].forEach(l => g.fillText(l + ' nm', Math.min(w-22, X(l)), h-7));
+  g.strokeStyle = 'rgba(150,162,198,.4)'; g.beginPath(); g.moveTo(pl, pt+H); g.lineTo(w-pr, pt+H); g.stroke();
+  // eye sensitivity (photopic, CIE y)
+  g.setLineDash([4,3]); g.strokeStyle = 'rgba(231,235,246,.65)'; g.beginPath();
+  for (let l=380;l<=750;l+=2){ const v = cmf(l)[1]/1.0; l===380 ? g.moveTo(X(l),Yv(v*0.9)) : g.lineTo(X(l),Yv(v*0.9)); }
+  g.stroke(); g.setLineDash([]);
+  // Planck curve, normalised to its peak in range
+  let mx = 0; for (let l=L0;l<=L1;l+=5) mx = Math.max(mx, planck(l,T));
+  const [r,gg,b] = seenRGB(T);
+  g.strokeStyle = `rgb(${r},${gg},${b})`; g.lineWidth = 2.5; g.beginPath();
+  for (let l=L0;l<=L1;l+=5){ const v = planck(l,T)/mx; l===L0 ? g.moveTo(X(l),Yv(v)) : g.lineTo(X(l),Yv(v)); }
+  g.stroke(); g.lineWidth = 1;
+  const peak = 2.898e6/T;
+  if (peak >= L0){ g.strokeStyle = 'rgba(255,211,107,.8)'; g.setLineDash([2,3]); g.beginPath(); g.moveTo(X(peak),pt); g.lineTo(X(peak),pt+H); g.stroke(); g.setLineDash([]); }
+}
+
+function rgbStr(T){ const [r,g,b] = seenRGB(T); return `rgb(${r},${g},${b})`; }
+function drawConstellation(cv, id){
+  const st = CS[id], dpr = Math.min(window.devicePixelRatio||1, 2), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w) return;
+  cv.width = w*dpr; cv.height = h*dpr; const g = cv.getContext('2d'); g.scale(dpr,dpr);
+  g.fillStyle = '#070d22'; g.fillRect(0,0,w,h);
+  g.fillStyle = 'rgba(170,182,221,.35)';
+  for (let i=0;i<70;i++){ g.fillRect((i*97.3)%w, (i*57.7)%h, 1, 1); }
+  g.font = '13px "IBM Plex Sans KR", sans-serif'; g.textAlign = 'center';
+  if (!st.ck){
+    const cx = w/2, cy = h/2, col = rgbStr(st.T);
+    const gr = g.createRadialGradient(cx,cy,0,cx,cy,60); gr.addColorStop(0,'#fff'); gr.addColorStop(0.3,col); gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(cx,cy,60,0,Math.PI*2); g.fill();
+    g.fillStyle = '#e7ebf6'; g.fillText('태양은 별자리에 속하지 않아요.', cx, h-40);
+    g.fillStyle = '#96a2c6'; g.fillText('지구가 공전하면서 1년 동안 황도 위 별자리들 사이를 지나가는 것처럼 보여요.', cx, h-20);
+    return;
+  }
+  const c = CONS[st.ck[0]] || CONS2[st.ck[0]];
+  const vec = ([rh, dec]) => { const ra = rh*15*Math.PI/180, de = dec*Math.PI/180; return new THREE.Vector3(Math.cos(de)*Math.cos(ra), Math.cos(de)*Math.sin(ra), Math.sin(de)); };
+  const vs = {}; const ctr = new THREE.Vector3();
+  for (const k in c.s){ vs[k] = vec(c.s[k]); ctr.add(vs[k]); }
+  ctr.normalize();
+  const rac = Math.atan2(ctr.y, ctr.x), e = new THREE.Vector3(-Math.sin(rac), Math.cos(rac), 0), n = new THREE.Vector3().crossVectors(ctr, e);
+  const pts = {}; let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for (const k in vs){ const v = vs[k], d = v.dot(ctr), x = -v.dot(e)/d, y = v.dot(n)/d; pts[k] = [x,y]; x0=Math.min(x0,x); x1=Math.max(x1,x); y0=Math.min(y0,y); y1=Math.max(y1,y); }
+  const pad = 42, sc = Math.min((w-2*pad)/Math.max(x1-x0,1e-3), (h-2*pad-20)/Math.max(y1-y0,1e-3));
+  const ox = w/2 - (x0+x1)/2*sc, oy = (h+20)/2 + (y0+y1)/2*sc;
+  const P = k => [ox + pts[k][0]*sc, oy - pts[k][1]*sc];
+  g.strokeStyle = 'rgba(143,166,224,.55)'; g.lineWidth = 1.4;
+  c.l.forEach(([a,b]) => { const pa = P(a), pb = P(b); g.beginPath(); g.moveTo(pa[0],pa[1]); g.lineTo(pb[0],pb[1]); g.stroke(); });
+  for (const k in pts){ if (k === st.ck[1]) continue; const [x,y] = P(k); g.fillStyle = '#dfe6ff'; g.beginPath(); g.arc(x,y,2.6,0,Math.PI*2); g.fill(); }
+  const [sx, sy] = P(st.ck[1]), col = rgbStr(st.T);
+  const gr = g.createRadialGradient(sx,sy,0,sx,sy,18); gr.addColorStop(0,'#fff'); gr.addColorStop(0.35,col); gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(sx,sy,18,0,Math.PI*2); g.fill();
+  g.strokeStyle = '#ffd36b'; g.lineWidth = 1.5; g.beginPath(); g.arc(sx,sy,13,0,Math.PI*2); g.stroke();
+  g.fillStyle = '#ffd36b'; g.font = 'bold 13px "IBM Plex Sans KR", sans-serif';
+  g.textAlign = sx > w*0.7 ? 'right' : 'left'; g.fillText(st.name, sx + (sx > w*0.7 ? -18 : 18), sy - 12);
+  g.textAlign = 'left'; g.fillStyle = '#e7ebf6'; g.font = 'bold 14px "IBM Plex Sans KR", sans-serif'; g.fillText(c.name, 14, 24);
+}
+function whyText(T){
+  const peak = 2.898e6/T;
+  return peak < 380 ? '가장 센 빛은 눈에 보이지 않는 자외선이지만, 가시광선 안에서는 파란 쪽 빛이 더 세서 푸르스름하게 보여요.'
+    : peak <= 750 ? '가장 센 빛이 가시광선 안에 있고, 여러 색의 빛이 비교적 고르게 섞여 흰색에 가깝게 보여요. 봉우리가 초록 근처에 있어도 초록으로 보이지 않는 까닭이에요.'
+    : '가장 센 빛은 눈에 보이지 않는 적외선이고, 가시광선 안에서는 붉은 쪽 빛이 훨씬 세서 붉은빛을 띠어요.';
+}
+let gridBuilt = false, modalGroup = null, lastFocus = null;
+function buildStarGrid(){
+  if (gridBuilt) return; gridBuilt = true;
+  const grid = $('#starGrid');
+  GROUPS.forEach(gp => {
+    const st = CS[gp.main], col = rgbStr(st.T);
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'scard' + (gp.sun ? ' sun' : '');
+    c.innerHTML = `<div class="top"><div class="sglow"><i style="background:radial-gradient(circle, #fff 0, ${col} 30%, rgba(0,0,0,0) 68%)"></i></div>
+      <div><h3></h3><div class="meta"><span class="tbadge"></span><span class="cname"></span></div><div class="meta tt"></div></div></div>
+      <p class="desc"></p><p class="others"></p><span class="more">자세히 보기 →</span>`;
+    c.querySelector('h3').textContent = st.name;
+    c.querySelector('.tbadge').textContent = st.type + '형';
+    c.querySelector('.cname').textContent = gp.sun ? '우리의 별' : TYPE_COLOR[st.type] + ' 별';
+    c.querySelector('.tt').textContent = st.con + ' · 약 ' + st.T.toLocaleString('ko-KR') + ' K';
+    c.querySelector('.desc').textContent = st.desc;
+    c.querySelector('.others').textContent = gp.others.length ? '같은 ' + TYPE_COLOR[st.type] + ' 별: ' + gp.others.map(o => CS[o].name).join(', ') : '';
+    c.onclick = () => openStarModal(gp, gp.main, c);
+    grid.appendChild(c);
+  });
+}
+function openStarModal(gp, id, from){
+  modalGroup = gp; if (from) lastFocus = from;
+  $('#starModal').hidden = false; document.body.style.overflow = 'hidden';
+  showModalStar(id);
+  $('#mClose').focus();
+}
+function showModalStar(id){
+  const st = CS[id], col = rgbStr(st.T), peak = 2.898e6/st.T;
+  const region = peak < 380 ? '자외선' : peak <= 750 ? '가시광선' : '적외선';
+  $('#mGlow').style.background = `radial-gradient(circle, #fff 0, ${col} 30%, rgba(0,0,0,0) 68%)`;
+  $('#mName').textContent = st.name;
+  $('#mType').textContent = st.type + '형 · ' + TYPE_COLOR[st.type];
+  $('#mCon').textContent = st.con;
+  $('#mDesc').textContent = st.desc;
+  $('#mT').textContent = '약 ' + st.T.toLocaleString('ko-KR') + ' K';
+  $('#mP').textContent = '약 ' + Math.round(peak) + ' nm (' + region + ')';
+  $('#mS').textContent = '약 ' + Math.round(visibleShare(st.T)*100) + '%';
+  $('#mSw').style.background = col;
+  $('#mC').textContent = TYPE_COLOR[st.type];
+  $('#mWhy').textContent = whyText(st.T);
+  $('#mConTitle').textContent = st.ck ? st.con + '의 ' + st.name : '태양';
+  const ids = [modalGroup.main, ...modalGroup.others];
+  $('#mSibs').innerHTML = '';
+  $('#mSibWrap').hidden = ids.length < 2;
+  ids.forEach(k => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = CS[k].name;
+    b.setAttribute('aria-pressed', k === id); b.onclick = () => showModalStar(k);
+    $('#mSibs').appendChild(b);
+  });
+  requestAnimationFrame(() => { drawSpectrum($('#mSpec'), st.T); drawConstellation($('#mCons'), id); });
+}
+function closeStarModal(){
+  $('#starModal').hidden = true; document.body.style.overflow = '';
+  if (lastFocus) lastFocus.focus();
+}
+$('#mClose').onclick = closeStarModal;
+$('#starModal').addEventListener('click', e => { if (e.target.id === 'starModal') closeStarModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#starModal').hidden) closeStarModal(); });
+window.addEventListener('resize', () => { if (!$('#starModal').hidden){ const id = [...$('#mSibs').children].find(b => b.getAttribute('aria-pressed') === 'true'); showModalStar(id ? Object.keys(CS).find(k => CS[k].name === id.textContent) : modalGroup.main); } });
 
 /* ---------- missions ---------- */
 const MISSIONS = {
@@ -1097,6 +1449,7 @@ resize();
 $('#sdist').value = Math.log10(state.d);
 renderMissions();
 setMode('light');
+setTab('intro');
 requestAnimationFrame(loop);
 })();
 </script>
