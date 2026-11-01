@@ -51,6 +51,12 @@ const LIBRARY_DATA = {
       url: "https://kmonsciclass.vercel.app/laserrefraction/",
       description: "발사 각도를 정해 레이저를 쏘고, 거울에 반사된 빛으로 표적을 맞히며 빛의 반사 법칙을 탐구하는 게임입니다."
     },
+      "lesson-1-08": {
+      spineTitle: "별과 우주",
+      title: "별과 우주 탐구",
+      url: "https://kmonsciclass.vercel.app/cosmos/",
+      description: "별과 우주에 대해 알아봅시다."
+    },
      "edutech-1-04": {
       spineTitle: "AI활용연수",
       title: "AI 활용 앱만들기",
