@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>미니북·학습지 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style id="pageRule"></style>
+<style>
+:root{
+  --bg:#E9ECF3; --panel:#FFFFFF; --ink:#1B2440; --muted:#5D6782; --line:#C9D0DF; --accent:#2D5BD2; --warn:#B3261E;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#141A2B;--panel:#1E2639;--ink:#E6EAF4;--muted:#9AA4BE;--line:#36405A;--accent:#7EA2FF;--warn:#FF8A80;color-scheme:dark}
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--panel)}
+.hidden{display:none!important}
+
+/* 도구 막대 */
+.bar{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px}
+.bar h1{font-size:16px;margin:0 10px 0 0;font-weight:900;max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;vertical-align:middle}
+.seg button{border:0;border-right:1px solid var(--line);border-radius:0}
+.seg button:last-child{border-right:0}
+button,.btn{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer;line-height:1.3}
+button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+button.small,.btn.small{font-size:13px;padding:4px 9px}
+button.danger{color:var(--warn)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,.btn:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.spacer{flex:1}
+input[type=text],input[type=url],input[type=number],select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);width:100%}
+select{width:auto}
+input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);border-radius:6px;background:none}
+
+/* 슬라이드 보기 */
+.slideView{display:flex;gap:20px;padding:18px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+.nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.nav select{padding:6px;border-radius:8px}
+.side{width:360px;max-width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.side h2{font-size:16px;margin:0 0 10px}
+.side h3{font-size:14px;margin:0}
+.side .hint{font-size:13px;color:var(--muted);margin:0 0 10px;line-height:1.5}
+.field{display:grid;gap:4px;margin-bottom:10px}
+.field>span{font-size:13px;font-weight:700}
+.blk{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+.blk.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.blkHead{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.blkHead h3{flex:1}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.slotEd{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}
+.addRow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+.warnMsg{color:var(--warn);font-size:13px;font-weight:700;margin:0 0 10px;line-height:1.5}
+.pageOps{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+
+/* 펼침면 / 인쇄 보기 */
+.spreadView{padding:18px;display:flex;flex-direction:column;align-items:center;gap:22px}
+.spread{display:flex;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.spread .holder{cursor:pointer}
+.spreadLabel{font-size:13px;color:var(--muted);margin-bottom:-14px}
+.printView{padding:18px;overflow-x:auto}
+.printInfo{font-size:13px;color:var(--muted);max-width:900px;margin:0 auto 12px;line-height:1.7}
+.paperWrap{margin:0 auto 18px;width:max-content}
+.paperScale{transform-origin:0 0}
+.paper{background:#fff;display:grid;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.cell{overflow:hidden;position:relative;outline:0.2mm dashed #B5BCCB;outline-offset:-0.1mm}
+.cell.flip{transform:rotate(180deg)}
+.cell.empty{outline-color:#E3E6EE}
+.cell>.page,.paper>.page{position:absolute;left:0;top:0;transform-origin:0 0}
+
+/* 대화 상자 */
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);max-width:min(560px,94vw);width:100%;padding:20px}
+dialog::backdrop{background:rgba(10,14,30,.45)}
+dialog h2{margin:0 0 12px;font-size:18px}
+dialog .hint{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 8px}
+.secRow{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.dlgBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+
+/* ---------------- 페이지 디자인 ---------------- */
+.holder{position:relative;overflow:hidden;background:#fff}
+.page{background:#fff;color:#1F2433;position:relative;overflow:hidden;display:flex;flex-direction:column;
+  font-family:"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;--fs:17px}
+.band{flex:none;background:var(--era);color:#fff;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.eraName{font-weight:700;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.year{font-weight:900;line-height:1;letter-spacing:-.02em;white-space:nowrap}
+.inner{flex:1;display:flex;flex-direction:column;min-height:0}
+.ttl{font-weight:900;margin:0;line-height:1.25;color:#1B2440;letter-spacing:-.02em;word-break:keep-all}
+.pno{position:absolute;font-weight:700;color:#8A93A8}
+.b-text{font-size:var(--fs);line-height:1.5;word-break:keep-all;overflow-wrap:break-word;flex:none}
+.b-text p{margin:0 0 .45em}.b-text p:last-child{margin-bottom:0}
+.b-text b,.b-box b,.b-say b{color:var(--eraInk);font-weight:700}
+.b-img{display:flex;gap:8px;flex:1 1 auto;min-height:110px;position:relative}
+.b-img .ln{display:flex;gap:8px;flex:1 1 0;min-width:0;min-height:0}
+.b-img .slot{flex:1 1 0;min-height:0;min-width:0}
+.rs-d{opacity:.55;position:absolute;transform:translate(-50%,-50%);background:#2D5BD2;border:2px solid #fff;touch-action:none;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.rs-d.v{width:14px;height:44px;border-radius:7px;cursor:ew-resize}
+.rs-d.hz{width:44px;height:14px;border-radius:7px;cursor:ns-resize}
+.lays{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.lt{padding:4px 5px;border-radius:6px}
+.lt.on{outline:3px solid var(--accent);outline-offset:1px}
+.tf{display:flex;gap:2px;width:42px;height:30px}.tf.rows{flex-direction:column}.tf.cols{flex-direction:row}
+.tl{display:flex;gap:2px;flex:1}.tf.rows .tl{flex-direction:row}.tf.cols .tl{flex-direction:column}
+.tl i{flex:1;background:var(--muted);border-radius:2px;opacity:.5}
+.lt.on .tl i{background:var(--accent);opacity:1}
+.b-img.fixed{flex:none}
+.b-img.fixed{min-height:0}
+.inner{position:relative}
+.inner>[data-bi]{position:relative}
+.grip{position:absolute;left:3px;top:0;width:13px;height:28px;border-radius:4px;background:#2D5BD2;opacity:0;cursor:grab;touch-action:none;z-index:4;transition:opacity .15s}
+.grip::before{content:"";position:absolute;left:4px;top:6px;width:5px;height:16px;background:radial-gradient(circle,#fff 1.2px,transparent 1.4px) 0 0/5px 5px}
+.inner:hover>.grip{opacity:.45}.page.sheet .grip{left:18px}.grip:hover,.grip.on{opacity:.95}
+.dragging{opacity:.75;z-index:10;box-shadow:0 6px 18px rgba(0,0,0,.25);background:#fff}
+.dropLine{position:absolute;left:12px;right:12px;height:4px;border-radius:2px;background:#F2B134;z-index:9;pointer-events:none}
+.slot.filled.pan{cursor:move}
+.rs-h:hover,.rs-d:hover{opacity:1}
+.rs-h{opacity:.6;position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);width:56px;height:16px;border-radius:8px;background:#2D5BD2;border:2px solid #fff;cursor:ns-resize;touch-action:none;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.rs-h::before{content:"";position:absolute;left:14px;right:14px;top:4px;height:2px;background:#fff;box-shadow:0 4px 0 #fff}
+.rangeRow{display:flex;gap:8px;align-items:center;font-size:13px;margin-top:8px}
+.rangeRow input[type=range]{flex:1}
+.slot{position:relative;border-radius:4px;overflow:hidden;background:#F3F5FA;border:2.5px dashed #9AA6BF;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;color:#6B7690;font-size:13.5px;line-height:1.35;min-width:0}
+.slot svg{width:30px;height:30px;margin-bottom:5px;opacity:.7}
+.slot.filled{border:0;padding:0;background:#E5E8EF}
+.slot img{width:100%;height:100%;display:block}
+.slot.filled{background:transparent;justify-content:flex-start;border-radius:0;overflow:visible}
+.slot.filled img{flex:1 1 0;min-height:0;height:0;border-radius:4px;background:#E5E8EF;overflow:hidden}
+.slot .fcap{flex:none;margin-top:var(--mm,4px);font-size:calc(var(--fs)*.6);line-height:1.25;color:#5A6378;text-align:center;word-break:keep-all;overflow-wrap:break-word;width:100%}
+.page.cover .slot .fcap{color:#C9D3EA}
+.slot.active{box-shadow:0 0 0 4px var(--accent)}
+.b-box{font-size:calc(var(--fs)*.95);line-height:1.45;word-break:keep-all;flex:none;border-radius:4px;padding:.4em .65em}
+.b-box.color{border:2px solid var(--era)}
+.b-box.dark{background:#EDEEF1;border-left:6px solid #2B2F3A;border-radius:0}
+.b-box.quote{border-left:4px solid var(--era);font-weight:700;color:#1B2440;border-radius:0;padding:.3em .6em}
+.b-box .lbl{display:inline-block;font-size:.74em;font-weight:900;padding:0 .45em;margin-right:.4em;border-radius:3px;vertical-align:.1em;color:#fff;background:var(--era)}
+.b-box.dark .lbl{background:#2B2F3A}
+.b-say{flex:none;display:flex;gap:10px;align-items:flex-start;background:#EEF2FA;border-radius:6px;padding:.55em .7em;font-size:calc(var(--fs)*.86);line-height:1.45;color:#26304D}
+.b-say .ic{flex:none;width:2.3em;height:2.3em;border-radius:50%;overflow:hidden}
+.b-say .ic img,.b-say .ic svg{width:100%;height:100%;object-fit:cover;display:block}
+.b-say .dt{font-weight:900;font-size:.82em;color:#3A4A78;display:block;margin-bottom:1px}
+.b-lines{flex:none}
+.b-lines div{height:calc(var(--fs)*2.1);border-bottom:1.5px solid #9AA3B8}
+.b-name{flex:none;display:flex;gap:1.2em;font-size:calc(var(--fs)*.9);color:#3A4256;justify-content:flex-end;flex-wrap:wrap}
+.b-name span{border-bottom:1.5px solid #9AA3B8;padding:0 .2em .1em;min-width:3.2em}
+.b-name span.wide{min-width:7em}
+[contenteditable="true"]{outline:1.5px dashed transparent;outline-offset:2px;cursor:text;border-radius:2px}
+[contenteditable="true"]:hover{outline-color:#C9A33A}
+[contenteditable="true"]:focus{outline:2px solid #F2B134}
+.page.over{box-shadow:inset 0 0 0 4px #E2483D}
+
+/* 책 쪽 (가로 455px 기준) */
+.page.book .band{height:58px;padding:0 18px 8px}
+.page.book .eraName{font-size:15px}
+.page.book .year{font-size:34px}
+.page.book .inner{padding:12px 18px 30px;gap:10px}
+.page.book .ttl{font-size:25px}
+.page.book .pno{bottom:8px;font-size:13px}
+.page.book.pr .pno{right:16px}.page.book.pl .pno{left:16px}
+.cell.void{outline:0}
+/* 학습지 (A4 세로 794px 기준) */
+.page.sheet .band{height:84px;padding:0 34px 12px}
+.page.sheet .eraName{font-size:18px}
+.page.sheet .year{font-size:30px}
+.page.sheet .inner{padding:20px 40px 50px;gap:14px}
+.page.sheet .ttl{font-size:32px}
+.page.sheet .b-img{flex:none}
+.page.sheet .pno{bottom:18px;right:40px;font-size:14px}
+/* 표지 */
+.page.cover{background:#1B2440;color:#fff}
+.page.cover .top{padding:34px 28px 18px;position:relative;flex:none}
+.page.cover .stars{position:absolute;inset:0;background-image:radial-gradient(1.6px 1.6px at 40px 30px,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 120px 80px,#fff 50%,transparent 51%),radial-gradient(2px 2px at 300px 40px,#fff 50%,transparent 51%),radial-gradient(1.3px 1.3px at 390px 120px,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 220px 150px,#fff 50%,transparent 51%);opacity:.75}
+.page.cover .kicker{font-size:16px;font-weight:700;color:#F2B134;position:relative;min-height:1em}
+.page.cover h1{font-size:42px;line-height:1.14;font-weight:900;margin:8px 0 6px;letter-spacing:-.03em;position:relative;word-break:keep-all}
+.page.cover .sub{font-size:19px;font-weight:700;color:#BFD0FF;position:relative}
+.page.cover .inner{padding:0 22px 26px;gap:12px}
+.page.cover .slot{border-color:#5B6A96;background:#26304D;color:#AAB6D6}
+.page.cover .b-text{color:#E3E8F5}
+.page.cover .names{margin-top:auto;font-size:16px;color:#D9E0F2;display:grid;gap:12px;flex:none}
+.page.cover .names span{border-bottom:1.5px solid #6C7AA5;padding-bottom:4px}
+
+@media print{
+  body{background:#fff}
+  .bar,.slideView,.spreadView,.printInfo,dialog{display:none!important}
+  .printView{display:block!important;padding:0;overflow:visible}
+  .paperWrap{margin:0!important;display:block!important;width:auto!important;height:auto!important;break-after:page;overflow:hidden}
+  .paperWrap:last-child{break-after:auto}
+  .paperScale{transform:none!important}
+  .paper{box-shadow:none}
+  .slot.active{box-shadow:none}
+  .page.over{box-shadow:none}
+  [contenteditable="true"]{outline:0!important}
+}
+</style>
+</head>
+<body>
+
+<div class="bar" role="toolbar" aria-label="편집 도구">
+  <h1 id="docTitle">미니북</h1>
+  <div class="seg" role="group" aria-label="보기">
+    <button data-view="slide" aria-pressed="true">한 쪽씩</button>
+    <button data-view="spread" aria-pressed="false">펼쳐 보기</button>
+    <button data-view="print" aria-pressed="false">인쇄 배치</button>
+  </div>
+  <button id="setBtn">책 설정</button>
+  <span class="spacer"></span>
+  <button id="newBtn">새로 만들기</button>
+  <button id="htmlBtn" title="지금 고친 내용과 넣은 사진이 처음부터 들어 있는 HTML 파일을 만들어요">이 상태로 HTML 내려받기</button>
+  <button id="exportBtn">작업 파일 저장</button>
+  <label class="btn" for="importFile">작업 파일 불러오기</label>
+  <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+  <button id="printBtn">PDF로 저장 · 인쇄</button>
+</div>
+
+<main>
+  <section class="slideView" id="slideView">
+    <div class="stage">
+      <div class="nav">
+        <button id="prevBtn">◀ 이전</button>
+        <select id="pageSel" aria-label="쪽 고르기"></select>
+        <button id="nextBtn">다음 ▶</button>
+      </div>
+      <div id="stageBox"></div>
+    </div>
+    <aside class="side" id="side"></aside>
+  </section>
+  <section class="spreadView hidden" id="spreadView"></section>
+  <section class="printView hidden" id="printView">
+    <div class="printInfo" id="printInfo"></div>
+    <div id="papers"></div>
+  </section>
+</main>
+
+<dialog id="setDlg"></dialog>
+<dialog id="newDlg"></dialog>
+<div id="measure" aria-hidden="true" style="position:fixed;left:-30000px;top:0;visibility:hidden"></div>
+
+<!-- 책 내용: 스킬의 build.py가 이 자리에 JSON을 넣음 -->
+<script id="doc-data" type="application/json">{"id":"space-history-vmw4frfvb","title":"인류의 우주탐사 연대기","format":"book","character":{"label":"보이저 일기","icon":"voyager"},"sections":[{"id":"intro","name":"보이저 1호의 여행 일기","color":"#1B2440"},{"id":"race","name":"우주 경쟁","color":"#D94A26"},{"id":"s70","name":"행성으로","color":"#12877C"},{"id":"s80","name":"왕복선과 망원경","color":"#6A4BC4"},{"id":"s00","name":"끈질긴 로봇들","color":"#2D72C8"},{"id":"priv","name":"민간 우주 시대","color":"#23935F"},{"id":"moon","name":"다시 달로","color":"#C98A12"}],"pages":[{"section":"intro","tag":"1977","title":"나는 보이저 1호","blocks":[{"t":"images","items":[{"cap":"보이저 1호 발사 장면","src":"https://i.namu.wiki/i/43p1D6EufZFeaCT8qYYzSgGKdwRcT35ovd6KH4SI82jXU3Dga9Lc3xlQQfqV1KXjVDgLvmxLcNvKzDeQPLSd5Q.webp"}],"lw":[1]},{"t":"text","html":"<p>1977년 9월 5일 지구를 떠남. 목성과 토성을 지나 2012년 태양계의 경계(<b>태양권계면<\/b>)를 넘음.<\/p><p>인류가 만든 물체 중 지구에서 <b>가장 멀리<\/b> 있음.<\/p>"}]},{"section":"intro","tag":"2026","title":"빛으로 하루 걸리는 거리","blocks":[{"t":"images","items":[{"cap":"태양계 속 보이저 위치 그림","src":"https://img.khan.co.kr/news/2018/12/16/2018121701001629900137782.webp"}],"lw":[1]},{"t":"text","html":"<p>2026년 11월 18일, 지구에서 <b>1광일<\/b>(약 259억 km) 거리에 도달. 오늘 지구에서 보낸 명령은 내일에야 도착함.<\/p><p>이 책은 나와 선배·후배 우주선, 그리고 우주로 간 사람들의 이야기임.<\/p>"},{"t":"say","html":"내가 태어나기 전 이야기부터 들려줄게."}]},{"section":"race","tag":"1957","title":"최초의 인공위성","blocks":[{"t":"images","items":[{"cap":"스푸트니크 1호","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQYadDYFXEDjJ3M5cva61ywlh9WPW54krEQe7_x9-zmw&s=10"}],"lw":[1]},{"t":"text","html":"<p>1957년 10월 4일 소련, 인류 최초의 인공위성 <b>스푸트니크 1호<\/b> 발사. 지름 58cm 공 모양. ‘삐-삐-’ 신호를 지구로 보냄.<\/p><p>충격받은 미국과 소련의 <b>우주 경쟁<\/b> 시작.<\/p>"}]},{"section":"race","tag":"1957","title":"우주로 간 첫 동물, 라이카","blocks":[{"t":"images","items":[{"cap":"","src":"https://cdn.mhns.co.kr/news/photo/201711/87025_143771_2213.JPG","w":0.91,"fit":"cover"},{"cap":"","src":"https://i.namu.wiki/i/XBPZIltL0l5cBfwZIgk3OgZ71GAuE64ukJYV_3NAFMxj4dgn38HFwulQHMnudSLSLRJUVxlBui3_vkRxkBbE5g.webp","w":1.09}],"lw":[1],"h":185},{"t":"text","html":"<p>한 달 뒤 <b>스푸트니크 2호<\/b>에 개 <b>라이카<\/b> 탑승. 지구 궤도를 돈 첫 동물.<\/p><p>소련은 며칠 살았다고 발표했지만, 2002년 발사 몇 시간 만에 과열로 숨진 사실이 밝혀짐. 돌아올 방법이 없는 비행이었음.<\/p>"}]},{"section":"race","tag":"1958","title":"미국의 반격","blocks":[{"t":"images","items":[{"cap":"익스플로러 1호를 들어 올린 과학자들","src":"https://dic.kumsung.co.kr/upfiles/editor/201501/ejpq83nq01u4l4dns5htqljs5n.png"}],"h":335,"lw":[1]},{"t":"text","html":"<p>1958년 1월 31일 미국 첫 인공위성 <b>익스플로러 1호<\/b> 발사.<\/p><p>지구를 둘러싼 방사선 띠 <b>밴앨런대<\/b> 발견. 우주 경쟁에서 나온 첫 과학적 발견.<\/p>"}]},{"section":"race","tag":"1958","title":"NASA 설립","blocks":[{"t":"images","items":[{"cap":"NASA 로고","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQS1qCum0NLwMUFrO3vccYCqbT7-rxp9yTzY3zFUj6KSQ&s=10"}],"lw":[1]},{"t":"text","html":"<p>1958년 7월 29일 미국 항공우주국 <b>NASA<\/b> 설립.<\/p><p>흩어져 있던 미국의 우주 연구를 하나로 모음.<\/p>"},{"t":"say","html":"NASA가 생기고 19년 뒤 내가 태어남."}]},{"section":"race","tag":"1961","title":"최초의 우주인 가가린","blocks":[{"t":"images","items":[{"cap":"유리 가가린","src":"https://preview.redd.it/what-do-you-think-about-yuri-gagarin-v0-7nucyy874rag1.jpeg?auto=webp&s=be67d94b17f161874424dba0cd4cd628d6cf610e","w":0.82},{"cap":"보스토크 1호","src":"https://i.namu.wiki/i/GgtEQGvapi83a-NWSIISUD5KtZi8M37D8KkHx4ASCaeXHD0X4DpZ8M0ndru1Lc2EJWzHgrsC0exo-nm_7WA7Og.webp","pos":"50.0% 53.3%","w":1.18}],"h":220,"layout":{"m":"rows","g":[2]},"lw":[1]},{"t":"text","html":"<p>1961년 4월 12일 소련 <b>유리 가가린<\/b>, 보스토크 1호로 인류 최초 우주 비행. 지구를 한 바퀴 도는 108분 비행.<\/p><p>‘지구는 푸른빛이었다’는 말을 남긴 것으로 전해짐.<\/p>"}]},{"section":"race","tag":"1961","title":"미국의 추격","blocks":[{"t":"images","items":[{"cap":"프리덤 7호 발사","fit":"contain","src":"https://c8.alamy.com/comp/B7HRJG/nasa-mercury-redstone-freedom-7-rocket-visitor-center-kennedy-space-B7HRJG.jpg"},{"cap":"","src":"https://i.namu.wiki/i/hLoQGSGgbdiwvxu1QdQkOIGMTQoS8rS3o32DAYlzW6DuWPUF3ybfh99IUvmUNJYeddhjxRNfUlVJAfVVOL4lCw.webp","w":0.7},{"cap":"앨런","src":"https://gdb.voanews.com/01cb14fd-b68d-450c-830d-c79c2e4edabe_w1200_r1.jpg","w":1.3,"pos":"97.1% 57.3%"}],"h":300,"layout":{"m":"cols","g":[1,2]},"lw":[1,1]},{"t":"text","html":"<p>1961년 5월 5일 미국 <b>앨런 셰퍼드<\/b>, 프리덤 7호로 15분간 우주에 다녀옴(지구를 돌진 못함). 같은 해 케네디 대통령 ‘10년 안에 사람을 달에 보내겠다’ 선언.<\/p><p>1962년 <b>존 글렌<\/b>, 미국 최초 지구 궤도 비행.<\/p>"},{"t":"box","style":"color","label":"소련의 ‘최초’ 기록","html":"1963 첫 여성 우주인 테레시코바, 1965 첫 우주유영 레오노프"}]},{"section":"race","tag":"1967","title":"달로 가는 길의 희생","blocks":[{"t":"images","items":[{"cap":"아폴로 1호 승무원 3명","src":"https://preview.redd.it/1967-the-apollo-1-astronauts-died-in-a-fire-v0-xvs5x2293hea1.jpg?width=1080&crop=smart&auto=webp&s=d6310f320173a4f772005053b3c638bbbdcdc0fa","fit":"cover","pos":"40.9% 11.8%"}],"lw":[1],"h":340},{"t":"box","style":"dark","label":"추모","html":"1967년 1월 <b>아폴로 1호<\/b> 지상 훈련 중 화재. 우주인 3명(그리섬, 화이트, 채피) 사망."},{"t":"box","style":"dark","label":"추모","html":"같은 해 4월 소련 <b>소유즈 1호<\/b> 귀환 중 낙하산 고장. 코마로프 사망."},{"t":"text","html":"<p>두 나라 모두 큰 희생을 치름.<\/p>"}]},{"section":"race","tag":"1969","title":"아폴로 11호, 달에 내림","blocks":[{"t":"images","items":[{"cap":"아폴로 11호 패치","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQa8y95A8SdyNFKec3ZN0Whfgv4UGmbWcZzHDtN-s0OHA&s=10","w":0.76},{"cap":"달 위 발자국","src":"https://imgnn.seoul.co.kr/img/upload/2016/07/20/SSI_20160720171529_V.jpg","w":1.24,"pos":"57.2% 99.2%"},{"cap":"","src":"https://i.namu.wiki/i/a_zEd4dmEOwg6TOrYzORdoJ1mIQlGt3xyu9sGOPLrsNubTgruJ5OheTVDXTJ8dq8HuhDxQmsxsdaXBD8ryOnFw.webp","pos":"46.0% 34.2%"}],"h":365,"layout":{"m":"rows","g":[2,1]},"lw":[0.8,1.2]},{"t":"text","html":"<p>1969년 7월 16일 발사, 7월 20일 달 착륙(한국 시간 21일). <b>닐 암스트롱<\/b>, 인류 최초로 달에 발을 디딤. 올드린이 함께 걷고, 콜린스는 궤도에서 기다림.<\/p>"},{"t":"box","style":"quote","html":"한 인간에게는 작은 한 걸음이지만, 인류에게는 위대한 도약이다."}]},{"section":"race","tag":"1972","title":"달에 몇 번 갔을까?","blocks":[{"t":"images","items":[{"cap":"달 착륙 지점 6곳 지도","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Moon_Soft_Landings.svg/500px-Moon_Soft_Landings.svg.png?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","fit":"contain"}],"lw":[1],"h":375},{"t":"text","html":"<p>달 착륙은 <b>6번<\/b>(아폴로 11·12·14·15·16·17호). 달을 걸은 사람은 <b>12명<\/b>, 모두 미국인.<\/p><p>마지막은 1972년 12월 아폴로 17호. 그 뒤 50년 넘게 아무도 달에 내리지 않음.<\/p>"}]},{"section":"race","tag":"1970","title":"성공한 실패, 아폴로 13호","blocks":[{"t":"images","items":[{"cap":"아폴로 13호 귀환","src":"https://mblogthumb-phinf.pstatic.net/MjAyNTAyMDdfMTQ5/MDAxNzM4OTEwMDgzMzU0.mT__iNCJARZV6lQPmOS8MuxJpcMKYTMU8Ud8U-FMGYkg.rsIa1sCtTRyOmnXkw7BJrny-7GJDLXyGIRXK-eojs6Yg.PNG/image.PNG?type=w800","pos":"47.6% 43.2%"},{"cap":"","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Apollo13-load_on_deck_crop1.jpg/250px-Apollo13-load_on_deck_crop1.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","pos":"50.0% 59.1%","fit":"cover","w":1.38},{"cap":"","w":0.62,"src":"https://image.cine21.com/cine21/poster/2005/0611/M0010106_.jpg"}],"h":355,"layout":{"m":"rows","g":[1,2]},"lw":[1,1]},{"t":"text","html":"<p>1970년 산소탱크 폭발로 착륙 포기. 달 뒤편을 돌아 4일 만에 무사 귀환. 영화로도 제작된 사건.<\/p>"},{"t":"box","style":"color","label":"한국도 달에","html":"2022년 한국 첫 달 탐사선 <b>다누리<\/b> 발사. 달 궤도에서 사진과 자료를 보내옴."},{"t":"say","html":"사람들이 마지막으로 달에 다녀오고 5년 뒤, 나는 훨씬 먼 곳으로 떠남."}]},{"section":"s70","tag":"1971","title":"우주에서 살기","blocks":[{"t":"images","items":[{"cap":"스카이랩","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb3KHoYeG8tg0qiErpuiXy9fjAdC-OmpCVWvCvrLyWTUVBch0jCdNYmvru&s=10","fit":"cover"},{"cap":"","src":"https://flexible.img.hani.co.kr/flexible/normal/750/750/imgdb/original/2023/1017/20231017500416.webp","fit":"cover"}],"lw":[1],"h":255},{"t":"text","html":"<p>1971년 소련, 최초의 우주정거장 <b>살류트 1호<\/b>.<\/p>"},{"t":"box","style":"dark","label":"추모","html":"이곳에 머문 소유즈 11호 승무원 3명, 귀환 중 공기가 새어 사망. 우주(고도 100km 이상)에서 목숨을 잃은 유일한 사람들."},{"t":"text","html":"<p>1973년 미국 <b>스카이랩<\/b> 발사. 장기 거주 실험 시작.<\/p>"}]},{"section":"s70","tag":"1972","title":"목성과 토성으로","blocks":[{"t":"images","items":[{"cap":"파이어니어 10호와 목성","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyhDSPlQaYR3YbkicZd3kpz5M7sr4N2P6VCaoumfRGvh6W1SI104lSVSk&s=10","fit":"contain"}],"lw":[1],"h":300},{"t":"text","html":"<p>1972년 3월 <b>파이어니어 10호<\/b> 발사. 처음으로 소행성대를 통과하고 1973년 처음으로 목성에 다가감.<\/p><p>1973년 4월 <b>파이어니어 11호<\/b> 발사. 1979년 처음으로 토성과 고리를 가까이서 관측.<\/p>"}]},{"section":"s70","tag":"1976","title":"화성에 내린 바이킹","blocks":[{"t":"images","items":[{"cap":"바이킹이 찍은 화성 표면","src":"https://external-preview.redd.it/the-first-photograph-taken-from-the-surface-of-mars-viking-v0-zhyyFo2DDebQLEeXyoP4i5TLiN-hlk0n-u5aeId6jO4.jpg?auto=webp&s=0cd7d1efae55472cd321fb34dcf2b84d4f426f28","w":1.25,"pos":"77.4% 51.6%"},{"cap":"","w":0.75,"src":"https://upload.wikimedia.org/wikipedia/commons/5/5a/Mars_Viking_11h016.png?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled"}],"h":250,"lw":[1]},{"t":"text","html":"<p>1975년 8월 <b>바이킹 1호<\/b> 발사, 1976년 7월 화성 착륙. 화성 표면 사진을 처음으로 지구에 보냄.<\/p><p>흙 속 생명체 실험도 했지만 확실한 증거는 못 찾음.<\/p>"}]},{"section":"s70","tag":"1977","title":"드디어 출발!","blocks":[{"t":"images","items":[{"cap":"보이저 발사","src":"https://lh3.googleusercontent.com/proxy/9SBFTb_nyeWZxvfwJg8rCgbwk3tMPMCZrJipTlikUDg8AbhqrtVEVl1toCpMiPEcIxGVobJaDSg5ARM2eAS5F1ZDpcvL936GvfymcsNcU47uYqg","fit":"cover","w":1.16},{"cap":"","w":0.84,"src":"https://ichef.bbci.co.uk/ace/ws/640/cpsprodpb/D9F9/production/_104710855_1977_august_september_voyager1_1.jpg.webp","pos":"20.4% 25.1%","fit":"cover"}],"h":295,"lw":[1]},{"t":"text","html":"<p>1977년 8월 <b>보이저 2호<\/b>, 9월 <b>보이저 1호<\/b> 발사.<\/p><p>176년에 한 번 오는 행성 배열을 이용함. 행성의 중력으로 속도를 얻으며 여러 행성을 차례로 방문하는 ‘그랜드 투어’ 계획.<\/p>"},{"t":"say","html":"동생 2호가 먼저 떠났지만 내가 더 빠른 길로 감. 그래서 내가 1호."}]},{"section":"s70","tag":"1979","title":"보이저 형제의 행성 여행","blocks":[{"t":"images","items":[{"cap":"목성 위성 이오의 화산","src":"https://kdejevoyager.cz/assets/images/io-volcanic-eruption.jpg"},{"cap":"해왕성","src":"https://kdejevoyager.cz/assets/images/neptune.jpg","w":1.31},{"cap":"목성의 고리","src":"https://pds.joongang.co.kr/news/component/htmlphoto_mmdata/202209/03/da4d286d-2ae9-4cf5-ac43-9a0146205b16.jpg","pos":"79.1% 52.8%","w":0.69}],"layout":{"m":"cols","g":[1,2]},"lw":[1,1]},{"t":"text","html":"<p>1979년 <b>목성<\/b>: 위성 이오의 화산, 목성의 고리 발견. 1980~81년 <b>토성<\/b>: 1호는 타이탄을 살핀 뒤 태양계 밖으로.<\/p><p>2호는 1986년 <b>천왕성<\/b>, 1989년 <b>해왕성<\/b> 도착. 두 행성에 가 본 탐사선은 지금까지 <b>보이저 2호뿐<\/b>.<\/p>"}]},{"section":"s70","tag":"1990","title":"창백한 푸른 점","blocks":[{"t":"images","items":[{"cap":"창백한 푸른 점","src":"https://ojsfile.ohmynews.com/STD_IMG_FILE/2008/0220/IE000872434_STD.jpg","pos":"55.9% 34.3%","fit":"cover"},{"cap":"골든 레코드","src":"https://i.namu.wiki/i/QsrSVCj21PrzJqlz28lYPP72_VpL5jf-nS80YsTWBbKkCNYe8b1-942wWieLJym9Nmy4mZ1Eljg0ZcIYhMtAjw.webp","w":1.05},{"cap":"","src":"https://i.namu.wiki/i/IYfe5y23AomymAO5lDmVOr_NStywuab9nATfM6ammJYkyk9S82dVIwESS1sZin042MSA6zLJAQ9j2pYQiorENw.webp","w":0.95}],"layout":{"m":"cols","g":[1,2]},"lw":[1.26,0.74]},{"t":"text","html":"<p>1990년 2월 14일, 칼 세이건의 제안으로 약 60억 km 밖에서 뒤돌아 지구를 찍음.<\/p><p>형제는 <b>골든 레코드<\/b>도 싣고 다님. 지구의 소리, 55개 언어 인사말(한국어 포함), 음악이 담긴 금빛 레코드.<\/p>"},{"t":"say","html":"카메라를 켠 건 이때가 마지막. 지구는 정말 점 하나였음."}]},{"section":"s80","tag":"1981","title":"다시 쓰는 우주선","blocks":[{"t":"images","items":[{"cap":"컬럼비아호 발사","src":"https://i.namu.wiki/i/0QAvmBKG5Mz8Ose8wL8eUSRnvdauBdaG8AGW5zAD2MhVSkocpqZMpmRlQfne1LNK62Gt_hL_44shP8A-M3mzvQ.webp","pos":"46.9% 41.8%"}],"lw":[1],"h":400},{"t":"text","html":"<p>1981년 4월 12일(가가린 비행 20주년) 미국, 재사용 가능한 <b>우주왕복선 컬럼비아호<\/b> 발사.<\/p><p>1989년 <b>마젤란호<\/b>, 왕복선 아틀란티스에서 출발. 두꺼운 구름에 가린 금성 표면을 레이더로 지도화함.<\/p>"}]},{"section":"s80","tag":"1986","title":"챌린저호의 비극","blocks":[{"t":"images","items":[{"cap":"챌린저호 승무원 7명","src":"https://thumb.mt.co.kr/cdn-cgi/image/f=avif/21/2024/01/2024012610332935338_2.jpg"}],"h":280,"lw":[1]},{"t":"box","style":"dark","label":"추모","html":"1986년 1월 28일 <b>챌린저호<\/b>, 발사 73초 만에 폭발. 7명 사망."},{"t":"text","html":"<p>그중 <b>크리스타 매콜리프<\/b>는 우주에서 수업하기로 한 고등학교 선생님. 많은 학생이 교실 TV로 발사를 지켜보고 있었음.<\/p>"},{"t":"say","html":"그달 나흘 전, 동생 2호는 천왕성을 지나는 중이었음."}]},{"section":"s80","tag":"1990","title":"허블 우주망원경","blocks":[{"t":"images","items":[{"cap":"허블 우주망원경","src":"https://thescienceplus.com/news/data/20210719/p1065622020455424_677_thum.jpg","pos":"42.2% 55.1%"}],"lw":[1],"h":335},{"t":"text","html":"<p>1990년 4월 24일 <b>허블 우주망원경<\/b>, 지구 궤도에 오름.<\/p><p>처음엔 거울이 0.002mm 잘못 깎여 사진이 흐렸음. 1993년 우주인들이 우주에서 수리. 지금도 관측 중.<\/p>"}]},{"section":"s80","tag":"1997","title":"화성의 첫 자동차","blocks":[{"t":"images","items":[{"cap":"소저너와 화성 바위","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Pathfinder01.jpg/250px-Pathfinder01.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","w":0.99},{"cap":"","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/Sojourner_on_Mars_PIA01122.jpg/330px-Sojourner_on_Mars_PIA01122.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","w":1.01}],"h":200,"lw":[1]},{"t":"text","html":"<p>1997년 7월 4일 <b>마스 패스파인더<\/b> 화성 착륙.<\/p><p>작은 바퀴 로봇 <b>소저너<\/b>, 화성 최초의 탐사차(로버). 오래전 큰 홍수가 있었던 흔적 발견.<\/p>"}]},{"section":"s80","tag":"1997","title":"토성과 타이탄","blocks":[{"t":"images","items":[{"cap":"카시니와 토성","src":"https://imgnn.seoul.co.kr/img/upload/2017/09/16/SSI_20170916140754.jpg","fit":"cover"},{"cap":"","src":"https://newsimg.hankookilbo.com/cms/articlerelease/2017/09/13/201709131872015739_3.jpg"},{"cap":"","src":"https://upload.wikimedia.org/wikipedia/commons/b/b2/Cassini_Saturn_Orbit_Insertion.jpg?utm_source=ko.wikipedia.org&utm_campaign=index&utm_content=original"}],"h":340,"layout":{"m":"rows","g":[1,2]},"lw":[1,1]},{"t":"text","html":"<p>1997년 10월 15일 <b>카시니-하위헌스호<\/b> 발사. 2004년 토성 도착. 2005년 <b>하위헌스<\/b>가 토성의 가장 큰 위성 <b>타이탄<\/b>에 착륙.<\/p><p>2017년 카시니는 연료가 떨어지자 토성 속으로 뛰어들어 임무를 마침.<\/p>"}]},{"section":"s80","tag":"1998","title":"국제우주정거장(ISS)","blocks":[{"t":"images","items":[{"cap":"ISS 전체 모습","src":"https://i.namu.wiki/i/Fhn2PVCrgkrN-x1w1uwCdYZrki9jV6SZVGVeFjZxIhOhFLbWK50BLP5gzpt-NuhrO1x9rWq-fon8JBTlQjFdSA.webp"}],"lw":[1],"h":245},{"t":"text","html":"<p>1998년 첫 모듈 발사. 미국·러시아·유럽·일본·캐나다가 함께 만듦.<\/p><p>2000년부터 지금까지 사람이 쉬지 않고 머무는 중. 맨눈으로 밤하늘에서 볼 수 있음.<\/p>"}]},{"section":"s00","tag":"2003","title":"또 한 번의 희생, 끈질긴 로봇","blocks":[{"t":"images","items":[{"cap":"오퍼튜니티","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfqtMEAYkdi_wtEj4QFXFroHRlP8HjXqtFYs6mlAWlGmX46ElddiWmjbP8&s=10","pos":"38.2% 8.5%"},{"cap":"","src":"https://upload.wikimedia.org/wikipedia/commons/d/d8/NASA_Mars_Rover.jpg?utm_source=ko.wikipedia.org&utm_campaign=index&utm_content=original","fit":"cover"},{"cap":"","src":"https://i.namu.wiki/i/jLe8rKUtRJBSC7KeDdW3R605G7IhxHOHE7nsou443e1A5j1ABeA3lCS7paGTUpRZkUzWvuNNIYE8sjzXDRAnGZQkAtuME9LuPrpjxwrxJjWLMUI69LLwXnZdzeDmDeeBMvlVO6N9qowmj5QgoJ_PbQ.webp","pos":"79.1% 47.8%"}],"h":315,"layout":{"m":"rows","g":[1,2]},"lw":[0.84,1.16]},{"t":"box","style":"dark","label":"추모","html":"2003년 2월 <b>컬럼비아호<\/b>, 귀환 중 공중분해. 7명 사망. 우주왕복선 은퇴가 앞당겨짐."},{"t":"text","html":"<p>2004년 1월 화성 로버 <b>스피릿<\/b>과 <b>오퍼튜니티 (쌍둥이 탐사선)<\/b>&nbsp;착륙. 원래 수명은 90일. 오퍼튜니티는 <b>15년<\/b>을 일함.<\/p>"}]},{"section":"s00","tag":"2015","title":"명왕성의 하트","blocks":[{"t":"images","items":[{"cap":"명왕성의 하트 모양 평원","src":"https://imgnn.seoul.co.kr/img/upload/2019/11/18/SSI_20191118094642_V.jpg","pos":"78.6% 50.0%"},{"cap":"","src":"https://image.dongascience.com/Photo/2016/09/14742662675882.jpg"}],"h":210,"lw":[1]},{"t":"text","html":"<p>2006년 1월 <b>뉴호라이즌스<\/b> 발사. 출발할 땐 명왕성이 행성이었지만 7개월 뒤 왜소행성으로 바뀜.<\/p><p>2015년 7월 명왕성을 처음으로 가까이 찍음. 하트 모양 얼음 평원 발견.<\/p>"},{"t":"say","html":"2004년 나는 태양풍이 갑자기 느려지는 경계를 지나는 중이었음."}]},{"section":"s00","tag":"2012","title":"화성 탐사 2세대","blocks":[{"t":"images","items":[{"cap":"큐리오시티 셀카","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/PIA16239_High-Resolution_Self-Portrait_by_Curiosity_Rover_Arm_Camera.jpg/330px-PIA16239_High-Resolution_Self-Portrait_by_Curiosity_Rover_Arm_Camera.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","pos":"18.1% 49.6%"},{"cap":"인저뉴어티 헬리콥터","src":"https://cdn.jayupress.com/news/photo/202412/36253_47378_1850.jpg","pos":"52.5% 35.0%"}],"lw":[1],"h":290},{"t":"text","html":"<p>2012년 8월 <b>큐리오시티<\/b> 화성 착륙. 옛 강바닥 자갈과 유기물 발견.<\/p><p>2021년 2월 <b>퍼서비어런스<\/b> 착륙. 화성 공기로 산소를 만듦. 헬리콥터 <b>인저뉴어티<\/b>, 다른 행성 최초의 동력 비행(72번 비행).<\/p>"}]},{"section":"s00","tag":"2021","title":"제임스웹 우주망원경","blocks":[{"t":"images","items":[{"cap":"제임스웹이 찍은 우주","src":"https://image.dongascience.com/Photo/2022/07/f17cf835d86d606095e63bbdc3113ac5.jpg"},{"cap":"","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdnRo1tP1mateLxKoLqejRA5kLYB9YzFsDTe2rSC0mLEU43n0CsVehrNo&s=10"}],"h":170,"lw":[1]},{"t":"text","html":"<p>2021년 12월 25일 발사. 거울 지름 6.5m, 허블의 약 2.7배.<\/p><p>적외선으로 우주 초기의 은하를 찾음. 지구에서 150만 km 떨어진 곳에서 관측.<\/p>"},{"t":"say","html":"큐리오시티가 화성에 내린 2012년 8월, 나는 태양계를 벗어났음."}]},{"section":"priv","tag":"2002~","title":"스페이스X","blocks":[{"t":"images","items":[{"cap":"팰컨9 1단 착륙","src":"https://image.dongascience.com/Photo/2018/02/15181577347223.jpg","pos":"58.0% 43.5%"},{"cap":"스타십 ‘젓가락 팔’","src":"https://img3.yna.co.kr/photo/ap/2024/10/13/PAP20241013168801009_P4.jpg"}],"lw":[1],"h":215},{"t":"text","html":"<p>2011년 우주왕복선 은퇴. NASA는 우주선 개발을 민간 기업에 맡김.<\/p><p><b>스페이스X<\/b>(일론 머스크): 3번 실패 끝에 2008년 첫 성공. 2012년 민간 최초 ISS 화물 전달. 2015년 로켓 1단 착륙, 2017년 재발사. 2020년 민간 최초로 우주인을 ISS에. 2024년 <b>스타십<\/b> 1단을 발사탑 팔로 잡음. 2026년 9월 스타십 첫 궤도 진입.<\/p>"}]},{"section":"priv","tag":"2024","title":"뒤따르는 기업들","blocks":[{"t":"images","items":[{"cap":"오디세우스 또는 블루 고스트 달 착륙","src":"https://img1.newsis.com/2025/03/02/NISI20250302_0001781803_web.jpg"}],"lw":[1]},{"t":"text","html":"<p><b>블루 오리진<\/b>(제프 베이조스): 2021년 베이조스 직접 탑승. 2025년 대형 로켓 뉴 글렌 첫 발사, 화성 탐사선 발사와 1단 착륙 성공.<\/p><p><b>버진 갤럭틱<\/b>: 2021년 우주관광 비행. 2014년 시험비행 사고로 조종사 1명 희생.<\/p><p><b>인튜이티브 머신스<\/b>: 2024년 2월 오디세우스, 민간 최초 달 착륙(옆으로 넘어졌지만 작동). <b>파이어플라이<\/b>: 2025년 3월 블루 고스트, 민간 최초 완벽한 달 착륙.<\/p>"},{"t":"say","html":"민간인 최초로 우주유영을 한 재러드 아이작먼, 지금은 NASA 국장. 세상 많이 바뀜!"}]},{"section":"moon","tag":"2026","title":"다시 달로","blocks":[{"t":"images","items":[{"cap":"아르테미스 2호가 찍은 지구","src":"https://ichef.bbci.co.uk/ace/ws/640/cpsprodpb/83ab/live/1bac3de0-2ff2-11f1-934f-036468834728.jpg.webp","pos":"38.2% 12.2%","w":1.02},{"cap":"아르테미스1호","src":"https://newsimg.hankookilbo.com/2022/12/12/3a23ee52-08a5-41ab-9b92-095445f5f6ad.jpg","w":0.98}],"h":170,"lw":[1]},{"t":"text","html":"<p>2022년 11월 <b>아르테미스 1호<\/b>, 무인으로 달을 돌고 옴. 2026년 4월 1일 <b>아르테미스 2호<\/b> 발사. 우주인 4명이 달 뒤편을 돌아 4월 10일 귀환. 사람이 가장 멀리 간 기록 세움.<\/p><p>다음 목표는 달 착륙, 그리고 화성.<\/p>"},{"t":"say","html":"1광일을 넘어도 전기가 남은 날까지 신호를 보낼 거야. 그 뒤에도 골든 레코드를 안고 계속 날아감."}]},{"type":"cover","kicker":"1957 → 2026","title":"인류의<br>우주탐사 연대기","subtitle":"보이저 1호의 여행 일기","names":false,"blocks":[{"t":"images","items":[{"cap":"보이저 상상도 또는 창백한 푸른 점","src":"https://ojsfile.ohmynews.com/STD_IMG_FILE/2008/0220/IE000872434_STD.jpg"}],"h":280,"lw":[1]}]}],"paper":{"size":"B4","orient":"land","cols":6,"rows":3},"imp":"strip"}</script>
+
+<script>
+"use strict";
+/* 처음 불러온 그대로의 HTML (‘이 상태로 HTML 내려받기’에 씀) */
+const PRISTINE = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+/* ================= 형식 ================= */
+/* 빠른 선택(프리셋). 실제 배치는 doc.paper {size, orient, cols, rows}로 자유롭게 정함 */
+const FORMATS = {
+  "b4-32":{label:"B4 가로 8×4 (한 장 32쪽)", kind:"book", size:"B4", orient:"land", cols:8, rows:4},
+  "a4-32":{label:"A4 가로 8×4 (한 장 32쪽)", kind:"book", size:"A4", orient:"land", cols:8, rows:4},
+  "b4-18":{label:"B4 가로 6×3 (한 장 18쪽)", kind:"book", size:"B4", orient:"land", cols:6, rows:3},
+  "b4-16":{label:"B4 세로 4×4 (한 장 16쪽)", kind:"book", size:"B4", orient:"port", cols:4, rows:4},
+  "a4-16":{label:"A4 세로 4×4 (한 장 16쪽)", kind:"book", size:"A4", orient:"port", cols:4, rows:4},
+  "a4-8": {label:"접는 책 · A4 가로 4×2 (한 장 8쪽)", kind:"book", size:"A4", orient:"land", cols:4, rows:2, imp:"zine"},
+  "a4-4": {label:"A4 세로 2×2 (한 장 4쪽)", kind:"book", size:"A4", orient:"port", cols:2, rows:2},
+  "a4-sheet":{label:"학습지 · A4 세로", kind:"sheet"}
+};
+const PAPERS = {A4:[210,297], B4:[257,364], A3:[297,420]};
+const MM = 3.7795275591;
+const BOOK_W = 455, SHEET_W = 794, SHEET_H = 1122;
+const DEFAULT_COLOR = "#1B2440";
+const PALETTE = ["#D94A26","#12877C","#6A4BC4","#2D72C8","#23935F","#C98A12","#C2397A","#1B2440"];
+const BLOCK_NAMES = {text:"글", images:"사진", box:"강조 상자", say:"캐릭터 한마디", lines:"답 쓰는 줄", name:"이름 칸"};
+
+function normalizeDoc(d){
+  if(!d) return d;
+  const F=FORMATS[d.format];
+  if(F){ if(F.kind==="sheet") d.format="sheet"; else { d.format="book"; d.paper=d.paper||{size:F.size,orient:F.orient,cols:F.cols,rows:F.rows}; if(F.imp) d.imp=F.imp; } }
+  if(d.format!=="sheet"){ d.format="book"; d.paper=Object.assign({size:"B4",orient:"land",cols:8,rows:4},d.paper||{}); }
+  return d;
+}
+function validDoc(d){ return d && Array.isArray(d.pages) && d.pages.length>0 && (d.format==="sheet"||d.format==="book"||FORMATS[d.format]); }
+function fmt(){
+  if(doc.format==="sheet") return {kind:"sheet", pw:210, ph:297, paper:"A4 세로"};
+  const P=doc.paper; const [a,b]=PAPERS[P.size]||PAPERS.B4; const land=P.orient==="land";
+  const cols=Math.max(1,Math.min(12,P.cols|0)), rows=Math.max(1,Math.min(8,P.rows|0));
+  return {kind:"book", pw:land?b:a, ph:land?a:b, cols, rows, cap:cols*rows, paper:P.size+" "+(land?"가로":"세로"),
+    imp:(doc.imp==="zine"&&cols===4&&rows===2)?"zine":"strip"};
+}
+function sepCover(){ const f=fmt(); return f.kind==="book" && f.imp!=="zine" && doc.coverMode!=="inline" && !!doc.pages[0] && doc.pages[0].type==="cover"; }
+function pageNum(i){ return sepCover()? i : i+1; }
+function isCoverIdx(i){ return fmt().kind==="book" && i===0 && doc.pages[0] && doc.pages[0].type==="cover"; }
+function pageLabel(i){ return isCoverIdx(i)?"표지":pageNum(i)+"쪽"; }
+function pageSide(i){ const n=pageNum(i); return sepCover()?(n%2===1?"pl":"pr"):(n%2===1?"pr":"pl"); }
+function bookH(){ const f=fmt(); return BOOK_W * (f.ph/f.rows) / (f.pw/f.cols); }
+function pageSize(){ return fmt().kind==="sheet" ? [SHEET_W,SHEET_H] : [BOOK_W,bookH()]; }
+function baseFs(){ return fmt().kind==="sheet" ? 16 : 17; }
+
+/* ================= 문서 ================= */
+const EMBED = (()=>{ try{ return JSON.parse(document.getElementById("doc-data").textContent); }catch(e){ return null; } })();
+function blankPage(kind, n){
+  if(kind==="sheet") return {section:"", tag:"", title:"학습지 제목", blocks:[{t:"name"},{t:"text",html:"<p>여기에 설명이나 문제를 쓰세요.</p>"},{t:"images",items:[{cap:"그림이나 사진"}]},{t:"lines",n:5}]};
+  return {section:"", tag:"", title:"제목을 쓰세요", blocks:[{t:"images",items:[{cap:"사진이나 그림"}]},{t:"text",html:"<p>내용을 쓰세요.</p>"}]};
+}
+function blankDoc(format, title){
+  const F=FORMATS[format]; const d={id:"blank", title:title||"나의 책", format, character:{label:"한마디", icon:""},
+    sections:[{id:"s1",name:"1부",color:PALETTE[0]},{id:"s2",name:"2부",color:PALETTE[1]},{id:"s3",name:"3부",color:PALETTE[2]}], pages:[]};
+  normalizeDoc(d);
+  if(F.kind==="sheet"){ d.pages.push(blankPage("sheet")); d.title=title||"학습지"; }
+  else{
+    d.pages.push({type:"cover", kicker:"", title:d.title, subtitle:"", names:true, blocks:[{t:"images",items:[{cap:"표지 그림"}]}]});
+    const n=F.imp==="zine"?F.cols*F.rows-1:F.cols*F.rows; for(let i=0;i<n;i++) d.pages.push(blankPage("book"));
+  }
+  return d;
+}
+const TEMPLATE = validDoc(EMBED) ? normalizeDoc(EMBED) : blankDoc("b4-32","나의 책");
+const STORE_KEY = "work:" + (TEMPLATE.id || "doc");
+let doc = JSON.parse(JSON.stringify(TEMPLATE));
+let cur = 0, view = "slide", layout = "flip", activeBlock = -1, activeSlot = 0;
+let fitFs = [], overflow = [];
+
+/* 저장 (IndexedDB) */
+const DB = {
+  open(){ return new Promise((res,rej)=>{ const r=indexedDB.open("minibook-maker",1); r.onupgradeneeded=()=>r.result.createObjectStore("kv"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); },
+  async get(k){ try{ const db=await this.open(); return await new Promise(res=>{ const q=db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }); }catch(e){ return null; } },
+  async set(k,v){ try{ const db=await this.open(); db.transaction("kv","readwrite").objectStore("kv").put(v,k); }catch(e){ console.warn("저장 실패",e); } }
+};
+let st; function save(){ clearTimeout(st); st=setTimeout(()=>DB.set(STORE_KEY,doc),300); }
+
+/* ================= 도우미 ================= */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function darken(hex,a){ const n=parseInt((hex||"#000").slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255; r=Math.round(r*(1-a));g=Math.round(g*(1-a));b=Math.round(b*(1-a)); return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
+function sec(id){ return (doc.sections||[]).find(s=>s.id===id); }
+const CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.6"/></svg>';
+const ICONS = {
+  voyager:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#1B2440"/><ellipse cx="20" cy="15" rx="11" ry="5.5" fill="#fff"/><circle cx="20" cy="15" r="1.6" fill="#1B2440"/><rect x="15" y="21" width="10" height="7" rx="1" fill="#C9D3EA"/><circle cx="20" cy="24.5" r="2.2" fill="#E8B83A"/><path d="M25 26l8 6M15 26l-7 7" stroke="#C9D3EA" stroke-width="1.6"/></svg>',
+  default:'<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#3A4A78"/><path d="M11 13h18a3 3 0 013 3v8a3 3 0 01-3 3h-9l-6 5v-5h-3a3 3 0 01-3-3v-8a3 3 0 013-3z" fill="#fff"/></svg>'
+};
+function iconHTML(){ const ic=(doc.character||{}).icon||""; if(ICONS[ic]) return ICONS[ic]; if(ic) return '<img alt="" src="'+esc(ic)+'">'; return ICONS.default; }
+
+/* ================= 쪽 그리기 ================= */
+function comps(n){ if(n===0) return [[]]; const out=[]; for(let i=1;i<=n;i++) comps(n-i).forEach(c=>out.push([i,...c])); return out; }
+function presets(n){ if(n<2) return [{m:"rows",g:[1]}];
+  const mixed=comps(n).filter(g=>g.length>1&&g.some(x=>x>1));
+  return [{m:"rows",g:[n]},{m:"cols",g:[n]}].concat(mixed.map(g=>({m:"rows",g})),mixed.map(g=>({m:"cols",g}))); }
+function getLayout(b,n){
+  const L=b.layout; if(L && L.g && L.g.reduce((a,x)=>a+x,0)===n) return L;
+  if(b.dir==="col") return {m:"cols",g:[n]};
+  if(b.dir==="grid") return {m:"rows",g:n===4?[2,2]:n===3?[2,1]:[n]};
+  return {m:"rows",g:[n]};
+}
+function sameLayout(a,b){ return a.m===b.m && a.g.join()===b.g.join(); }
+function thumbHTML(L){ return '<span class="tf '+L.m+'">'+L.g.map(c=>'<span class="tl">'+'<i></i>'.repeat(c)+'</span>').join("")+'</span>'; }
+function layoutName(L){ const n=L.g.reduce((a,x)=>a+x,0); if(L.g.length===1) return L.m==="rows"?"가로로 나란히":"세로로 쌓기"; if(L.g.every(x=>x===1)) return L.m==="rows"?"세로로 쌓기":"가로로 나란히";
+  return (L.m==="rows"?"위에서부터 ":"왼쪽부터 ")+L.g.join("·")+"칸"; }
+function slotEl(item, label){
+  const d=document.createElement("div"); d.className="slot";
+  if(item.src){ d.classList.add("filled"); const img=new Image(); img.alt=item.cap||""; img.src=item.src; img.referrerPolicy="no-referrer"; img.style.objectFit=item.fit||"cover"; img.style.objectPosition=item.pos||"50% 50%"; img.draggable=false; d.appendChild(img);
+    if(item.cap && item.cap.trim()){ const c=document.createElement("div"); c.className="fcap"; c.textContent=item.cap; d.appendChild(c); } }
+  else d.innerHTML=CAM+"<span>"+esc(item.cap?("사진: "+item.cap):"사진 칸")+"</span>";
+  return d;
+}
+function blockEl(b, bi, kind){
+  let el;
+  if(b.t==="text"){ el=document.createElement("div"); el.className="b-text"; el.innerHTML=b.html||""; el.dataset.edit="b"+bi; }
+  else if(b.t==="images"){
+    const items=b.items&&b.items.length?b.items:[{cap:""}];
+    el=document.createElement("div"); el.className="b-img n"+items.length;
+    const h=b.h || (kind==="sheet"?260:0);
+    if(h){ el.classList.add("fixed"); el.style.height=h+"px"; }
+    const L=getLayout(b,items.length); el.style.flexDirection=L.m==="rows"?"column":"row";
+    let k=0;
+    L.g.forEach((cnt,li)=>{ const ln=document.createElement("div"); ln.className="ln";
+      ln.style.flexDirection=L.m==="rows"?"row":"column"; ln.style.flexGrow=(b.lw&&b.lw.length===L.g.length&&b.lw[li])||1;
+      for(let j=0;j<cnt;j++,k++){ const it=items[k]; const s=slotEl(it); s.dataset.b=bi; s.dataset.k=k; s.style.flexGrow=it.w||1; ln.appendChild(s); }
+      el.appendChild(ln); });
+  }
+  else if(b.t==="box"){
+    el=document.createElement("div"); el.className="b-box "+(b.style||"color");
+    if(b.label && b.style!=="quote"){ const l=document.createElement("span"); l.className="lbl"; l.textContent=b.label; el.appendChild(l); }
+    const s=document.createElement("span"); s.innerHTML=b.html||""; s.dataset.edit="b"+bi; el.appendChild(s);
+  }
+  else if(b.t==="say"){
+    el=document.createElement("div"); el.className="b-say";
+    el.innerHTML='<span class="ic">'+iconHTML()+'</span><div><span class="dt">'+esc((doc.character||{}).label||"한마디")+'</span><span class="dtx"></span></div>';
+    const t=el.querySelector(".dtx"); t.innerHTML=b.html||""; t.dataset.edit="b"+bi;
+  }
+  else if(b.t==="lines"){ el=document.createElement("div"); el.className="b-lines"; const n=Math.max(1,Math.min(30,b.n||4)); for(let i=0;i<n;i++) el.appendChild(document.createElement("div")); }
+  else if(b.t==="name"){ el=document.createElement("div"); el.className="b-name"; el.innerHTML='<span>학년</span><span>반</span><span>번</span><span class="wide">이름</span>'; }
+  else { el=document.createElement("div"); }
+  el.dataset.bi=bi; return el;
+}
+function renderPage(i){
+  const P=doc.pages[i]; const f=fmt(); const [W,H]=pageSize();
+  const el=document.createElement("div");
+  el.className="page "+f.kind+" "+pageSide(i); el.style.width=W+"px"; el.style.height=H+"px"; el.dataset.i=i;
+  if(fitFs[i]) el.style.setProperty("--fs",fitFs[i]+"px");
+  el.style.setProperty("--mm",(f.kind==="sheet"?SHEET_W/210:BOOK_W/(f.pw/f.cols))+"px");
+  if(P.type==="cover" && f.kind==="book"){
+    el.classList.add("cover");
+    const top=document.createElement("div"); top.className="top";
+    top.innerHTML='<div class="stars"></div><div class="kicker"></div><h1></h1><div class="sub"></div>';
+    top.querySelector(".kicker").innerHTML=P.kicker||""; top.querySelector(".kicker").dataset.edit="kicker";
+    top.querySelector("h1").innerHTML=P.title||""; top.querySelector("h1").dataset.edit="title";
+    top.querySelector(".sub").innerHTML=P.subtitle||""; top.querySelector(".sub").dataset.edit="subtitle";
+    el.appendChild(top);
+    const inner=document.createElement("div"); inner.className="inner"; el.appendChild(inner);
+    (P.blocks||[]).forEach((b,bi)=>inner.appendChild(blockEl(b,bi,"book")));
+    if(P.names!==false){ const n=document.createElement("div"); n.className="names"; n.innerHTML="<span>학년 반 번</span><span>이름</span>"; inner.appendChild(n); }
+    return el;
+  }
+  const S=sec(P.section); const c=S?S.color:DEFAULT_COLOR;
+  el.style.setProperty("--era",c); el.style.setProperty("--eraInk",darken(c,.18));
+  const band=document.createElement("div"); band.className="band";
+  band.innerHTML='<span class="eraName"></span><span class="year"></span>';
+  band.firstChild.textContent=S?S.name:(f.kind==="sheet"?doc.title:"");
+  band.lastChild.textContent=P.tag||"";
+  el.appendChild(band);
+  const inner=document.createElement("div"); inner.className="inner"; el.appendChild(inner);
+  const h=document.createElement("h2"); h.className="ttl"; h.innerHTML=P.title||""; h.dataset.edit="title"; inner.appendChild(h);
+  (P.blocks||[]).forEach((b,bi)=>inner.appendChild(blockEl(b,bi,f.kind)));
+  const pno=document.createElement("div"); pno.className="pno"; pno.textContent=pageNum(i); el.appendChild(pno);
+  return el;
+}
+
+/* 넘치면 글자 크기 줄이기 */
+function fitOne(i){
+  const m=document.getElementById("measure"); m.innerHTML="";
+  fitFs[i]=null; const el=renderPage(i); m.appendChild(el);
+  const inner=el.querySelector(".inner"); let fz=baseFs(), min=fmt().kind==="sheet"?12:11;
+  el.style.setProperty("--fs",fz+"px");
+  while(inner.scrollHeight>inner.clientHeight+1 && fz>min){ fz-=0.5; el.style.setProperty("--fs",fz+"px"); }
+  fitFs[i]=fz; overflow[i]=inner.scrollHeight>inner.clientHeight+1; m.innerHTML="";
+}
+function fitAll(){ fitFs=[]; overflow=[]; doc.pages.forEach((_,i)=>fitOne(i)); window.__fit=fitFs.slice(); window.__overflow=overflow.slice(); }
+
+function holder(i,scale){
+  const [W,H]=pageSize(); const h=document.createElement("div"); h.className="holder";
+  h.style.width=(W*scale)+"px"; h.style.height=(H*scale)+"px";
+  const p=renderPage(i); p.style.transform="scale("+scale+")"; p.style.transformOrigin="0 0";
+  if(overflow[i]) p.classList.add("over");
+  h.appendChild(p); return h;
+}
+
+/* ================= 한 쪽씩 보기 ================= */
+function slideScale(){ const [W,H]=pageSize(); return Math.max(0.35,Math.min(fmt().kind==="sheet"?0.85:1.15,(window.innerHeight-170)/H,(window.innerWidth-40)/W)); }
+function drawSlide(){
+  const box=document.getElementById("stageBox"); box.innerHTML="";
+  const h=holder(cur,slideScale()); box.appendChild(h); const page=h.firstChild;
+  page.querySelectorAll(".slot").forEach(s=>{
+    const bi=+s.dataset.b,k=+s.dataset.k; if(bi===activeBlock&&k===activeSlot) s.classList.add("active");
+    s.style.cursor="pointer";
+    s.addEventListener("click",()=>{ if(s.dataset.noclick){ delete s.dataset.noclick; return; } activeBlock=bi; activeSlot=k; drawSlide(); const inp=document.getElementById("url_"+bi+"_"+k); if(inp){ inp.scrollIntoView({block:"center"}); inp.focus(); } });
+    s.addEventListener("dragover",e=>e.preventDefault());
+    s.addEventListener("drop",e=>{ e.preventDefault(); const fl=e.dataTransfer.files[0]; if(fl) loadFile(cur,bi,k,fl); });
+  });
+  page.querySelectorAll("[data-edit]").forEach(n=>{
+    n.contentEditable="true"; n.spellcheck=false;
+    n.addEventListener("paste",e=>{ e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text/plain"); document.execCommand("insertText",false,t); });
+    n.addEventListener("focus",()=>{ const m=/^b(\d+)$/.exec(n.dataset.edit); if(m){ activeBlock=+m[1]; markActiveBlock(); } });
+    n.addEventListener("input",()=>{ setField(cur,n.dataset.edit,n.innerHTML); save(); });
+    n.addEventListener("blur",()=>{ fitOne(cur); page.style.setProperty("--fs",fitFs[cur]+"px"); page.classList.toggle("over",!!overflow[cur]); updateWarn(); });
+  });
+  addResizeHandles(page); addPanning(page); addBlockMove(page);
+  document.getElementById("pageSel").value=cur;
+  drawSide();
+}
+function maxImgH(){ return Math.round(pageSize()[1] - (fmt().kind==="sheet"?220:150)); }
+function imgHeightNow(bi){ const el=document.querySelector('#stageBox .b-img[data-bi="'+bi+'"]'); return el?Math.round(el.offsetHeight/5)*5:0; }
+function addResizeHandles(page){
+  page.querySelectorAll(".b-img").forEach(el=>{
+    const bi=+el.dataset.bi; const B=doc.pages[cur].blocks[bi];
+    const drag=(hd,onMove,onUp)=>hd.addEventListener("pointerdown",e=>{ e.preventDefault(); e.stopPropagation(); hd.setPointerCapture(e.pointerId);
+      const sc=slideScale(), x0=e.clientX, y0=e.clientY; const st=onMove(null);
+      const mv=ev=>onMove({dx:(ev.clientX-x0)/sc, dy:(ev.clientY-y0)/sc, st});
+      const up=()=>{ hd.removeEventListener("pointermove",mv); hd.removeEventListener("pointerup",up); hd.removeEventListener("pointercancel",up); onUp(); };
+      hd.addEventListener("pointermove",mv); hd.addEventListener("pointerup",up); hd.addEventListener("pointercancel",up); });
+    // 높이 손잡이
+    const hh=document.createElement("div"); hh.className="rs-h"; hh.title="끌어서 사진 칸 높이 바꾸기"; el.appendChild(hh);
+    let nh=0;
+    drag(hh, m=>{ if(!m) return el.offsetHeight;
+      nh=Math.max(60,Math.min(maxImgH(),Math.round((m.st+m.dy)/5)*5)); el.classList.add("fixed"); el.style.height=nh+"px";
+      const v=document.querySelector('#side [data-hval="'+bi+'"]'); if(v) v.textContent=nh; },
+      ()=>{ if(nh){ B.h=nh; activeBlock=bi; save(); fitOne(cur); drawSlide(); } });
+    // 칸 사이 손잡이: 줄 안의 칸끼리, 줄과 줄 사이
+    const L=getLayout(B,B.items.length), rowsMode=L.m==="rows";
+    const lines=[...el.querySelectorAll(":scope>.ln")];
+    if(!B.lw || B.lw.length!==lines.length) B.lw=lines.map(()=>1);
+    const makeDiv=(A,Z,axis,get,apply,commit)=>{
+      const hd=document.createElement("div"); hd.className="rs-d "+(axis==="x"?"v":"hz"); hd.title="끌어서 칸 크기 바꾸기";
+      const place=()=>{ if(axis==="x"){ hd.style.left=(A.offsetLeft+A.offsetWidth+4)+"px"; hd.style.top=(A.offsetTop+A.offsetHeight/2)+"px"; }
+        else { hd.style.top=(A.offsetTop+A.offsetHeight+4)+"px"; hd.style.left=(A.offsetLeft+A.offsetWidth/2)+"px"; } };
+      place(); el.appendChild(hd); let res=null;
+      drag(hd, m=>{ if(!m){ const [wa,wb]=get(); return {wa,wb,pa:axis==="x"?A.offsetWidth:A.offsetHeight,pb:axis==="x"?Z.offsetWidth:Z.offsetHeight}; }
+        const d=axis==="x"?m.dx:m.dy, tot=m.st.pa+m.st.pb, na=Math.max(30,Math.min(tot-30,m.st.pa+d)), sum=m.st.wa+m.st.wb;
+        const wa=Math.round(sum*na/tot*100)/100; res=[wa,Math.round((sum-wa)*100)/100]; A.style.flexGrow=res[0]; Z.style.flexGrow=res[1]; place(); },
+        ()=>{ if(res){ commit(res[0],res[1]); activeBlock=bi; save(); fitOne(cur); drawSlide(); } });
+    };
+    let k0=0;
+    lines.forEach(ln=>{ const ss=[...ln.querySelectorAll(":scope>.slot")];
+      for(let j=0;j<ss.length-1;j++){ const ka=k0+j, kb=ka+1;
+        makeDiv(ss[j],ss[j+1],rowsMode?"x":"y",()=>[B.items[ka].w||1,B.items[kb].w||1],null,(wa,wb)=>{ B.items[ka].w=wa; B.items[kb].w=wb; }); }
+      k0+=ss.length; });
+    for(let li=0;li<lines.length-1;li++)
+      makeDiv(lines[li],lines[li+1],rowsMode?"y":"x",()=>[B.lw[li]||1,B.lw[li+1]||1],null,(wa,wb)=>{ B.lw[li]=wa; B.lw[li+1]=wb; });
+  });
+}
+/* 사진 안에서 보이는 부분 옮기기 (칸 채우기일 때) */
+function addPanning(page){
+  page.querySelectorAll(".slot.filled").forEach(s=>{
+    const bi=+s.dataset.b, k=+s.dataset.k; const it=doc.pages[cur].blocks[bi].items[k];
+    if((it.fit||"cover")!=="cover") return;
+    s.classList.add("pan"); s.title="끌어서 사진의 보이는 부분 옮기기";
+    s.addEventListener("pointerdown",e=>{
+      if(e.button!==0) return; const img=s.querySelector("img"); const sc=slideScale();
+      const [x0,y0]=(it.pos||"50% 50%").split(" ").map(parseFloat); const sx=e.clientX, sy=e.clientY; let moved=false;
+      const mv=ev=>{ const dx=(ev.clientX-sx)/sc, dy=(ev.clientY-sy)/sc; if(!moved && Math.hypot(dx,dy)<4) return; moved=true;
+        const nx=Math.max(0,Math.min(100,x0-dx/img.offsetWidth*150)), ny=Math.max(0,Math.min(100,y0-dy/img.offsetHeight*150));
+        it.pos=nx.toFixed(1)+"% "+ny.toFixed(1)+"%"; img.style.objectPosition=it.pos; };
+      const up=()=>{ window.removeEventListener("pointermove",mv); window.removeEventListener("pointerup",up);
+        if(moved){ s.dataset.noclick="1"; save(); } };
+      window.addEventListener("pointermove",mv); window.addEventListener("pointerup",up);
+    });
+  });
+}
+/* 블록을 끌어서 위아래 자리 바꾸기 */
+function addBlockMove(page){
+  const inner=page.querySelector(".inner"); if(!inner) return;
+  const blocks=[...inner.querySelectorAll(":scope>[data-bi]")]; if(blocks.length<2) return;
+  blocks.forEach(el=>{
+    const bi=+el.dataset.bi; const g=document.createElement("div"); g.className="grip"; g.title="끌어서 자리 옮기기"; g.style.top=el.offsetTop+"px"; inner.appendChild(g);
+    g.addEventListener("pointerdown",e=>{ e.preventDefault(); e.stopPropagation(); g.setPointerCapture(e.pointerId);
+      const sc=slideScale(), y0=e.clientY; el.classList.add("dragging"); g.classList.add("on"); g.style.cursor="grabbing"; const gt=el.offsetTop;
+      const line=document.createElement("div"); line.className="dropLine"; inner.appendChild(line); let target=bi;
+      const others=blocks.filter(b=>b!==el);
+      const mv=ev=>{ const dy=(ev.clientY-y0)/sc; el.style.transform="translateY("+dy+"px)"; g.style.top=(gt+dy)+"px";
+        const y=el.offsetTop+el.offsetHeight/2+dy; let idx=0;
+        others.forEach(o=>{ if(y>o.offsetTop+o.offsetHeight/2) idx++; });
+        target=idx; const ref=others[idx]; line.style.top=((ref?ref.offsetTop:(others[others.length-1].offsetTop+others[others.length-1].offsetHeight+4))-6)+"px"; };
+      const up=()=>{ g.removeEventListener("pointermove",mv); g.removeEventListener("pointerup",up); g.removeEventListener("pointercancel",up);
+        const B=doc.pages[cur].blocks; const [m]=B.splice(bi,1); B.splice(target,0,m); activeBlock=target; save(); fitOne(cur); drawSlide(); };
+      g.addEventListener("pointermove",mv); g.addEventListener("pointerup",up); g.addEventListener("pointercancel",up);
+      mv(e);
+    });
+  });
+}
+function setField(i,key,val){ const P=doc.pages[i]; const m=/^b(\d+)$/.exec(key); if(m) P.blocks[+m[1]].html=val; else P[key]=val; if(key==="title") refreshPageSel(); }
+function markActiveBlock(){ document.querySelectorAll("#side .blk").forEach(b=>b.classList.toggle("on",+b.dataset.bi===activeBlock)); }
+function updateWarn(){ const w=document.getElementById("warn"); if(w) w.classList.toggle("hidden",!overflow[cur]); }
+
+function drawSide(){
+  const P=doc.pages[cur], f=fmt(), side=document.getElementById("side");
+  const isCover=P.type==="cover" && f.kind==="book";
+  let h='<h2>'+pageLabel(cur)+' 고치기'+(isCoverIdx(cur)&&sepCover()?' <span style="font-size:12px;color:var(--muted);font-weight:400">(인쇄할 때 맨 뒤에 따로 나와요)</span>':'')+'</h2>';
+  h+='<p class="hint">쪽 안의 글자를 눌러 바로 고칠 수 있어요. 굵게는 Ctrl+B. 사진 칸을 누르면 아래에서 사진을 넣을 수 있어요.</p>';
+  h+='<p class="warnMsg hidden" id="warn">이 쪽은 내용이 넘쳐요. 글을 줄이거나 사진 칸을 빼 주세요.</p>';
+  if(!isCover){
+    h+='<div class="row" style="margin:0 0 10px"><label class="field" style="flex:1;margin:0"><span>단원(색 띠)</span><select id="secSel"><option value="">없음</option>'+
+      (doc.sections||[]).map(s=>'<option value="'+esc(s.id)+'"'+(s.id===P.section?" selected":"")+'>'+esc(s.name)+'</option>').join("")+'</select></label>'+
+      '<label class="field" style="width:110px;margin:0"><span>오른쪽 큰 글씨</span><input type="text" id="tagIn" value="'+esc(P.tag||"")+'" placeholder="예: 1957"></label></div>';
+  } else {
+    h+='<label class="field"><span>이름 칸 보이기</span><select id="namesSel"><option value="1"'+(P.names!==false?" selected":"")+'>보이기</option><option value="0"'+(P.names===false?" selected":"")+'>숨기기</option></select></label>';
+  }
+  (P.blocks||[]).forEach((b,bi)=>{
+    h+='<div class="blk'+(bi===activeBlock?" on":"")+'" data-bi="'+bi+'"><div class="blkHead"><h3>'+BLOCK_NAMES[b.t]+'</h3>'+
+      '<button class="small" data-up="'+bi+'" aria-label="위로"'+(bi===0?" disabled":"")+'>▲</button>'+
+      '<button class="small" data-down="'+bi+'" aria-label="아래로"'+(bi===P.blocks.length-1?" disabled":"")+'>▼</button>'+
+      '<button class="small danger" data-del="'+bi+'">빼기</button></div>';
+    if(b.t==="images"){
+      const items=b.items||[];
+      h+='<div class="row"><label style="font-size:13px">사진 칸 수 <select data-ncount="'+bi+'">'+[1,2,3,4].map(n=>'<option'+(n===items.length?" selected":"")+'>'+n+'</option>').join("")+'</select></label>'+
+         '<label style="font-size:13px"><input type="checkbox" data-hauto="'+bi+'"'+(!b.h?" checked":"")+'> 남는 공간 모두 쓰기</label></div>'+
+         '<div class="rangeRow"><span>높이</span><input type="range" min="60" max="'+maxImgH()+'" step="5" data-hrange="'+bi+'" value="'+(b.h||imgHeightNow(bi)||200)+'" aria-label="사진 칸 높이"><span data-hval="'+bi+'" style="width:3em;text-align:right">'+(b.h?b.h:"자동")+'</span></div>'+
+         (items.length>1?'<div class="lays" role="group" aria-label="사진 칸 배열">'+presets(items.length).map((L,pi)=>'<button class="lt'+(sameLayout(L,getLayout(b,items.length))?" on":"")+'" data-ilay="'+bi+'_'+pi+'" title="'+layoutName(L)+'" aria-label="'+layoutName(L)+'">'+thumbHTML(L)+'</button>').join("")+'</div>'+
+           ((items.some(x=>x.w&&x.w!==1)||(b.lw&&b.lw.some(x=>x!==1)))?'<div class="row"><button class="small" data-eq="'+bi+'">칸 크기 똑같이</button></div>':''):'')+
+         '<p class="hint" style="margin:6px 0 0">쪽 화면에서 칸 사이 파란 손잡이를 끌면 칸 크기가 바뀌어요. 사진을 끌면 보이는 부분이 옮겨지고, 블록 왼쪽의 파란 손잡이를 위아래로 끌면 블록 자리가 바뀌어요.</p>';
+      items.forEach((it,k)=>{ const isData=it.src&&it.src.startsWith("data:");
+        h+='<div class="slotEd"><label class="field"><span>칸 '+(k+1)+' 설명 <small style="font-weight:400;color:var(--muted)">사진을 넣으면 사진 아래에 작게 나와요. 비우면 안 나와요.</small></span><input type="text" data-cap="'+bi+'_'+k+'" value="'+esc(it.cap||"")+'" placeholder="어떤 사진인지"></label>'+
+           '<label class="field"><span>사진 주소</span><input type="url" id="url_'+bi+'_'+k+'" data-url="'+bi+'_'+k+'" value="'+(it.src&&!isData?esc(it.src):"")+'" placeholder="'+(isData?"내 파일에서 넣은 사진":"https://… 이미지 주소")+'"></label>'+
+           '<div class="row"><label class="btn small" for="file_'+bi+'_'+k+'">파일 고르기</label><input class="hidden" type="file" accept="image/*" id="file_'+bi+'_'+k+'" data-file="'+bi+'_'+k+'">'+
+           (it.src?'<button class="small" data-fit="'+bi+'_'+k+'">'+((it.fit||"cover")==="cover"?"전체 보이기":"칸 채우기")+'</button><button class="small danger" data-clr="'+bi+'_'+k+'">사진 지우기</button>':'')+'</div></div>'; });
+    }
+    if(b.t==="box"){
+      h+='<div class="row"><select data-bstyle="'+bi+'">'+[["color","색 테두리"],["dark","진한 상자"],["quote","인용"]].map(([v,n])=>'<option value="'+v+'"'+((b.style||"color")===v?" selected":"")+'>'+n+'</option>').join("")+'</select>'+
+         (b.style!=="quote"?'<input type="text" style="flex:1;width:auto" data-blabel="'+bi+'" value="'+esc(b.label||"")+'" placeholder="머리표 (예: 추모, 핵심)">':'')+'</div>';
+    }
+    if(b.t==="lines") h+='<div class="row"><label style="font-size:13px">줄 수 <input type="number" min="1" max="30" style="width:70px" data-lines="'+bi+'" value="'+(b.n||4)+'"></label></div>';
+    if(b.t==="say") h+='<p class="hint" style="margin:0">머리말과 그림은 ‘책 설정’에서 바꿔요.</p>';
+    h+='</div>';
+  });
+  h+='<div class="addRow"><span style="font-size:13px;font-weight:700;width:100%">넣기</span>'+Object.keys(BLOCK_NAMES).map(t=>'<button class="small" data-add="'+t+'">+ '+BLOCK_NAMES[t]+'</button>').join("")+'</div>';
+  h+='<div class="pageOps"><button class="small" id="mvUp"'+(cur===0?" disabled":"")+'>이 쪽 앞으로</button><button class="small" id="mvDown"'+(cur===doc.pages.length-1?" disabled":"")+'>이 쪽 뒤로</button>'+
+     '<button class="small" id="clearPage">이 쪽 비우기</button>'+
+     '<button class="small" id="addPage">뒤에 쪽 추가</button><button class="small danger" id="delPage"'+(doc.pages.length<2?" disabled":"")+'>이 쪽 삭제</button></div>';
+  side.innerHTML=h; updateWarn();
+
+  const q=s=>side.querySelectorAll(s);
+  const redraw=()=>{ save(); fitOne(cur); drawSlide(); };
+  const secSel=side.querySelector("#secSel"); if(secSel) secSel.onchange=()=>{ P.section=secSel.value; redraw(); };
+  const tagIn=side.querySelector("#tagIn"); if(tagIn) tagIn.onchange=()=>{ P.tag=tagIn.value; redraw(); };
+  const ns=side.querySelector("#namesSel"); if(ns) ns.onchange=()=>{ P.names=ns.value==="1"; redraw(); };
+  q("[data-up]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; [P.blocks[i-1],P.blocks[i]]=[P.blocks[i],P.blocks[i-1]]; activeBlock=i-1; redraw(); });
+  q("[data-down]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.down; [P.blocks[i+1],P.blocks[i]]=[P.blocks[i],P.blocks[i+1]]; activeBlock=i+1; redraw(); });
+  q("[data-del]").forEach(b=>b.onclick=()=>{ P.blocks.splice(+b.dataset.del,1); activeBlock=-1; redraw(); });
+  q("[data-add]").forEach(b=>b.onclick=()=>{ const t=b.dataset.add; const nb={t};
+    if(t==="text") nb.html="<p>내용을 쓰세요.</p>"; if(t==="images") nb.items=[{cap:""}]; if(t==="box"){ nb.style="color"; nb.label="핵심"; nb.html="중요한 내용을 쓰세요."; }
+    if(t==="say") nb.html="한마디를 쓰세요."; if(t==="lines") nb.n=4;
+    P.blocks=P.blocks||[]; P.blocks.push(nb); activeBlock=P.blocks.length-1; redraw(); });
+  q("[data-ilay]").forEach(x=>x.onclick=()=>{ const [bi,pi]=x.dataset.ilay.split("_").map(Number); const b=P.blocks[bi];
+    b.layout=presets(b.items.length)[pi]; delete b.dir; delete b.lw; b.items.forEach(o=>delete o.w); activeBlock=bi; redraw(); });
+  q("[data-eq]").forEach(x=>x.onclick=()=>{ const b=P.blocks[+x.dataset.eq]; delete b.lw; b.items.forEach(o=>delete o.w); redraw(); });
+  q("[data-ncount]").forEach(s=>s.onchange=()=>{ const b=P.blocks[+s.dataset.ncount]; const n=+s.value; b.items=b.items||[]; while(b.items.length<n) b.items.push({cap:""}); b.items.length=n; delete b.layout; delete b.dir; delete b.lw; b.items.forEach(o=>delete o.w); redraw(); });
+  q("[data-hauto]").forEach(c=>c.onchange=()=>{ const b=P.blocks[+c.dataset.hauto]; if(c.checked) delete b.h; else b.h=imgHeightNow(+c.dataset.hauto)||200; redraw(); });
+  q("[data-hrange]").forEach(r=>{ const bi=+r.dataset.hrange;
+    r.oninput=()=>{ const el=document.querySelector('#stageBox .b-img[data-bi="'+bi+'"]'); if(el){ el.classList.add("fixed"); el.style.height=r.value+"px"; }
+      side.querySelector('[data-hval="'+bi+'"]').textContent=r.value; const c=side.querySelector('[data-hauto="'+bi+'"]'); if(c) c.checked=false; };
+    r.onchange=()=>{ P.blocks[bi].h=+r.value; redraw(); }; });
+  const it=key=>{ const [bi,k]=key.split("_").map(Number); return P.blocks[bi].items[k]; };
+  q("[data-cap]").forEach(inp=>inp.onchange=()=>{ it(inp.dataset.cap).cap=inp.value; redraw(); });
+  q("[data-url]").forEach(inp=>inp.onchange=()=>{ const o=it(inp.dataset.url); const v=inp.value.trim(); if(v){ if(v!==o.src) delete o.pos; o.src=v; } else if(!(o.src||"").startsWith("data:")) delete o.src; redraw(); });
+  q("[data-file]").forEach(inp=>inp.onchange=()=>{ if(inp.files[0]){ const [bi,k]=inp.dataset.file.split("_").map(Number); loadFile(cur,bi,k,inp.files[0]); } });
+  q("[data-fit]").forEach(b=>b.onclick=()=>{ const o=it(b.dataset.fit); o.fit=(o.fit||"cover")==="cover"?"contain":"cover"; redraw(); });
+  q("[data-clr]").forEach(b=>b.onclick=()=>{ delete it(b.dataset.clr).src; redraw(); });
+  q("[data-bstyle]").forEach(s=>s.onchange=()=>{ P.blocks[+s.dataset.bstyle].style=s.value; redraw(); });
+  q("[data-blabel]").forEach(s=>s.onchange=()=>{ P.blocks[+s.dataset.blabel].label=s.value; redraw(); });
+  q("[data-lines]").forEach(s=>s.onchange=()=>{ P.blocks[+s.dataset.lines].n=Math.max(1,Math.min(30,+s.value||4)); redraw(); });
+  const mv=d=>{ const j=cur+d; [doc.pages[cur],doc.pages[j]]=[doc.pages[j],doc.pages[cur]]; [fitFs[cur],fitFs[j]]=[fitFs[j],fitFs[cur]]; [overflow[cur],overflow[j]]=[overflow[j],overflow[cur]]; cur=j; save(); refreshPageSel(); drawSlide(); };
+  side.querySelector("#mvUp").onclick=()=>mv(-1); side.querySelector("#mvDown").onclick=()=>mv(1);
+  side.querySelector("#clearPage").onclick=()=>{ if(!confirm((cur+1)+"쪽 내용을 모두 지울까요?")) return; doc.pages[cur]=blankPage(f.kind); refreshPageSel(); redraw(); };
+  const ap=side.querySelector("#addPage"); if(ap) ap.onclick=()=>{ doc.pages.splice(cur+1,0,blankPage(f.kind)); cur++; fitOne(cur); save(); refreshPageSel(); drawSlide(); };
+  const dp=side.querySelector("#delPage"); if(dp) dp.onclick=()=>{ if(!confirm((cur+1)+"쪽을 삭제할까요?")) return; doc.pages.splice(cur,1); cur=Math.max(0,cur-1); save(); fitAll(); refreshPageSel(); drawSlide(); };
+}
+
+/* 내 사진 파일: 긴 변 1400px로 줄여서 저장 */
+function loadFile(i,bi,k,file){
+  const r=new FileReader();
+  r.onload=()=>{ const img=new Image();
+    img.onload=()=>{ const sc=Math.min(1,1400/Math.max(img.width,img.height)); const c=document.createElement("canvas");
+      c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc); const g=c.getContext("2d");
+      g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+      const o=doc.pages[i].blocks[bi].items[k]; o.src=c.toDataURL("image/jpeg",0.88); o.fit=o.fit||"cover"; delete o.pos;
+      activeBlock=bi; activeSlot=k; save(); fitOne(i); drawSlide(); };
+    img.onerror=()=>alert("이 파일은 사진으로 열 수 없어요. JPG나 PNG 파일을 골라 주세요.");
+    img.src=r.result; };
+  r.readAsDataURL(file);
+}
+
+/* ================= 펼쳐 보기 ================= */
+function drawSpreads(){
+  const v=document.getElementById("spreadView"); v.innerHTML=""; const f=fmt(); const [W]=pageSize();
+  let groups=[];
+  if(f.kind==="sheet") groups=doc.pages.map((_,i)=>[i]);
+  else if(sepCover()){ groups.push([0]); for(let i=1;i<doc.pages.length;i+=2) groups.push(i+1<doc.pages.length?[i,i+1]:[i]); }
+  else{ groups.push([0]); for(let i=1;i<doc.pages.length-1;i+=2) groups.push([i,i+1]); if(doc.pages.length%2===0) groups.push([doc.pages.length-1]); }
+  const sc=Math.max(0.3,Math.min(f.kind==="sheet"?0.6:0.62,(window.innerWidth-40)/(W*(f.kind==="sheet"?1:2))));
+  groups.forEach(g=>{
+    const lab=document.createElement("div"); lab.className="spreadLabel";
+    lab.textContent=f.kind==="sheet"?(g[0]+1)+"쪽":isCoverIdx(g[0])?(sepCover()?"표지 (인쇄할 때 맨 뒤에 따로)":"앞표지"):g.length===1?(sepCover()?pageLabel(g[0]):"뒤표지 ("+pageLabel(g[0])+")"):pageNum(g[0])+"–"+pageNum(g[1])+"쪽";
+    v.appendChild(lab);
+    const s=document.createElement("div"); s.className="spread";
+    g.forEach(i=>{ const h=holder(i,sc); h.title=pageLabel(i)+" 고치기"; h.onclick=()=>{ cur=i; activeBlock=-1; setView("slide"); }; s.appendChild(h); });
+    v.appendChild(s);
+  });
+}
+
+/* ================= 인쇄 배치 ================= */
+function sheetsLayout(){
+  const f=fmt(), N=doc.pages.length;
+  if(f.kind==="sheet" || layout==="single"){
+    const order=[...Array(N).keys()]; if(sepCover()) order.push(order.shift());
+    return order.map(i=>({single:true,cells:[{i,flip:false}]}));
+  }
+  const sep=sepCover(), list=sep?[...Array(N-1).keys()].map(x=>x+1):[...Array(N).keys()];
+  const sheets=[], nS=Math.max(1,Math.ceil(list.length/f.cap));
+  for(let sI=0;sI<nS;sI++){
+    const base=sI*f.cap, cells=[];
+    if(f.imp==="zine"){
+      // 8쪽 접는 책: 위 줄(거꾸로) 5 4 3 2 / 아래 줄 6 7 8 1
+      const order=layout==="flip"?[[4,3,2,1],[5,6,7,0]]:[[0,1,2,3],[4,5,6,7]];
+      order.forEach((r,ri)=>r.forEach(k=>cells.push({k:base+k,flip:layout==="flip"&&ri===0})));
+    } else {
+      for(let r=0;r<f.rows;r++){ let idx=[...Array(f.cols)].map((_,c)=>base+r*f.cols+c);
+        const fl=layout==="flip"&&(sI*f.rows+r)%2===1; if(fl) idx.reverse(); idx.forEach(k=>cells.push({k,flip:fl})); }
+    }
+    sheets.push({cells:cells.map(c=>({i:c.k<list.length?list[c.k]:-1,flip:c.flip}))});
+  }
+  if(sep){ const cells=[...Array(f.cap)].map((_,k)=>({i:k===0?0:-1,flip:false,void:k!==0})); sheets.push({cover:true,cells}); }
+  return sheets;
+}
+function drawPrint(){
+  const f=fmt(); const box=document.getElementById("papers"); box.innerHTML="";
+  const single=f.kind==="book"&&layout==="single", cw0=f.kind==="book"?f.pw/f.cols:f.pw, ch0=f.kind==="book"?f.ph/f.rows:f.ph;
+  document.getElementById("pageRule").textContent="@page{size:"+(single?cw0+"mm "+ch0+"mm":f.pw+"mm "+f.ph+"mm")+";margin:0}";
+  const info=document.getElementById("printInfo");
+  let txt=(single?"용지 크기 <b>"+cw0.toFixed(1)+"×"+ch0.toFixed(1)+"mm</b>(한 쪽 크기)":"용지 <b>"+f.paper+"</b>")+", 여백 <b>없음</b>, 배율 <b>100%</b>(실제 크기), <b>배경 그래픽 켜기</b>로 맞춘 뒤, 프린터 대신 ‘PDF로 저장’을 고르면 PDF 파일이 돼요. ";
+  if(f.kind==="book"){
+    const sep=sepCover(), nC=doc.pages.length-(sep?1:0), nS=Math.ceil(nC/f.cap);
+    if(single) txt+="<b>한 쪽씩</b>: PDF 한 페이지에 책 한 쪽씩 들어가요"+(sep?". 표지는 맨 마지막 페이지예요. ":". ");
+    else{
+      txt+="한 장에 <b>"+f.cap+"쪽</b>("+f.cols+"×"+f.rows+"), "+(sep?"표지를 뺀 ":"지금 ")+"<b>"+nC+"쪽</b>이라 종이 <b>"+nS+"장</b>"+(sep?" + 표지 1장":"")+"이에요. ";
+      if(sep) txt+="표지는 따로 마지막 장에 나와요. 펼치면 1·2쪽이 마주 보는 구성이에요. ";
+      if(nC%f.cap) txt+="마지막 장에 빈칸이 "+(nS*f.cap-nC)+"개 남아요. ";
+      if(nS>1 && f.imp!=="zine") txt+="다음 장은 앞 장의 마지막 줄 끝에 이어 붙이면 돼요. ";
+      if(f.imp==="zine" && nS>1) txt+="종이마다 8쪽짜리 접는 책이 하나씩 나와요. ";
+      txt+= f.imp==="zine" ? "<b>접는 책</b>: 가로로 반 접고, 가운데 두 칸 사이만 자른 뒤 펼쳐서 책 모양으로 접어요. " :
+        (layout==="flip"?"<b>인쇄용</b>은 짝수 번째 줄이 거꾸로 뒤집혀 있어서, 줄마다 잘라 이어 붙인 뒤 병풍처럼 접으면 쪽 순서대로 이어져요. ":"");
+    }
+    txt+='<span class="seg" role="group" aria-label="배치"><button data-lay="flip" aria-pressed="'+(layout==="flip")+'">인쇄용</button><button data-lay="order" aria-pressed="'+(layout==="order")+'">쪽 순서대로</button><button data-lay="single" aria-pressed="'+(layout==="single")+'">한 쪽씩 낱장</button></span>';
+  }
+  info.innerHTML=txt;
+  info.querySelectorAll("[data-lay]").forEach(b=>b.onclick=()=>{ layout=b.dataset.lay; drawPrint(); });
+  const pwPx=f.pw*MM, phPx=f.ph*MM, sc=Math.min(1,(window.innerWidth-40)/pwPx);
+  sheetsLayout().forEach(sh=>{
+    const cells=sh.cells, PW=sh.single?cw0:f.pw, PH=sh.single?ch0:f.ph;
+    const pwPx=PW*MM, phPx=PH*MM, sc=Math.min(1,(window.innerWidth-40)/pwPx, sh.single?420/phPx:1);
+    const wrap=document.createElement("div"); wrap.className="paperWrap"; wrap.style.width=(pwPx*sc)+"px"; wrap.style.height=(phPx*sc)+"px";
+    if(sh.single) wrap.style.display="inline-block", wrap.style.margin="0 12px 18px 0", wrap.style.verticalAlign="top";
+    const scale=document.createElement("div"); scale.className="paperScale"; scale.style.transform="scale("+sc+")";
+    const paper=document.createElement("div"); paper.className="paper"; paper.style.width=PW+"mm"; paper.style.height=PH+"mm";
+    if(sh.single){ const p=renderPage(cells[0].i); p.style.transform="scale("+(PW*MM/(f.kind==="sheet"?SHEET_W:BOOK_W))+")"; paper.appendChild(p); }
+    else{
+      const cw=f.pw/f.cols, ch=f.ph/f.rows; paper.style.gridTemplateColumns="repeat("+f.cols+","+cw+"mm)"; paper.style.gridTemplateRows="repeat("+f.rows+","+ch+"mm)";
+      cells.forEach(c=>{ const cell=document.createElement("div"); cell.className="cell"+(c.flip?" flip":"")+(c.void?" void":""); cell.style.width=cw+"mm"; cell.style.height=ch+"mm";
+        if(c.i>=0){ const p=renderPage(c.i); p.style.transform="scale("+(cw*MM/BOOK_W)+")"; cell.appendChild(p); } else cell.classList.add("empty");
+        paper.appendChild(cell); });
+    }
+    scale.appendChild(paper); wrap.appendChild(scale); box.appendChild(wrap);
+  });
+}
+
+/* ================= 설정 / 새로 만들기 ================= */
+function openSettings(){
+  const d=document.getElementById("setDlg"); const f=fmt();
+  const iconVal=(doc.character||{}).icon||"";
+  d.innerHTML='<h2>책 설정</h2>'+
+    '<label class="field"><span>책 이름</span><input type="text" id="sTitle" value="'+esc(doc.title)+'"></label>'+
+    '<div class="field"><span>종류</span><div class="seg" role="group" aria-label="종류"><button data-kind="book" aria-pressed="'+(doc.format!=="sheet")+'">미니북</button><button data-kind="sheet" aria-pressed="'+(doc.format==="sheet")+'">학습지(A4)</button></div></div>'+
+    '<div id="paperBox"></div>'+
+    '<div class="field"><span>단원(색 띠)</span><div id="secList"></div><button class="small" id="secAdd" style="justify-self:start">+ 단원 추가</button></div>'+
+    '<label class="field"><span>캐릭터 한마디 머리말</span><input type="text" id="sLabel" value="'+esc((doc.character||{}).label||"")+'" placeholder="예: 보이저 일기, 과학쌤 한마디"></label>'+
+    '<div class="field"><span>캐릭터 그림</span><div class="row" style="margin:0"><select id="sIcon"><option value=""'+(!iconVal?" selected":"")+'>말풍선</option><option value="voyager"'+(iconVal==="voyager"?" selected":"")+'>보이저</option><option value="custom"'+(iconVal&&!ICONS[iconVal]?" selected":"")+'>내 그림</option></select>'+
+    '<label class="btn small" for="sIconFile">그림 파일 고르기</label><input type="file" accept="image/*" id="sIconFile" class="hidden"></div></div>'+
+    '<div class="dlgBtns"><button id="sClose">닫기</button></div>';
+  const list=d.querySelector("#secList");
+  const drawSecs=()=>{ list.innerHTML=(doc.sections||[]).map((s,i)=>'<div class="secRow"><input type="color" data-sc="'+i+'" value="'+s.color+'" aria-label="색"><input type="text" data-sn="'+i+'" value="'+esc(s.name)+'"><button class="small danger" data-sd="'+i+'">빼기</button></div>').join("");
+    list.querySelectorAll("[data-sc]").forEach(x=>x.oninput=()=>{ doc.sections[+x.dataset.sc].color=x.value; changed(); });
+    list.querySelectorAll("[data-sn]").forEach(x=>x.onchange=()=>{ doc.sections[+x.dataset.sn].name=x.value; changed(); });
+    list.querySelectorAll("[data-sd]").forEach(x=>x.onclick=()=>{ const s=doc.sections.splice(+x.dataset.sd,1)[0]; doc.pages.forEach(p=>{ if(p.section===s.id) p.section=""; }); drawSecs(); changed(); }); };
+  drawSecs();
+  d.querySelector("#secAdd").onclick=()=>{ doc.sections=doc.sections||[]; const n=doc.sections.length; doc.sections.push({id:"s"+Date.now().toString(36),name:"새 단원",color:PALETTE[n%PALETTE.length]}); drawSecs(); changed(); };
+  d.querySelector("#sTitle").onchange=e=>{ doc.title=e.target.value; changed(); };
+  d.querySelector("#sLabel").onchange=e=>{ doc.character=doc.character||{}; doc.character.label=e.target.value; changed(); };
+  d.querySelector("#sIcon").onchange=e=>{ doc.character=doc.character||{}; if(e.target.value!=="custom") doc.character.icon=e.target.value; else d.querySelector("#sIconFile").click(); changed(); };
+  d.querySelector("#sIconFile").onchange=e=>{ const fl=e.target.files[0]; if(!fl) return; const r=new FileReader(); r.onload=()=>{ const img=new Image(); img.onload=()=>{ const c=document.createElement("canvas"); c.width=c.height=200; const g=c.getContext("2d"); const s=Math.max(200/img.width,200/img.height); g.fillStyle="#fff"; g.fillRect(0,0,200,200); g.drawImage(img,(200-img.width*s)/2,(200-img.height*s)/2,img.width*s,img.height*s); doc.character=doc.character||{}; doc.character.icon=c.toDataURL("image/jpeg",.9); changed(); }; img.src=r.result; }; r.readAsDataURL(fl); };
+  d.querySelectorAll("[data-kind]").forEach(b=>b.onclick=()=>{ setKind(b.dataset.kind); d.querySelectorAll("[data-kind]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.kind===(doc.format==="sheet"?"sheet":"book"))); drawPaperBox(d); });
+  drawPaperBox(d);
+  d.querySelector("#sClose").onclick=()=>d.close();
+  d.showModal();
+}
+function changed(){ save(); fitAll(); refreshPageSel(); setView(view); document.getElementById("docTitle").textContent=doc.title||"미니북"; }
+function pageHasContent(p){ return p && JSON.stringify(p)!==JSON.stringify(blankPage("book")) && JSON.stringify(p)!==JSON.stringify(blankPage("sheet")); }
+function setKind(k){
+  if(k==="sheet"){ doc.format="sheet"; }
+  else { doc.format="book"; doc.paper=doc.paper||{size:"B4",orient:"land",cols:8,rows:4};
+    if(doc.pages[0].type!=="cover" && !pageHasContent(doc.pages[0])) doc.pages[0]={type:"cover",kicker:"",title:doc.title,subtitle:"",names:true,blocks:[{t:"images",items:[{cap:"표지 그림"}]}]}; }
+  cur=Math.min(cur,doc.pages.length-1); changed();
+}
+function drawPaperBox(d){
+  const box=d.querySelector("#paperBox"); if(doc.format==="sheet"){ box.innerHTML='<p class="hint">학습지는 A4 세로 한 장에 한 쪽씩 인쇄돼요. 쪽은 ‘뒤에 쪽 추가’로 늘려요.</p>'; return; }
+  const P=doc.paper, f=fmt(), cw=f.pw/f.cols, ch=f.ph/f.rows, sepN=sepCover()?1:0, nC=doc.pages.length-sepN, nS=Math.ceil(nC/f.cap), ratio=ch/cw;
+  const num=(id,v,min,max)=>'<input type="number" id="'+id+'" min="'+min+'" max="'+max+'" value="'+v+'" style="width:64px">';
+  box.innerHTML='<div class="field"><span>빠른 선택</span><div class="row" style="margin:0">'+
+      Object.entries(FORMATS).filter(([k,v])=>v.kind==="book").map(([k,v])=>'<button class="small" data-pre="'+k+'">'+v.label+'</button>').join("")+'</div></div>'+
+    '<div class="field"><span>종이 한 장의 배열</span><div class="row" style="margin:0">'+
+      '<select id="pSize">'+Object.keys(PAPERS).map(k=>'<option'+(k===P.size?" selected":"")+'>'+k+'</option>').join("")+'</select>'+
+      '<select id="pOri"><option value="land"'+(P.orient==="land"?" selected":"")+'>가로</option><option value="port"'+(P.orient!=="land"?" selected":"")+'>세로</option></select>'+
+      '<label style="font-size:13px">가로 '+num("pCols",f.cols,1,12)+' 칸</label><label style="font-size:13px">× 세로 '+num("pRows",f.rows,1,8)+' 줄</label></div></div>'+
+    (doc.pages[0]&&doc.pages[0].type==="cover"&&f.imp!=="zine"?'<label style="font-size:13px;display:block;margin-bottom:10px"><input type="checkbox" id="pSep"'+(doc.coverMode!=="inline"?" checked":"")+'> 표지는 따로 마지막 장에 인쇄 (펼치면 1·2쪽이 마주 보게)</label>':'')+
+    (f.cols===4&&f.rows===2?'<label style="font-size:13px;display:block;margin-bottom:10px"><input type="checkbox" id="pZine"'+(doc.imp==="zine"?" checked":"")+'> 가운데만 잘라 접는 8쪽 책 방식으로 배치</label>':'')+
+    '<p class="hint">한 쪽 크기 '+cw.toFixed(1)+'×'+ch.toFixed(1)+'mm · 한 장에 '+f.cap+'쪽 · '+(sepN?'표지 빼고 ':'지금 ')+nC+'쪽 → 종이 '+nS+'장'+(sepN?' + 표지':'')+
+      (ratio<1.1||ratio>1.9?'<br><b style="color:var(--warn)">쪽 모양이 '+(ratio<1.1?"너무 납작해요":"너무 길쭉해요")+'. 칸 수나 종이 방향을 바꿔 보세요.</b>':'')+'</p>'+
+    '<div class="row" style="margin:0 0 12px">'+(nC%f.cap?'<button class="small" id="pFill">빈 쪽 채워서 '+(nS*f.cap)+'쪽 맞추기</button>':'')+
+      (nC>f.cap?'<button class="small danger" id="pTrim">'+f.cap+'쪽(한 장)으로 줄이기</button>':'')+'</div>';
+  const upd=()=>{ save(); fitAll(); refreshPageSel(); setView(view); drawPaperBox(d); };
+  box.querySelectorAll("[data-pre]").forEach(b=>b.onclick=()=>{ const F=FORMATS[b.dataset.pre]; doc.paper={size:F.size,orient:F.orient,cols:F.cols,rows:F.rows}; doc.imp=F.imp||"strip"; upd(); });
+  box.querySelector("#pSize").onchange=e=>{ P.size=e.target.value; upd(); };
+  box.querySelector("#pOri").onchange=e=>{ P.orient=e.target.value; upd(); };
+  box.querySelector("#pCols").onchange=e=>{ P.cols=Math.max(1,Math.min(12,+e.target.value||1)); upd(); };
+  box.querySelector("#pRows").onchange=e=>{ P.rows=Math.max(1,Math.min(8,+e.target.value||1)); upd(); };
+  const sp=box.querySelector("#pSep"); if(sp) sp.onchange=()=>{ if(sp.checked) delete doc.coverMode; else doc.coverMode="inline"; upd(); };
+  const z=box.querySelector("#pZine"); if(z) z.onchange=()=>{ doc.imp=z.checked?"zine":"strip"; upd(); };
+  const fl=box.querySelector("#pFill"); if(fl) fl.onclick=()=>{ while((doc.pages.length-sepN)%f.cap) doc.pages.push(blankPage("book")); upd(); };
+  const tr=box.querySelector("#pTrim"); if(tr) tr.onclick=()=>{ const keep=f.cap+sepN, lost=doc.pages.slice(keep).filter(pageHasContent).length;
+    if(lost && !confirm("뒤쪽 "+(doc.pages.length-keep)+"쪽이 지워져요. 줄일까요?")) return; doc.pages=doc.pages.slice(0,keep); cur=Math.min(cur,doc.pages.length-1); upd(); };
+}
+function openNew(){
+  const d=document.getElementById("newDlg");
+  d.innerHTML='<h2>새로 만들기</h2><p class="hint" style="font-size:14px;line-height:1.6;color:var(--muted)">지금 만들던 내용은 사라져요. 남겨 두려면 먼저 ‘작업 파일 저장’을 누르세요.</p>'+
+    '<label class="field"><span>이름</span><input type="text" id="nTitle" placeholder="예: 나의 우주탐사 책"></label>'+
+    '<label class="field"><span>형식</span><select id="nFmt">'+Object.entries(FORMATS).map(([k,v])=>'<option value="'+k+'">'+v.label+'</option>').join("")+'</select></label>'+
+    '<div class="dlgBtns"><button id="nCancel">취소</button><button id="nOk" aria-pressed="true">빈 책 만들기</button></div>';
+  d.querySelector("#nCancel").onclick=()=>d.close();
+  d.querySelector("#nOk").onclick=()=>{ doc=blankDoc(d.querySelector("#nFmt").value,d.querySelector("#nTitle").value.trim()); cur=0; activeBlock=-1; d.close(); changed(); };
+  d.showModal();
+}
+
+/* ================= 보기 전환 ================= */
+function refreshPageSel(){
+  const sel=document.getElementById("pageSel"); sel.innerHTML="";
+  doc.pages.forEach((P,i)=>{ const o=document.createElement("option"); o.value=i; const t=document.createElement("div"); t.innerHTML=P.title||"";
+    o.textContent=isCoverIdx(i)?"표지":pageLabel(i)+" "+(t.textContent||"").slice(0,18); sel.appendChild(o); });
+  sel.value=cur;
+}
+function setView(v){
+  view=v;
+  document.querySelectorAll("[data-view]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===v));
+  ["slide","spread","print"].forEach(n=>document.getElementById(n+"View").classList.toggle("hidden",n!==v));
+  if(v==="slide") drawSlide(); if(v==="spread") drawSpreads();
+  drawPrint();
+}
+window.__setLayout=l=>{ layout=l; drawPrint(); };
+
+function init(){
+  document.getElementById("docTitle").textContent=doc.title||"미니북";
+  refreshPageSel();
+  document.getElementById("pageSel").onchange=e=>{ cur=+e.target.value; activeBlock=-1; drawSlide(); };
+  document.getElementById("prevBtn").onclick=()=>{ if(cur>0){ cur--; activeBlock=-1; drawSlide(); } };
+  document.getElementById("nextBtn").onclick=()=>{ if(cur<doc.pages.length-1){ cur++; activeBlock=-1; drawSlide(); } };
+  document.addEventListener("keydown",e=>{ if(view!=="slide"||e.target.isContentEditable||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector("dialog[open]")) return;
+    if(e.key==="ArrowRight") document.getElementById("nextBtn").click(); if(e.key==="ArrowLeft") document.getElementById("prevBtn").click(); });
+  document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>setView(b.dataset.view));
+  document.getElementById("setBtn").onclick=openSettings;
+  document.getElementById("newBtn").onclick=openNew;
+  document.getElementById("printBtn").onclick=()=>{ drawPrint(); setTimeout(()=>window.print(),50); };
+  document.getElementById("htmlBtn").onclick=()=>{
+    const copy=JSON.parse(JSON.stringify(doc));
+    copy.id=String(doc.id||"doc").replace(/-v\w+$/,"")+"-v"+Date.now().toString(36);   // 새 파일은 새 저장 칸에서 시작
+    const data=JSON.stringify(copy).replace(/<\//g,"<\\/");
+    const open='<script id="doc-data" type="application/json">';
+    const a0=PRISTINE.indexOf(open), a1=PRISTINE.indexOf("</"+"script>",a0);
+    if(a0<0||a1<0){ alert("HTML을 만들지 못했어요. 페이지를 새로 고친 뒤 다시 해 보세요."); return; }
+    const html=PRISTINE.slice(0,a0+open.length)+data+PRISTINE.slice(a1);
+    const blob=new Blob([html],{type:"text/html"}); const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=(doc.title||"미니북").replace(/<[^>]*>/g," ").replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim()+".html";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  };
+  document.getElementById("exportBtn").onclick=()=>{
+    const blob=new Blob([JSON.stringify(doc)],{type:"application/json"}); const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=(doc.title||"미니북").replace(/[\\/:*?"<>|]/g,"")+"_작업.json"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
+  document.getElementById("importFile").onchange=e=>{ const fl=e.target.files[0]; if(!fl) return; const r=new FileReader();
+    r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!validDoc(d)) throw 0; doc=normalizeDoc(d); cur=0; activeBlock=-1; changed(); }
+      catch(err){ alert("작업 파일을 읽지 못했어요. 이 편집기에서 저장한 .json 파일인지 확인해 주세요."); } };
+    r.readAsText(fl); e.target.value=""; };
+  let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>setView(view),150); });
+}
+
+(async()=>{
+  const saved=await DB.get(STORE_KEY);
+  if(validDoc(saved) && !window.__noStore) doc=normalizeDoc(saved);
+  init();
+  try{ await document.fonts.ready; }catch(e){}
+  fitAll(); setView("slide");
+  window.__ready=true;
+})();
+</script></body></html>
