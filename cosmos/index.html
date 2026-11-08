@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>별과 우주</title>
+<title>멀어질수록 어두워지는 빛</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
@@ -96,6 +96,22 @@ details.mset[open]{border-color:var(--warm)}
 .scard .kv b{color:var(--ink)}
 .why{font-size:.83rem;color:var(--muted);margin:8px 0 0}
 .tag.pval{font-size:.72rem;color:#ffd875}
+.comicwrap{max-width:900px}
+.comic{margin:16px 0 0}
+.comic img{display:block;width:100%;height:auto;border-radius:14px;border:1px solid var(--line);background:var(--panel)}
+.comicfail{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:18px;font-size:.92rem;color:var(--muted)}
+.comicfail a{color:var(--warm);font-weight:700}
+.qa{margin-top:26px}
+.qa h2{font-size:1.2rem;margin:0 0 4px}
+details.qaitem{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:10px}
+details.qaitem summary{font-weight:700;cursor:pointer}
+details.qaitem[open] summary{color:var(--warm)}
+.qabody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;margin-top:12px;align-items:start}
+.qabody.wide{grid-template-columns:1fr}
+.qafig svg{width:100%;height:auto;display:block}
+.qatext p{margin:0 0 10px;font-size:.92rem}
+@media (max-width:760px){.qabody{grid-template-columns:1fr}}
+
 @media (max-width:1100px){.introgrid,.stargrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.introgrid,.stargrid{grid-template-columns:1fr}}
 @media (max-width:860px){.page{flex:none;overflow:visible;padding:14px 12px 30px}}
@@ -218,13 +234,14 @@ summary{font-weight:700;cursor:pointer}
 </head>
 <body>
 <header>
-  <h1>별과 우주</h1>
-  <p>인간은 지구에서 관측한 정보만으로 별의 물리적 특성을 어떻게 추론하는가? 또한 우리은하를 포함하여 팽창하는 우주의 역동성을 어떻게 이해하는가?</p>
+  <h1>멀어질수록 어두워지는 빛</h1>
+  <p>빛이 퍼지는 구의 넓이로 밝기가 거리의 제곱에 반비례함을 확인해요</p>
 </header>
 <nav class="tabs" role="tablist" aria-label="화면 바꾸기">
   <button type="button" role="tab" data-tab="intro" aria-selected="true">🌌 소개</button>
   <button type="button" role="tab" data-tab="parallax" aria-selected="false">👀 시차</button>
   <button type="button" role="tab" data-tab="light" aria-selected="false">💡 광원의 밝기</button>
+  <button type="button" role="tab" data-tab="hip" aria-selected="false">📜 히파르코스</button>
   <button type="button" role="tab" data-tab="star" aria-selected="false">⭐ 별</button>
   <button type="button" role="tab" data-tab="color" aria-selected="false">🌈 별의 색과 온도</button>
   <button type="button" class="mtoggle" id="missionToggle" aria-pressed="false">📝 탐구 미션</button>
@@ -401,6 +418,19 @@ summary{font-weight:700;cursor:pointer}
   </div>
 </section>
 
+<section id="pageHip" class="page" hidden>
+  <div class="pwrap comicwrap">
+    <div class="hero">
+      <h2>히파르코스의 별의 등급 대소동</h2>
+      <p>약 2,000년 전, 고대 그리스의 천문학자 히파르코스는 맨눈으로 보이는 별들을 밝기에 따라 1등급부터 6등급까지 나누었어요. 별의 등급은 어떻게 생겨났을까요? 만화로 만나 봐요.</p>
+    </div>
+    <figure class="comic"><img data-src="https://kmonsciclass.vercel.app/cosmos/comic1.png" alt="히파르코스의 별의 등급 대소동 만화 1편">
+      <div class="comicfail" hidden>이 화면에서는 만화 그림을 불러오지 못했어요. <a href="https://kmonsciclass.vercel.app/cosmos/comic1.png" target="_blank" rel="noopener">만화 1편 새 창에서 보기</a></div></figure>
+    <figure class="comic"><img data-src="https://kmonsciclass.vercel.app/cosmos/comic2.png" alt="히파르코스의 별의 등급 대소동 만화 2편">
+      <div class="comicfail" hidden>이 화면에서는 만화 그림을 불러오지 못했어요. <a href="https://kmonsciclass.vercel.app/cosmos/comic2.png" target="_blank" rel="noopener">만화 2편 새 창에서 보기</a></div></figure>
+  </div>
+</section>
+
 <section id="pageColor" class="page" hidden>
   <div class="pwrap">
     <div class="hero">
@@ -409,6 +439,128 @@ summary{font-weight:700;cursor:pointer}
       <p class="sub">별 카드를 누르면 큰 창이 열리고, 표면 온도에 따른 빛의 파장 분포 그래프, 우리 눈에 보이는 색, 그 별이 속한 별자리 그림을 볼 수 있어요. 온도는 대략적인 값이에요.</p>
     </div>
     <div class="stargrid" id="starGrid"></div>
+    <section class="qa">
+      <h2>❓ 궁금해요 Q&amp;A</h2>
+      <details class="qaitem"><summary>Q1. 왜 초록색 별은 안 보이나요?</summary>
+        <div class="qabody"><div class="qafig"><svg viewBox="0 0 520 240" role="img" aria-label="별의 온도에 따른 색 띠와 세 가지 원뿔세포의 반응">
+<defs><linearGradient id="bbStrip"><stop offset="0.000" stop-color="rgb(255,129,0)"/><stop offset="0.083" stop-color="rgb(255,166,74)"/><stop offset="0.167" stop-color="rgb(255,185,110)"/><stop offset="0.250" stop-color="rgb(255,212,165)"/><stop offset="0.333" stop-color="rgb(255,231,208)"/><stop offset="0.417" stop-color="rgb(255,244,241)"/><stop offset="0.500" stop-color="rgb(244,242,255)"/><stop offset="0.583" stop-color="rgb(227,231,255)"/><stop offset="0.667" stop-color="rgb(205,217,255)"/><stop offset="0.750" stop-color="rgb(181,201,255)"/><stop offset="0.833" stop-color="rgb(171,193,255)"/><stop offset="0.917" stop-color="rgb(162,187,255)"/><stop offset="1.000" stop-color="rgb(159,184,255)"/></linearGradient></defs>
+<rect width="520" height="240" rx="12" fill="#0b1430"/>
+<text x="20" y="22" fill="#e7ebf6" font-size="13" font-weight="700">온도에 따른 별의 색 (계산값)</text>
+<rect x="20" y="32" width="480" height="30" rx="6" fill="url(#bbStrip)"/>
+<text x="20" y="78" fill="#96a2c6" font-size="11">1,800 K</text><text x="220" y="78" fill="#96a2c6" font-size="11" text-anchor="middle">6,000 K</text><text x="500" y="78" fill="#96a2c6" font-size="11" text-anchor="end">40,000 K</text>
+<text x="260" y="96" fill="#ffd36b" font-size="12" text-anchor="middle">빨강 → 노랑 → 흰색 → 파랑, 중간에 초록이 없어요</text>
+<line x1="40" y1="215" x2="480" y2="215" stroke="rgba(150,162,198,.5)"/>
+<path d="M40.0,188.6 L47.3,179.3 L54.7,168.8 L62.0,157.4 L69.3,146.0 L76.7,135.6 L84.0,127.3 L91.3,121.9 L98.7,120.0 L106.0,121.9 L113.3,127.3 L120.7,135.6 L128.0,146.0 L135.3,157.4 L142.7,168.8 L150.0,179.3 L157.3,188.6 L164.7,196.2 L172.0,202.1 L179.3,206.6 L186.7,209.7 L194.0,211.8 L201.3,213.1 L208.7,213.9 L216.0,214.4 L223.3,214.7 L230.7,214.9 L238.0,214.9 L245.3,215.0 L252.7,215.0 L260.0,215.0 L267.3,215.0 L274.7,215.0 L282.0,215.0 L289.3,215.0 L296.7,215.0 L304.0,215.0 L311.3,215.0 L318.7,215.0 L326.0,215.0 L333.3,215.0 L340.7,215.0 L348.0,215.0 L355.3,215.0 L362.7,215.0 L370.0,215.0 L377.3,215.0 L384.7,215.0 L392.0,215.0 L399.3,215.0 L406.7,215.0 L414.0,215.0 L421.3,215.0 L428.7,215.0 L436.0,215.0 L443.3,215.0 L450.7,215.0 L458.0,215.0 L465.3,215.0 L472.7,215.0 L480.0,215.0" fill="none" stroke="#6f9bff" stroke-width="2"/>
+<path d="M40.0,214.7 L47.3,214.5 L54.7,214.3 L62.0,213.9 L69.3,213.5 L76.7,212.8 L84.0,212.0 L91.3,210.8 L98.7,209.3 L106.0,207.4 L113.3,205.1 L120.7,202.1 L128.0,198.6 L135.3,194.5 L142.7,189.6 L150.0,184.2 L157.3,178.1 L164.7,171.5 L172.0,164.5 L179.3,157.4 L186.7,150.2 L194.0,143.3 L201.3,136.9 L208.7,131.2 L216.0,126.5 L223.3,122.9 L230.7,120.7 L238.0,120.0 L245.3,120.7 L252.7,122.9 L260.0,126.5 L267.3,131.2 L274.7,136.9 L282.0,143.3 L289.3,150.2 L296.7,157.4 L304.0,164.5 L311.3,171.5 L318.7,178.1 L326.0,184.2 L333.3,189.6 L340.7,194.5 L348.0,198.6 L355.3,202.1 L362.7,205.1 L370.0,207.4 L377.3,209.3 L384.7,210.8 L392.0,212.0 L399.3,212.8 L406.7,213.5 L414.0,213.9 L421.3,214.3 L428.7,214.5 L436.0,214.7 L443.3,214.8 L450.7,214.9 L458.0,214.9 L465.3,214.9 L472.7,215.0 L480.0,215.0" fill="none" stroke="#5fd17a" stroke-width="2"/>
+<path d="M40.0,214.9 L47.3,214.8 L54.7,214.7 L62.0,214.6 L69.3,214.5 L76.7,214.2 L84.0,213.9 L91.3,213.5 L98.7,213.0 L106.0,212.3 L113.3,211.4 L120.7,210.2 L128.0,208.8 L135.3,207.0 L142.7,204.8 L150.0,202.1 L157.3,199.0 L164.7,195.4 L172.0,191.3 L179.3,186.7 L186.7,181.5 L194.0,175.9 L201.3,170.0 L208.7,163.8 L216.0,157.4 L223.3,151.0 L230.7,144.8 L238.0,138.9 L245.3,133.6 L252.7,128.9 L260.0,125.1 L267.3,122.3 L274.7,120.6 L282.0,120.0 L289.3,120.6 L296.7,122.3 L304.0,125.1 L311.3,128.9 L318.7,133.6 L326.0,138.9 L333.3,144.8 L340.7,151.0 L348.0,157.4 L355.3,163.8 L362.7,170.0 L370.0,175.9 L377.3,181.5 L384.7,186.7 L392.0,191.3 L399.3,195.4 L406.7,199.0 L414.0,202.1 L421.3,204.8 L428.7,207.0 L436.0,208.8 L443.3,210.2 L450.7,211.4 L458.0,212.3 L465.3,213.0 L472.7,213.5 L480.0,213.9" fill="none" stroke="#ff6b6b" stroke-width="2"/>
+<path d="M40.0,136.2 L47.3,135.0 L54.7,133.9 L62.0,132.8 L69.3,131.9 L76.7,131.0 L84.0,130.1 L91.3,129.3 L98.7,128.6 L106.0,128.0 L113.3,127.4 L120.7,126.9 L128.0,126.5 L135.3,126.1 L142.7,125.7 L150.0,125.4 L157.3,125.2 L164.7,125.0 L172.0,124.9 L179.3,124.8 L186.7,124.8 L194.0,124.8 L201.3,124.8 L208.7,124.9 L216.0,125.0 L223.3,125.2 L230.7,125.4 L238.0,125.6 L245.3,125.9 L252.7,126.2 L260.0,126.5 L267.3,126.8 L274.7,127.2 L282.0,127.6 L289.3,128.0 L296.7,128.5 L304.0,128.9 L311.3,129.4 L318.7,129.9 L326.0,130.5 L333.3,131.0 L340.7,131.6 L348.0,132.1 L355.3,132.7 L362.7,133.3 L370.0,133.9 L377.3,134.5 L384.7,135.1 L392.0,135.8 L399.3,136.4 L406.7,137.0 L414.0,137.7 L421.3,138.3 L428.7,139.0 L436.0,139.7 L443.3,140.3 L450.7,141.0 L458.0,141.7 L465.3,142.4 L472.7,143.0 L480.0,143.7" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="84" y="106" fill="#6f9bff" font-size="11" text-anchor="middle">파랑 세포</text>
+<text x="209" y="106" fill="#5fd17a" font-size="11" text-anchor="middle">초록 세포</text>
+<text x="355" y="106" fill="#ff6b6b" font-size="11" text-anchor="middle">빨강 세포</text>
+<text x="40" y="232" fill="#96a2c6" font-size="10">400 nm</text><text x="480" y="232" fill="#96a2c6" font-size="10" text-anchor="end">700 nm</text>
+<text x="260" y="232" fill="#e7ebf6" font-size="10.5" text-anchor="middle">흰 점선: 태양빛 → 세 세포를 고르게 자극해 흰색</text>
+</svg></div><div class="qatext">
+          <p>눈이 약 555 nm 빛에 가장 민감하다는 것은 <b>그 빛이 가장 밝게 느껴진다</b>는 뜻이지, 색을 정하는 기준은 아니에요.</p>
+          <p>색은 눈 속 세 종류의 원뿔세포(파랑·초록·빨강 쪽에 반응)가 각각 얼마나 자극되는지 <b>비율</b>로 정해져요. 초록으로 보이려면 초록 세포만 유난히 세게 자극되어야 해요.</p>
+          <p>그런데 별빛은 여러 파장에 넓게 퍼진 빛이에요. 봉우리가 초록 근처에 있는 태양도 빨강과 파랑을 함께 많이 내보내서 세 세포를 고르게 자극하고, 그래서 흰색으로 보여요. 온도가 바뀌면 빛의 분포가 파랑 쪽이나 빨강 쪽으로 기울 뿐이라, 별의 색은 빨강·주황·노랑·흰색·파랑으로만 바뀌고 초록을 지나지 않아요.</p>
+          <p class="why">빛의 삼원색을 비슷한 양으로 섞으면 흰색이 되는 것과 같은 원리예요.</p>
+        </div></div></details>
+      <details class="qaitem"><summary>Q2. 촛불이 노랗게 보이는 것도 온도 때문인가요?</summary>
+        <div class="qabody"><div class="qafig"><svg viewBox="0 0 400 260" role="img" aria-label="촛불의 구조와 색">
+<rect width="400" height="260" rx="12" fill="#0b1430"/>
+<defs><radialGradient id="cGlow" cx="50%" cy="55%" r="60%"><stop offset="0" stop-color="rgba(255,200,90,.45)"/><stop offset="1" stop-color="rgba(255,200,90,0)"/></radialGradient></defs>
+<circle cx="95" cy="110" r="90" fill="url(#cGlow)"/>
+<path d="M95 30 C120 80 128 120 120 150 C114 172 76 172 70 150 C62 120 70 80 95 30 Z" fill="#ffc94d"/>
+<path d="M95 70 C108 100 110 125 106 145 C102 160 88 160 84 145 C80 125 82 100 95 70 Z" fill="#7a4a1c" opacity=".85"/>
+<path d="M72 150 C76 170 114 170 118 150 C114 178 76 178 72 150 Z" fill="#4d8cff"/>
+<rect x="93" y="160" width="4" height="22" fill="#2a2a2a"/>
+<rect x="60" y="180" width="70" height="66" rx="4" fill="#f1ede4"/>
+<line x1="122" y1="70" x2="168" y2="52" stroke="#ffc94d"/><text x="172" y="44" fill="#ffd875" font-size="11.5">노란 부분</text><text x="172" y="59" fill="#c9d2ee" font-size="10.5">뜨거운 그을음(탄소) 알갱이가</text><text x="172" y="72" fill="#c9d2ee" font-size="10.5">달아올라 내는 빛 · 약 1,000~1,400 °C</text>
+<line x1="104" y1="120" x2="168" y2="112" stroke="#c49a6c"/><text x="172" y="108" fill="#e0c19a" font-size="11.5">어두운 부분</text><text x="172" y="123" fill="#c9d2ee" font-size="10.5">아직 덜 탄 기체</text>
+<line x1="118" y1="166" x2="168" y2="170" stroke="#6f9bff"/><text x="172" y="166" fill="#9cc0ff" font-size="11.5">파란 부분</text><text x="172" y="181" fill="#c9d2ee" font-size="10.5">기체 분자가 내는 특정한 색의 빛</text><text x="172" y="194" fill="#c9d2ee" font-size="10.5">(온도 때문에 파란 것이 아님)</text>
+</svg></div><div class="qatext">
+          <p><b>네, 노란 부분은 맞아요.</b> 촛불의 노란빛은 불꽃 속 아주 작은 그을음(탄소) 알갱이가 뜨겁게 달아올라 내는 빛이에요. 별빛과 같은 원리로, 온도에 따라 색이 정해지는 빛이에요.</p>
+          <p>그 온도는 약 1,000~1,400 °C로 태양 표면(약 5,500 °C)보다 훨씬 낮아요. 그래서 가시광선 중 빨강·노랑 쪽 빛이 세고 파랑 쪽 빛이 약해 노란빛~주황빛으로 보여요. 같은 원리로, 뜨겁게 달군 쇠도 처음엔 붉게, 더 달구면 노랗고 하얗게 빛나요.</p>
+          <p>다만 불꽃 아래쪽의 <b>파란 부분은 온도 때문이 아니에요.</b> 타면서 생긴 기체 분자들이 특정한 색의 빛만 내기 때문인데, 이건 아래 Q3의 불꽃 반응과 비슷한 원리예요.</p>
+        </div></div></details>
+      <details class="qaitem"><summary>Q3. 불꽃 반응이 무엇인가요?</summary>
+        <div class="qabody wide"><div class="qafig"><svg viewBox="0 0 560 200" role="img" aria-label="원소별 불꽃 반응 색">
+<rect width="560" height="200" rx="12" fill="#0b1430"/>
+<text x="16" y="22" fill="#e7ebf6" font-size="13" font-weight="700">원소마다 다른 불꽃 반응 색</text>
+<g transform="translate(55,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#ff3355" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#ff3355"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">리튬</text>
+<text x="0" y="185" fill="#ff3355" font-size="11.5" text-anchor="middle">빨간색</text></g><g transform="translate(130,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#ffd23a" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#ffd23a"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">나트륨</text>
+<text x="0" y="185" fill="#ffd23a" font-size="11.5" text-anchor="middle">노란색</text></g><g transform="translate(205,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#b47cff" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#b47cff"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">칼륨</text>
+<text x="0" y="185" fill="#b47cff" font-size="11.5" text-anchor="middle">보라색</text></g><g transform="translate(280,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#ff7a2e" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#ff7a2e"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">칼슘</text>
+<text x="0" y="185" fill="#ff7a2e" font-size="11.5" text-anchor="middle">주황색</text></g><g transform="translate(355,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#ff2a2a" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#ff2a2a"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">스트론튬</text>
+<text x="0" y="185" fill="#ff2a2a" font-size="11.5" text-anchor="middle">빨간색</text></g><g transform="translate(430,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#2fd6b6" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#2fd6b6"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">구리</text>
+<text x="0" y="185" fill="#2fd6b6" font-size="11.5" text-anchor="middle">청록색</text></g><g transform="translate(505,0)"><ellipse cx="0" cy="98" rx="30" ry="46" fill="#b5e04a" opacity=".18"/>
+<path d="M0 40 C18 72 24 98 18 120 C13 138 -13 138 -18 120 C-24 98 -18 72 0 40 Z" fill="#b5e04a"/>
+<path d="M0 78 C8 96 10 110 7 122 C4 130 -4 130 -7 122 C-10 110 -8 96 0 78 Z" fill="#ffffff" opacity=".35"/>
+<rect x="-18" y="140" width="36" height="8" rx="2" fill="#8b94b3"/>
+<text x="0" y="168" fill="#e7ebf6" font-size="12.5" font-weight="700" text-anchor="middle">바륨</text>
+<text x="0" y="185" fill="#b5e04a" font-size="11.5" text-anchor="middle">황록색</text></g>
+</svg>
+<div style="height:12px"></div><svg viewBox="0 0 640 330" role="img" aria-label="에너지 준위와 선 스펙트럼 모형">
+<defs><linearGradient id="contSp"><stop offset="0.000" stop-color="rgb(76,0,76)"/><stop offset="0.025" stop-color="rgb(100,0,121)"/><stop offset="0.050" stop-color="rgb(110,0,165)"/><stop offset="0.075" stop-color="rgb(105,0,210)"/><stop offset="0.100" stop-color="rgb(85,0,255)"/><stop offset="0.125" stop-color="rgb(42,0,255)"/><stop offset="0.150" stop-color="rgb(0,0,255)"/><stop offset="0.175" stop-color="rgb(0,51,255)"/><stop offset="0.200" stop-color="rgb(0,102,255)"/><stop offset="0.225" stop-color="rgb(0,153,255)"/><stop offset="0.250" stop-color="rgb(0,204,255)"/><stop offset="0.275" stop-color="rgb(0,255,255)"/><stop offset="0.300" stop-color="rgb(0,255,127)"/><stop offset="0.325" stop-color="rgb(0,255,0)"/><stop offset="0.350" stop-color="rgb(36,255,0)"/><stop offset="0.375" stop-color="rgb(72,255,0)"/><stop offset="0.400" stop-color="rgb(109,255,0)"/><stop offset="0.425" stop-color="rgb(145,255,0)"/><stop offset="0.450" stop-color="rgb(182,255,0)"/><stop offset="0.475" stop-color="rgb(218,255,0)"/><stop offset="0.500" stop-color="rgb(255,255,0)"/><stop offset="0.525" stop-color="rgb(255,215,0)"/><stop offset="0.550" stop-color="rgb(255,176,0)"/><stop offset="0.575" stop-color="rgb(255,137,0)"/><stop offset="0.600" stop-color="rgb(255,98,0)"/><stop offset="0.625" stop-color="rgb(255,58,0)"/><stop offset="0.650" stop-color="rgb(255,19,0)"/><stop offset="0.675" stop-color="rgb(255,0,0)"/><stop offset="0.700" stop-color="rgb(255,0,0)"/><stop offset="0.725" stop-color="rgb(255,0,0)"/><stop offset="0.750" stop-color="rgb(255,0,0)"/><stop offset="0.775" stop-color="rgb(255,0,0)"/><stop offset="0.800" stop-color="rgb(255,0,0)"/><stop offset="0.825" stop-color="rgb(232,0,0)"/><stop offset="0.850" stop-color="rgb(210,0,0)"/><stop offset="0.875" stop-color="rgb(188,0,0)"/><stop offset="0.900" stop-color="rgb(165,0,0)"/><stop offset="0.925" stop-color="rgb(143,0,0)"/><stop offset="0.950" stop-color="rgb(121,0,0)"/><stop offset="0.975" stop-color="rgb(98,0,0)"/><stop offset="1.000" stop-color="rgb(76,0,0)"/></linearGradient>
+<marker id="ahV" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#9b7bff"/></marker><marker id="ahR" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#ff4a4a"/></marker><marker id="ahO" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#ff9a3d"/></marker><marker id="ahW" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#e7ebf6"/></marker></defs>
+<rect width="640" height="330" rx="12" fill="#0b1430"/>
+<text x="16" y="24" fill="#e7ebf6" font-size="13" font-weight="700">① 에너지 준위 모형</text>
+<text x="20" y="44" fill="#96a2c6" font-size="10.5">에너지 ↑</text>
+<line x1="28" y1="290" x2="28" y2="52" stroke="#96a2c6" marker-end="url(#ahW)"/>
+<line x1="60" y1="275" x2="300" y2="275" stroke="#e7ebf6" stroke-width="2.5"/><text x="300" y="292" fill="#e7ebf6" font-size="11" text-anchor="end">바닥 상태</text>
+<line x1="60" y1="185" x2="300" y2="185" stroke="#9fb0e0" stroke-width="2"/><text x="300" y="178" fill="#9fb0e0" font-size="11" text-anchor="end">들뜬 상태 1</text>
+<line x1="60" y1="85" x2="300" y2="85" stroke="#9fb0e0" stroke-width="2"/><text x="300" y="78" fill="#9fb0e0" font-size="11" text-anchor="end">들뜬 상태 2</text>
+<line x1="80" y1="270" x2="80" y2="96" stroke="#ff9a3d" stroke-width="2.5" marker-end="url(#ahO)"/>
+<circle cx="80" cy="85" r="6" fill="#ffd36b"/>
+<text x="88" y="130" fill="#ff9a3d" font-size="11">열에너지</text><text x="88" y="144" fill="#ff9a3d" font-size="11">흡수</text>
+<line x1="150" y1="90" x2="150" y2="270" stroke="#9b7bff" stroke-width="2.5" marker-end="url(#ahV)"/>
+<path d="M156 170 q6 -8 12 0 t12 0 t12 0 t12 0" fill="none" stroke="#9b7bff" stroke-width="2.5"/>
+<text x="160" y="206" fill="#b9a4ff" font-size="10.5">차이 큼</text><text x="160" y="220" fill="#b9a4ff" font-size="10.5">→ 짧은 파장</text>
+<line x1="240" y1="190" x2="240" y2="270" stroke="#ff4a4a" stroke-width="2.5" marker-end="url(#ahR)"/>
+<path d="M246 250 q10 -9 20 0 t20 0" fill="none" stroke="#ff4a4a" stroke-width="2.5"/>
+<text x="248" y="210" fill="#ff8080" font-size="10.5">차이 작음</text><text x="248" y="224" fill="#ff8080" font-size="10.5">→ 긴 파장</text>
+<text x="60" y="318" fill="#c9d2ee" font-size="10.5">전자가 내려오며 두 준위의 에너지 차이만큼 빛을 내요</text>
+<line x1="330" y1="40" x2="330" y2="300" stroke="rgba(150,162,198,.3)"/>
+<text x="350" y="24" fill="#e7ebf6" font-size="13" font-weight="700">② 선 스펙트럼 (단위: nm)</text>
+<text x="350" y="50" fill="#e7ebf6" font-size="12" font-weight="700">별빛·촛불: 연속 스펙트럼</text>
+<rect x="350" y="56" width="270" height="22" fill="url(#contSp)"/>
+<text x="350" y="106" fill="#e7ebf6" font-size="12" font-weight="700">나트륨 (노란색)</text><rect x="350" y="112" width="270" height="22" fill="#000"/><rect x="489.6" y="112" width="3" height="22" fill="rgb(255,219,0)"/><text x="491.1" y="146" fill="#96a2c6" font-size="9.5" text-anchor="middle">589</text>
+<text x="350" y="166" fill="#e7ebf6" font-size="12" font-weight="700">리튬 (빨간색)</text><rect x="350" y="172" width="270" height="22" fill="#000"/><rect x="504.2" y="172" width="2" height="22" fill="rgb(255,137,0)"/><text x="505.2" y="206" fill="#96a2c6" font-size="9.5" text-anchor="middle">610</text><rect x="544.9" y="172" width="3" height="22" fill="rgb(255,0,0)"/><text x="546.4" y="206" fill="#96a2c6" font-size="9.5" text-anchor="middle">671</text>
+<text x="350" y="226" fill="#e7ebf6" font-size="12" font-weight="700">칼륨 (보라색)</text><rect x="350" y="232" width="270" height="22" fill="#000"/><rect x="364.7" y="232" width="3" height="22" fill="rgb(110,0,183)"/><text x="366.2" y="266" fill="#96a2c6" font-size="9.5" text-anchor="middle">404</text><rect x="609.0" y="232" width="3" height="22" fill="rgb(107,0,0)"/><text x="610.5" y="266" fill="#96a2c6" font-size="9.5" text-anchor="middle">766</text>
+<text x="350" y="300" fill="#96a2c6" font-size="10">380</text><text x="620" y="300" fill="#96a2c6" font-size="10" text-anchor="end">780</text>
+<text x="350" y="318" fill="#c9d2ee" font-size="10.5">원소마다 정해진 위치에만 밝은 선이 나타나요</text>
+</svg></div><div class="qatext">
+          <p>금속 원소가 들어 있는 물질을 불꽃(겉불꽃)에 넣었을 때, <b>원소마다 독특한 불꽃 색</b>이 나타나는 현상이에요. 예를 들어 나트륨은 노란색, 구리는 청록색 불꽃을 내요.</p>
+          <p><b>왜 원소마다 색이 다를까요?</b> 원자 속 전자는 아무 에너지나 가질 수 없고, 계단처럼 정해진 에너지 상태(<b>에너지 준위</b>)에만 있을 수 있어요. 가장 낮은 상태를 바닥 상태, 그보다 높은 상태를 들뜬 상태라고 해요.</p>
+          <p>불꽃의 열에너지를 받은 전자는 높은 에너지 준위로 올라갔다가(①의 주황 화살표), 곧 낮은 준위로 다시 내려오면서 <b>두 준위의 에너지 차이만큼을 빛으로</b> 내보내요. 에너지 차이가 크면 파장이 짧은 보라·파랑 쪽 빛이, 차이가 작으면 파장이 긴 빨강 쪽 빛이 나와요.</p>
+          <p>에너지 준위의 간격은 원소마다 달라서, 원소마다 정해진 파장의 빛만 나와요. 그래서 분광기로 보면 별빛이나 촛불처럼 모든 색이 이어진 띠(연속 스펙트럼)가 아니라, 정해진 위치에 밝은 선만 보여요(②의 <b>선 스펙트럼</b>). 나트륨은 589 nm 근처의 노란 선 때문에 노랗게 보이고, 칼륨은 보라색 선과 눈에 거의 보이지 않는 짙은 빨간 선이 섞여 연보라색으로 보여요. 구리 불꽃이 초록빛을 띨 수 있는 것도 이렇게 특정 파장만 내기 때문이에요. Q1의 별빛과 다른 점이죠.</p>
+          <p>리튬과 스트론튬처럼 불꽃 색이 비슷한 원소는 선 스펙트럼의 위치로 구별해요. 이 방법을 별빛에 쓰면 별에 어떤 원소가 있는지도 알아낼 수 있어요. 불꽃놀이의 여러 가지 색도 불꽃 반응을 이용한 거예요.</p>
+        </div></div></details>
+    </section>
   </div>
 </section>
 
@@ -999,14 +1151,14 @@ function setMode(m){
 }
 $('#starOut').onclick = () => setEarthView(false);
 $('#starEarth').onclick = () => setEarthView(true);
-const PAGES = {intro:'#pageIntro', color:'#pageColor'};
+const PAGES = {intro:'#pageIntro', hip:'#pageHip', color:'#pageColor'};
 function setTab(t){
   document.querySelectorAll('.tabs button[data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
   const isPage = t in PAGES;
   Object.entries(PAGES).forEach(([k,sel]) => $(sel).hidden = k !== t);
   document.querySelector('main').hidden = isPage;
   $('#missionToggle').hidden = isPage;
-  if (isPage){ setMissions(false); if (t === 'color') buildStarGrid(); window.scrollTo(0,0); }
+  if (isPage){ setMissions(false); if (t === 'color') buildStarGrid(); if (t === 'hip') loadComics(); window.scrollTo(0,0); }
   else setMode(t);
 }
 document.querySelectorAll('.introcard').forEach(b => b.onclick = () => setTab(b.dataset.go));
@@ -1315,6 +1467,13 @@ function whyText(T){
   return peak < 380 ? '가장 센 빛은 눈에 보이지 않는 자외선이지만, 가시광선 안에서는 파란 쪽 빛이 더 세서 푸르스름하게 보여요.'
     : peak <= 750 ? '가장 센 빛이 가시광선 안에 있고, 여러 색의 빛이 비교적 고르게 섞여 흰색에 가깝게 보여요. 봉우리가 초록 근처에 있어도 초록으로 보이지 않는 까닭이에요.'
     : '가장 센 빛은 눈에 보이지 않는 적외선이고, 가시광선 안에서는 붉은 쪽 빛이 훨씬 세서 붉은빛을 띠어요.';
+}
+function loadComics(){
+  document.querySelectorAll('.comic img[data-src]').forEach(img => {
+    const fail = img.parentElement.querySelector('.comicfail');
+    img.addEventListener('error', () => { img.hidden = true; fail.hidden = false; });
+    img.src = img.dataset.src; img.removeAttribute('data-src');
+  });
 }
 let gridBuilt = false, modalGroup = null, lastFocus = null;
 function buildStarGrid(){
