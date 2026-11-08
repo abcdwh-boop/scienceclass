@@ -79,6 +79,7 @@ details.mset[open]{border-color:var(--warm)}
 .mgrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;margin-top:16px}
 .msub{font-size:.95rem;margin:0 0 6px}
 .spec.big{height:240px}
+.specseg{margin-bottom:8px;max-width:320px}
 .conCanvas{width:100%;height:320px;background:#070d22;border-radius:12px;display:block}
 @media (max-width:760px){.mgrid{grid-template-columns:1fr}.conCanvas{height:260px}.mhero{padding-right:0;flex-wrap:wrap;margin-top:28px}.bigglow{width:72px;height:72px}}
 .scard .top{display:flex;align-items:center;gap:12px}
@@ -573,8 +574,13 @@ summary{font-weight:700;cursor:pointer}
     <div class="mgrid">
       <div>
         <h3 class="msub">파장에 따른 빛의 세기</h3>
+        <div class="seg specseg" role="group" aria-label="그래프 보기 방식">
+          <button type="button" id="specReal" aria-pressed="true">실제 비율</button>
+          <button type="button" id="specShape" aria-pressed="false">모양만 비교하기</button>
+        </div>
         <canvas class="spec big" id="mSpec" aria-label="파장에 따른 빛의 세기 그래프"></canvas>
-        <p class="why" style="margin-top:4px">색 실선: 이 별이 내는 빛의 세기 · 흰 점선: 우리 눈의 민감도 · 노란 세로 점선: 가장 센 파장</p>
+        <p class="why" style="margin-top:4px" id="specCap"></p>
+        <div class="kv"><span>봉우리 높이 (태양 = 1)</span><b id="mPeakR"></b></div>
         <div class="kv"><span>표면 온도</span><b id="mT"></b></div>
         <div class="kv"><span>가장 센 빛의 파장</span><b id="mP"></b></div>
         <div class="kv"><span>전체 에너지 중 가시광선 비율</span><b id="mS"></b></div>
@@ -1413,16 +1419,41 @@ function drawSpectrum(cv, T){
   g.setLineDash([4,3]); g.strokeStyle = 'rgba(231,235,246,.65)'; g.beginPath();
   for (let l=380;l<=750;l+=2){ const v = cmf(l)[1]/1.0; l===380 ? g.moveTo(X(l),Yv(v*0.9)) : g.lineTo(X(l),Yv(v*0.9)); }
   g.stroke(); g.setLineDash([]);
-  // Planck curve, normalised to its peak in range
-  let mx = 0; for (let l=L0;l<=L1;l+=5) mx = Math.max(mx, planck(l,T));
+  // Planck curve: real ratio (same y scale as the Sun, per unit surface area) or shape only (peak heights matched)
+  const peakOf = TT => { let m = 0; for (let l=L0;l<=L1;l+=5) m = Math.max(m, planck(l,TT)); return m; };
+  const mx = peakOf(T), mxSun = peakOf(5772), real = specMode === 'real';
+  const yMax = real ? Math.max(mx, mxSun)*1.04 : mx;
+  if (real && Math.abs(T - 5772) > 1){
+    g.strokeStyle = 'rgba(255,224,138,.9)'; g.lineWidth = 1.8; g.setLineDash([6,4]); g.beginPath();
+    for (let l=L0;l<=L1;l+=5){ const v = planck(l,5772)/yMax; l===L0 ? g.moveTo(X(l),Yv(v)) : g.lineTo(X(l),Yv(v)); }
+    g.stroke(); g.setLineDash([]);
+  }
   const [r,gg,b] = seenRGB(T);
   g.strokeStyle = `rgb(${r},${gg},${b})`; g.lineWidth = 2.5; g.beginPath();
-  for (let l=L0;l<=L1;l+=5){ const v = planck(l,T)/mx; l===L0 ? g.moveTo(X(l),Yv(v)) : g.lineTo(X(l),Yv(v)); }
+  for (let l=L0;l<=L1;l+=5){ const v = planck(l,T)/yMax; l===L0 ? g.moveTo(X(l),Yv(v)) : g.lineTo(X(l),Yv(v)); }
   g.stroke(); g.lineWidth = 1;
+  g.textAlign = 'right'; g.font = 'bold 11.5px "IBM Plex Sans KR", sans-serif';
+  if (real){
+    g.fillStyle = '#ffe08a';
+    if (Math.abs(T - 5772) > 1) g.fillText(mx > mxSun ? '노란 긴 점선: 태양 (같은 크기로 비교)' : '노란 긴 점선: 태양 (이 별보다 큼)', w-pr-4, pt+16);
+  } else {
+    g.fillStyle = '#ffd36b'; g.fillText('곡선의 모양만 비교하기 위해 높이를 맞춤', w-pr-4, pt+16);
+  }
   const peak = 2.898e6/T;
   if (peak >= L0){ g.strokeStyle = 'rgba(255,211,107,.8)'; g.setLineDash([2,3]); g.beginPath(); g.moveTo(X(peak),pt); g.lineTo(X(peak),pt+H); g.stroke(); g.setLineDash([]); }
 }
 
+let specMode = 'real', specT = 5772;
+function setSpecMode(m){
+  specMode = m;
+  $('#specReal').setAttribute('aria-pressed', m === 'real'); $('#specShape').setAttribute('aria-pressed', m === 'shape');
+  $('#specCap').textContent = m === 'real'
+    ? '실제 비율: 별 표면의 같은 넓이에서 나오는 빛의 세기를 태양과 같은 눈금으로 그렸어요. 뜨거운 별일수록 곡선이 훨씬 높아요. · 흰 점선: 우리 눈의 민감도 · 노란 세로 점선: 가장 센 파장'
+    : '모양만 비교하기: 봉우리 높이를 똑같이 맞춰서, 곡선의 모양과 봉우리 위치만 비교해요. 높이가 같다고 에너지가 같은 것은 아니에요. · 흰 점선: 우리 눈의 민감도 · 노란 세로 점선: 가장 센 파장';
+  drawSpectrum($('#mSpec'), specT);
+}
+$('#specReal').onclick = () => setSpecMode('real');
+$('#specShape').onclick = () => setSpecMode('shape');
 function rgbStr(T){ const [r,g,b] = seenRGB(T); return `rgb(${r},${g},${b})`; }
 function drawConstellation(cv, id){
   const st = CS[id], dpr = Math.min(window.devicePixelRatio||1, 2), w = cv.clientWidth, h = cv.clientHeight;
@@ -1524,7 +1555,10 @@ function showModalStar(id){
     b.setAttribute('aria-pressed', k === id); b.onclick = () => showModalStar(k);
     $('#mSibs').appendChild(b);
   });
-  requestAnimationFrame(() => { drawSpectrum($('#mSpec'), st.T); drawConstellation($('#mCons'), id); });
+  specT = st.T;
+  { let a = 0, b = 0; for (let l=50;l<=2000;l+=5){ a = Math.max(a, planck(l,st.T)); b = Math.max(b, planck(l,5772)); }
+    const k = a/b; $('#mPeakR').textContent = Math.abs(k-1) < 0.005 ? '1배' : (k >= 10 ? Math.round(k).toLocaleString('ko-KR') : k.toFixed(2)) + '배'; }
+  requestAnimationFrame(() => { setSpecMode(specMode); drawConstellation($('#mCons'), id); });
 }
 function closeStarModal(){
   $('#starModal').hidden = true; document.body.style.overflow = '';
