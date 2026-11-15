@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI를 평가에 활용하는 방법</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 화면 틀: 1920x1080 슬라이드를 창 크기에 맞춰 줄이거나 늘려서 보여 줌 */
+*{margin:0}
+html,body{height:100%}
+body{background:#DDE3DD;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center;font:32px/1.2 'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',Arial,sans-serif;word-break:keep-all;box-shadow:0 8px 40px rgba(29,41,39,.18)}
+#stage>section{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;isolation:isolate}
+#stage>section:not(.on){display:none !important}
+h2{font-size:64px;font-weight:600}
+h3{font-size:44px;font-weight:600}
+aside{display:none}
+img{object-fit:contain}
+#stage img{cursor:zoom-in}
+#zoom{position:fixed;left:0;top:0;right:0;bottom:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(20,28,26,.92);cursor:zoom-out}
+#zoom[hidden]{display:none}
+#zoom img{max-width:96vw;max-height:92vh;object-fit:contain;background:#FDFEFC;box-shadow:0 8px 40px rgba(0,0,0,.4)}
+#zoom-close{position:fixed;right:16px;top:14px;font:15px/1 Arial,sans-serif;color:#FDFEFC;background:none;border:1px solid #FDFEFC;border-radius:99px;padding:9px 16px;cursor:pointer}
+a{color:inherit;text-decoration:underline;text-underline-offset:4px}
+a:hover{opacity:.7}
+:focus-visible{outline:4px solid #2A6B58;outline-offset:4px}
+section[data-flat] *{box-sizing:border-box}
+#stage [data-text] p,#stage [data-text] li{font-size:inherit;line-height:inherit;color:inherit}
+
+/* 덱의 공통 모양 (직접 고치지 않은 슬라이드에만 적용) */
+section:not([data-flat]){background:#F2F5F1;color:#1D2927;padding:128px;display:flex;flex-direction:column;gap:14px}
+section.case-slide:not([data-flat]){padding:128px 128px 160px}
+section:not([data-flat]) h2{font-family:'Gowun Dodum','IBM Plex Sans KR',Arial,sans-serif;font-size:64px;font-weight:400;line-height:1.2;margin-bottom:18px}
+section:not([data-flat]) h3{font-size:28px;font-weight:600;line-height:1.3}
+section:not([data-flat]) p{font-size:24px;line-height:1.45}
+.row{display:flex;flex-direction:row;align-items:flex-start;gap:16px}
+section:not([data-flat]) .rl{width:64px;flex:none;font-size:24px;font-weight:600;line-height:1.45;color:#2A6B58}
+section:not([data-flat]) .rl-flow{padding-top:15px}
+section:not([data-flat]) .rl-method{padding-top:16px}
+section:not([data-flat]) .rl-case{padding-top:14px}
+.cells{flex:1;display:flex;flex-direction:row;align-items:flex-start;gap:36px}
+.cells-flow{flex:1;display:flex;flex-direction:row;align-items:center;gap:6px}
+.cell{flex:1;display:flex;flex-direction:column;gap:10px}
+section:not([data-flat]) .stage{flex:1;font-family:'Gowun Dodum','IBM Plex Sans KR',Arial,sans-serif;font-size:32px;line-height:1.4;text-align:center;color:#F7FAF6;background:#2A6B58;border-radius:12px;padding:10px 0}
+.cell.wide,section:not([data-flat]) .stage.wide{flex:1.3}
+.arr{display:block;width:24px;height:12px;background:#2A6B58;flex:none;clip-path:polygon(0 25%,60% 25%,60% 0,100% 50%,60% 100%,60% 75%,0 75%)}
+.card{background:#FDFEFC;border:2px solid #C9D2CC;border-radius:16px;padding:16px 20px 18px;display:flex;flex-direction:column;gap:6px}
+section:not([data-flat]) .card .txt{color:#55625F}
+.case{background:#F3D55B;border-radius:12px;padding:14px 20px}
+section:not([data-flat]) .case-txt{font-size:24px;font-weight:500;line-height:1.45;color:#1D2927}
+section:not([data-flat]) .eyebrow{font-size:24px;font-weight:600;line-height:1.45;color:#2A6B58}
+.body{font-size:32px;line-height:1.5;color:#55625F}
+section:not([data-flat]) .back{position:absolute;left:128px;bottom:64px;width:600px;font-size:24px;line-height:1.45}
+
+/* 넘김 버튼 */
+#nav{position:fixed;right:16px;bottom:14px;display:flex;align-items:center;gap:6px;font:15px/1 Arial,sans-serif;color:#55625F;opacity:.75}
+#nav:hover{opacity:1}
+#nav button{font:inherit;color:inherit;width:36px;height:36px;border:1px solid #C9D2CC;border-radius:50%;background:#FDFEFC;cursor:pointer}
+#nav button:hover{border-color:#2A6B58;color:#2A6B58}
+#count{min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+<section id="overview">
+<h2>AI를 평가에 활용하는 방법</h2>
+<div class="row">
+<p class="rl rl-flow">흐름</p>
+<div class="cells-flow">
+<p class="stage wide">평가 문항</p>
+<x-shape kind="arrow-right" class="arr"></x-shape>
+<p class="stage">평가 실시</p>
+<x-shape kind="arrow-right" class="arr"></x-shape>
+<p class="stage">채점</p>
+<x-shape kind="arrow-right" class="arr"></x-shape>
+<p class="stage">피드백</p>
+<x-shape kind="arrow-right" class="arr"></x-shape>
+<p class="stage">결과 분석</p>
+</div>
+</div>
+<div class="row">
+<p class="rl rl-method">방법</p>
+<div class="cells">
+<div class="cell wide">
+<div class="card"><h3>평가 문항 제작</h3><p class="txt">성취 기준 부합 여부 점검<br>예상 응답 확인 및 문항 수정</p></div>
+<div class="card"><h3>채점 기준 세분화</h3><p class="txt">평가의 성취 수준을 고려하여<br>배점을 수정<br>학생 응답을 예상하여<br>부분점수를 구체화</p></div>
+</div>
+<div class="cell">
+<div class="card"><h3>평가 방식<br>다양화 가능</h3><p class="txt">AI 챗봇을 활용<br>AI의 답안을 고쳐 보기<br>상호평가·자기평가 -<br>앱을 직접 제작하여 사용</p></div>
+</div>
+<div class="cell">
+<div class="card"><h3>AI가 채점 도우미</h3><p class="txt">1차 채점 - AI 활용<br>마지막은 반드시<br>교사 확인</p></div>
+</div>
+<div class="cell">
+<div class="card"><h3>평가 후<br>개별 피드백</h3><p class="txt">빠진 점과 고칠 방향을<br>학생마다 안내<br>즉각적, 구체적 피드백</p></div>
+</div>
+<div class="cell">
+<div class="card"><h3>응답·문항 분석</h3><p class="txt">학생들이 많이 틀린<br>문항을 분석하여<br>오개념을 확인,<br>다음 수업에<br>반영할 수 있음.</p></div>
+</div>
+</div>
+</div>
+<div class="row">
+<p class="rl rl-case">사례</p>
+<div class="cells">
+<div class="cell wide">
+<div class="case"><p class="case-txt"><a href="#case-items">문항 수정 및 채점기준 세분화</a></p></div>
+</div>
+<div class="cell">
+<div class="case"><p class="case-txt"><a href="#case-pingpong">학생 상호 채점 앱<br>(GAS 기반)</a></p></div>
+</div>
+<div class="cell">
+<div class="case"><p class="case-txt"><a href="#case-gas">구글 시트에서<br>Gemini API로 채점<br>(GAS 기반)</a></p></div>
+<div class="case"><p class="case-txt"><a href="#case-chat">AI 채팅창에 답안<br>올려서 직접 채점</a></p></div>
+</div>
+<div class="cell">
+<div class="case"><p class="case-txt"><a href="#case-autocrat">구글시트 확장기능<br>Autocrat 활용하여<br>PDF - 인쇄 배부</a></p></div>
+</div>
+<div class="cell">
+<div class="case"><p class="case-txt"><a href="#case-analysis">AI 채팅창 채점시<br>자동으로 분석</a></p></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="case-items" data-flat style="background:#f2f5f1">
+  <p style="position:absolute; bottom:64px; left:128px; width:600px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; line-height:1.45; color:#1d2927"><a href="#overview"><span style="color:#1d2927">← 전체 흐름으로</span></a></p>
+  <img src="images/2-2.png" alt="수행평가 문항을 올리고 검토를 요청한 대화" style="position:absolute; top:calc(50% - 81.11px); left:762.66px; width:459.56px; height:321.44px; transform:translateY(-50%)">
+  <p style="position:absolute; top:128px; left:128px; width:1664px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; font-weight:600; line-height:1.45; color:#2a6b58">사례 · 평가 문항</p>
+  <h2 style="position:absolute; top:177px; left:128px; width:1664px; padding:0 0 18px; font-family:'Gowun Dodum', Arial, sans-serif; font-size:64px; font-weight:400; line-height:1.2; color:#1d2927">문항 수정 및 채점기준 세분화</h2>
+  <p style="position:absolute; top:408.81px; left:88.01px; width:453.33px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; font-weight:700; line-height:1.5; text-align:center; color:#2a6b58; background:#c9d2cc; opacity:1; transform:translate(0, 425px)">AI가 생성한 채점 기준표<a href="https://docs.google.com/spreadsheets/d/1TjW4QvGS5bYi0j1zT9GVaHQZJFDlssod/edit?usp=sharing&amp;ouid=111210888680674556768&amp;rtpof=true&amp;sd=true"> 예시</a></p>
+  <img src="images/2-3.png" alt="문항별 성취기준 부합도 검토 결과" style="position:absolute; top:calc(50% - 81.11px); left:calc(50% + 531.56px); width:462.22px; height:321.44px; transform:translate(-50%, -50%)">
+  <img src="images/2-4.png" alt="예상 학생 답안과 채점 기준 수정 제안" style="position:absolute; bottom:98.8px; left:calc(50% + 531.55px); width:456px; height:321.46px; transform:translateX(-50%)">
+  <p style="position:absolute; top:639.11px; left:88.01px; width:640px; font-family:'IBM Plex Sans KR', Arial, sans-serif; line-height:1.5">AI 프로젝트 기능 - 지침을 입력하고 대화창에서 순차적으로 문항검토, 수정, 채점 기준 제작까지<br>진행하도록 만듦</p>
+  <img src="images/2-1.png" alt="프로젝트 지침 설정 화면" style="position:absolute; top:calc(50% - 82.33px); left:calc(50% - 552px); width:640px; height:319px; transform:translate(-50%, -50%)">
+</section>
+
+<section id="case-pingpong" data-flat style="display:flex; flex-direction:column; gap:14px; padding:128px 128px 160px; background:#f2f5f1">
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; font-weight:600; line-height:1.45; color:#2a6b58">사례 · 평가 실시</p>
+  <h2 style="flex:0 0 auto; padding:0 0 18px; font-family:'Gowun Dodum', Arial, sans-serif; font-size:64px; font-weight:400; line-height:1.2; color:#1d2927">학생 상호 채점 앱 (GAS 기반) -채점 핑퐁</h2>
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; line-height:1.5; color:#55625f; transform:translate(0, 556px)"><a href="https://script.google.com/a/macros/gireum.sen.ms.kr/s/AKfycbxdxNdN6E5HgfCbheYaVBLMW6PbPnmTgoWoqymRiu5EOUHJUUrmMwd0zw50LBPSQuQzdA/exec?page=teacher">채점핑퐁 프로그램(교사용-비번2026)</a></p>
+  <p style="position:absolute; bottom:64px; left:128px; width:600px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; line-height:1.45; color:#1d2927"><a href="#overview"><span style="color:#1d2927">← 전체 흐름으로</span></a></p>
+  <img src="images/3-1.png" alt="채점 핑퐁 학생 채점 화면" style="position:absolute; top:calc(50% + 10.9px); left:128px; width:848px; height:524.44px; transform:translateY(-50%)">
+  <img src="images/3-2.png" alt="채점 핑퐁 교사용 진행 현황 화면" style="position:absolute; top:calc(50% + 10.91px); right:149.33px; width:771.56px; height:524.43px; transform:translateY(-50%)">
+</section>
+
+<section id="case-gas" data-flat style="display:flex; flex-direction:column; gap:14px; padding:128px 128px 160px; background:#f2f5f1">
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; font-weight:600; line-height:1.45; color:#2a6b58">사례 · 채점</p>
+  <h2 style="flex:0 0 auto; padding:0 0 18px; font-family:'Gowun Dodum', Arial, sans-serif; font-size:64px; font-weight:400; line-height:1.2; color:#1d2927">구글 시트에서 Gemini API로 채점 (GAS 기반)&nbsp;</h2>
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; line-height:1.5; color:#55625f; transform:translate(0, 571px)"><a href="https://docs.google.com/spreadsheets/d/1guye88ZXbD0t-M0muSqNUBybI3I96JeWrfZaQeNg5h4/edit?usp=sharing">(발표용) 채점매니저 구글시트</a></p>
+  <p style="position:absolute; bottom:64px; left:128px; width:600px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; line-height:1.45; color:#1d2927"><a href="#overview"><span style="color:#1d2927">← 전체 흐름으로</span></a></p>
+  <img src="images/4-2.png" alt="채점 매니저 채점 창" style="position:absolute; top:50%; right:128px; width:965.33px; height:480.33px; transform:translateY(-50%)">
+  <img src="images/4-1.png" alt="채점 매니저 구글 시트의 문항별 채점기준" style="position:absolute; top:calc(50% + 0.01px); left:calc(50% - 513.78px); width:716.44px; height:480.34px; transform:translate(-50%, -50%)">
+  <p style="position:absolute; top:199.89px; left:1372.44px; width:316px; font-family:'IBM Plex Sans KR', Arial, sans-serif; line-height:1.5; background:#f3d55b">2025-2, 2026-1학기</p>
+</section>
+
+<section id="case-chat" class="case-slide">
+<p class="eyebrow">사례 · 채점</p>
+<h2>AI 채팅창에 답안 올려서 직접 채점</h2>
+<div data-text style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; line-height:1.5; transform:translate(0, 480px)" class="body">
+    <p>학생 응답 중 학번, 이름 제거 / <b>채점 기준과 함께 채팅창에 올려서 채점</b> - 5개 반씩 나누어 파일 올리기&nbsp;<br>채점 기준이 애매한 경우, 수정하여 다시 채점 - 변경된 학생만 따로 알려줌 -마지막 결과를 엑셀 파일로 다운로드</p>
+    <ul>
+      <li>마지막 <b>교사 확인 필수</b></li>
+    </ul>
+  </div>
+<p class="back"><a href="#overview">← 전체 흐름으로</a></p>
+<img src="images/5-1.png" alt="채점 기준표와 응답을 올린 AI 대화" style="position:absolute; top:calc(50% - 35.56px); left:128px; width:663.11px; height:431.44px; transform:translateY(-50%)">
+<img src="images/5-2.png" alt="AI가 돌려준 점수와 피드백 표" style="position:absolute; top:calc(50% - 35.92px); left:calc(50% + 202.67px); width:593.78px; height:432.16px; transform:translate(-50%, -50%)">
+</section>
+
+<section id="case-autocrat" data-flat style="display:flex; flex-direction:column; gap:14px; padding:128px 128px 160px; background:#f2f5f1">
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; font-weight:600; line-height:1.45; color:#2a6b58">사례 · 피드백</p>
+  <h2 style="flex:0 0 auto; padding:0 0 18px; font-family:'Gowun Dodum', Arial, sans-serif; font-size:64px; font-weight:400; line-height:1.2; color:#1d2927">구글시트 확장기능 Autocrat으로 PDF 인쇄 배부</h2>
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; line-height:1.5; color:#55625f; transform:translate(0, 597px)"><a href="https://docs.google.com/spreadsheets/d/1d2fAp2nHzPkBTiAcXxLM4ZCnmvKrFzxkh8RmQzx1VTQ/edit?usp=sharing">Autocrat 확장기능을 이용하여 구글시트에서 바로 구글 문서로 개인 피드백 자료 제작</a></p>
+  <p style="position:absolute; bottom:64px; left:128px; width:600px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; line-height:1.45; color:#1d2927"><a href="#overview"><span style="color:#1d2927">← 전체 흐름으로</span></a></p>
+  <img src="images/6-1.png" alt="Autocrat 설정 화면" style="position:absolute; top:calc(50% + 13.33px); left:128px; width:725.33px; height:505.67px; transform:translateY(-50%)">
+  <img src="images/6-2.png" alt="학생별 피드백 문서" style="position:absolute; bottom:248.61px; left:calc(50% + 224px); width:526.22px; height:556.16px; transform:translateX(-50%)">
+</section>
+
+<section id="case-analysis" data-flat style="display:flex; flex-direction:column; gap:14px; padding:128px 128px 160px; background:#f2f5f1">
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; font-weight:600; line-height:1.45; color:#2a6b58">사례 · 결과 분석</p>
+  <h2 style="flex:0 0 auto; padding:0 0 18px; font-family:'Gowun Dodum', Arial, sans-serif; font-size:64px; font-weight:400; line-height:1.2; color:#1d2927">AI 채팅창 채점시 자동으로 분석</h2>
+  <p style="flex:0 0 auto; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:32px; line-height:1.5; color:#55625f"><a href="https://docs.google.com/spreadsheets/d/1MH0DDMFbrkUJvQq4gtXkflTWcMOR1pfKF3a2rzfd-cc/edit?usp=sharing">지필평가 문항 분석&nbsp;</a></p>
+  <p style="position:absolute; bottom:64px; left:128px; width:600px; font-family:'IBM Plex Sans KR', Arial, sans-serif; font-size:24px; line-height:1.45; color:#1d2927"><a href="#overview"><span style="color:#1d2927">← 전체 흐름으로</span></a></p>
+  <img src="images/7-1.png" alt="지필평가 문항 분석을 요청한 대화" style="position:absolute; top:calc(50% + 45.33px); left:128px; width:632.89px; height:429.56px; transform:translateY(-50%)">
+  <img src="images/7-2.png" alt="AI 보조 채점 요약 시트" style="position:absolute; top:calc(50% + 45.33px); left:calc(50% + 163.56px); width:650.67px; height:429.55px; transform:translate(-50%, -50%)">
+</section>
+
+</div>
+
+<div id="zoom" hidden role="dialog" aria-label="그림 크게 보기">
+  <img id="zoom-img" alt="">
+  <button type="button" id="zoom-close">닫기 ✕</button>
+</div>
+
+<div id="nav">
+  <button type="button" id="prev" aria-label="이전 슬라이드">‹</button>
+  <span id="count"></span>
+  <button type="button" id="next" aria-label="다음 슬라이드">›</button>
+</div>
+
+<script>
+var stage = document.getElementById("stage");
+var slides = Array.prototype.slice.call(stage.children);
+var current = 0;
+
+function fit() {
+  var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  stage.style.transform = "translate(-50%,-50%) scale(" + s + ")";
+}
+
+function show(i) {
+  current = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach(function (el, n) { el.classList.toggle("on", n === current); });
+  document.getElementById("count").textContent = (current + 1) + " / " + slides.length;
+}
+
+function go(i) {
+  show(i);
+  var id = slides[current].id;
+  if (location.hash.slice(1) !== id) location.hash = id;
+}
+
+function fromHash() {
+  var id = location.hash.slice(1), i = 0;
+  slides.forEach(function (el, n) { if (el.id === id) i = n; });
+  show(i);
+}
+
+/* 바깥 사이트로 가는 링크는 새 탭에서 열기 */
+Array.prototype.forEach.call(document.querySelectorAll('a[href^="http"]'), function (a) {
+  a.target = "_blank"; a.rel = "noopener";
+});
+
+/* 그림을 누르면 크게 보기. 다시 누르거나 Esc를 누르면 닫힘 */
+var zoom = document.getElementById("zoom");
+var zoomImg = document.getElementById("zoom-img");
+function openZoom(img) { zoomImg.src = img.src; zoomImg.alt = img.alt; zoom.hidden = false; }
+function closeZoom() { zoom.hidden = true; zoomImg.removeAttribute("src"); }
+Array.prototype.forEach.call(stage.querySelectorAll("img"), function (img) {
+  img.tabIndex = 0;
+  img.addEventListener("click", function () { openZoom(img); });
+  img.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.stopPropagation(); openZoom(img); } });
+});
+zoom.addEventListener("click", closeZoom);
+
+document.getElementById("prev").addEventListener("click", function () { go(current - 1); });
+document.getElementById("next").addEventListener("click", function () { go(current + 1); });
+document.addEventListener("keydown", function (e) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!zoom.hidden) { e.preventDefault(); if (e.key === "Escape" || e.key === "Enter" || e.key === " ") closeZoom(); return; }
+  if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); go(current + 1); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(current - 1); }
+  else if (e.key === "Home" || e.key === "Escape") { e.preventDefault(); go(0); }
+});
+window.addEventListener("hashchange", fromHash);
+window.addEventListener("resize", fit);
+fit();
+fromHash();
+</script>
+</body>
+</html>
