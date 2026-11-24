@@ -69,10 +69,19 @@ input[type=color]{width:38px;height:30px;padding:0;border:1px solid var(--line);
 .printInfo{font-size:13px;color:var(--muted);max-width:900px;margin:0 auto 12px;line-height:1.7}
 .paperWrap{margin:0 auto 18px;width:max-content}
 .paperScale{transform-origin:0 0}
-.paper{background:#fff;display:grid;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-.cell{overflow:hidden;position:relative;outline:0.2mm dashed #B5BCCB;outline-offset:-0.1mm}
+.paper{contain:strict;background:#fff;display:grid;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.cell{contain:strict;overflow:hidden;position:relative}
+.mk{position:absolute;z-index:2;pointer-events:none}
+.mk.h{height:0}.mk.v{width:0}
+.mk.cut.h{border-top:0.3mm solid #7A8399}.mk.cut.v{border-left:0.3mm solid #7A8399}
+.mk.fold.h{border-top:0.25mm dashed #A6AEC0}.mk.fold.v{border-left:0.25mm dashed #A6AEC0}
+.mk.none.h{border-top:0.4mm dotted #E2483D;opacity:.6}.mk.none.v{border-left:0.4mm dotted #E2483D;opacity:.6}
+.mkHit{position:absolute;z-index:3;cursor:pointer;border-radius:1mm}
+.mkHit:hover{background:rgba(45,91,210,.28)}
+.mkLegend{position:absolute;z-index:2;font-size:2.4mm;color:#7A8399;white-space:nowrap;font-family:"Noto Sans KR","Noto Sans CJK KR",sans-serif}
+.mkLegend i{display:inline-block;width:6mm;vertical-align:middle;margin:0 1mm 0 3mm}
 .cell.flip{transform:rotate(180deg)}
-.cell.empty{outline-color:#E3E6EE}
+.cell.empty{background:#fff}
 .cell>.page,.paper>.page{position:absolute;left:0;top:0;transform-origin:0 0}
 
 /* 대화 상자 */
@@ -184,7 +193,31 @@ dialog .hint{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 8px}
 .page.cover .names{margin-top:auto;font-size:16px;color:#D9E0F2;display:grid;gap:12px;flex:none}
 .page.cover .names span{border-bottom:1.5px solid #6C7AA5;padding-bottom:4px}
 
+/* 펼쳐 보기 슬라이드(읽기 전용) */
+body.viewer{background:#141A2B}
+body.viewer .bar,body.viewer #slideView,body.viewer #spreadView{display:none!important}
+#viewer{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.vStage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.vSpread{display:flex;filter:drop-shadow(0 8px 24px rgba(0,0,0,.45))}
+.vSpread>.holder::after{content:"";position:absolute;inset:0;pointer-events:none}
+.vSpread>.holder:first-child::after{background:linear-gradient(to left,rgba(0,0,0,.13),transparent 7%)}
+.vSpread>.holder:last-child::after{background:linear-gradient(to right,rgba(0,0,0,.13),transparent 7%)}
+.vSpread>.holder:only-child::after{background:none}
+.vBlank{flex:none}
+.vBar{flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;background:#0E1322;color:#E6EAF4;font-size:14px}
+.vBar button{background:#1E2639;color:#E6EAF4;border-color:#36405A;white-space:nowrap}
+.vBar button:disabled{opacity:.35}
+#vNum{min-width:7.5em;text-align:center;font-weight:700}
+.vTitle{flex:1;text-align:right;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:600px){.vTitle,.vLong,#vFull{display:none}.vBar{gap:6px;padding:8px;justify-content:space-between}.vBar button{padding:7px 12px}#vNum{min-width:0;flex:1}}
+body.viewer .page.over{box-shadow:none}
+.sprPaper{display:flex;background:#fff;position:relative;overflow:hidden;contain:strict;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.sprHalf{position:relative;overflow:hidden;contain:strict;flex:none}
+.sprHalf>.page{position:absolute;left:0;top:0;transform-origin:0 0}
+.sprFold{position:absolute;top:0;bottom:0;left:50%;width:0;border-left:0.2mm solid #E3E6EE}
 @media print{
+  body.viewer #viewer{display:none!important}
+  .sprPaper{box-shadow:none}
   body{background:#fff}
   .bar,.slideView,.spreadView,.printInfo,dialog{display:none!important}
   .printView{display:block!important;padding:0;overflow:visible}
@@ -195,6 +228,7 @@ dialog .hint{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 8px}
   .slot.active{box-shadow:none}
   .page.over{box-shadow:none}
   [contenteditable="true"]{outline:0!important}
+  .mkHit,.mk.none{display:none!important}
 }
 </style>
 </head>
@@ -211,6 +245,7 @@ dialog .hint{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 8px}
   <span class="spacer"></span>
   <button id="newBtn">새로 만들기</button>
   <button id="htmlBtn" title="지금 고친 내용과 넣은 사진이 처음부터 들어 있는 HTML 파일을 만들어요">이 상태로 HTML 내려받기</button>
+  <button id="viewBtn" title="두 쪽씩 넘겨 보는 읽기 전용 슬라이드 HTML을 만들어요">펼쳐 보기 HTML 내려받기</button>
   <button id="exportBtn">작업 파일 저장</button>
   <label class="btn" for="importFile">작업 파일 불러오기</label>
   <input id="importFile" type="file" accept=".json,application/json" class="hidden">
@@ -241,7 +276,7 @@ dialog .hint{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 8px}
 <div id="measure" aria-hidden="true" style="position:fixed;left:-30000px;top:0;visibility:hidden"></div>
 
 <!-- 책 내용: 스킬의 build.py가 이 자리에 JSON을 넣음 -->
-<script id="doc-data" type="application/json">{"id":"bigbang-vmw4gd04c","title":"우주는 어떻게 시작됐을까","format":"book","paper":{"size":"B4","orient":"land","cols":8,"rows":4},"character":{"label":"가장 오래된 빛의 일기","icon":"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2220%22%20fill%3D%22%231B2440%22/%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%229%22%20fill%3D%22%23F2B134%22%20opacity%3D%22.25%22/%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%225%22%20fill%3D%22%23FFD36B%22/%3E%3Cpath%20d%3D%22M4%2030c3-4%205%204%208%200s5%204%208%200%205%204%208%200%205%204%208%200%22%20fill%3D%22none%22%20stroke%3D%22%23FF8A65%22%20stroke-width%3D%222%22/%3E%3C/svg%3E"},"sections":[{"id":"s1","name":"멈춰 있는 우주","color":"#1B2440"},{"id":"s2","name":"팽창의 증거","color":"#D94A26"},{"id":"s3","name":"두 이론의 대결","color":"#6A4BC4"},{"id":"s4","name":"결정적 증거","color":"#12877C"},{"id":"s5","name":"오늘의 우주","color":"#2D72C8"}],"pages":[{"type":"cover","kicker":"138억 년 전 → 지금","title":"우주는<br>어떻게 시작됐을까","subtitle":"빅뱅 이론 이야기","names":true,"blocks":[{"t":"images","items":[{"cap":"우주배경복사 지도(플랑크 위성)","fit":"cover","src":"https://img4.yna.co.kr/etc/inner/KR/2013/03/22/AKR20130322063000009_01_i_P2.jpg"}],"lw":[1],"h":235},{"t":"say","html":"나는 우주에서 가장 오래된 빛. 지금부터 138억 년짜리 이야기를 들려줄게."}]},{"section":"s1","tag":"1917","title":"아인슈타인의 우주","blocks":[{"t":"images","items":[{"cap":"아인슈타인","src":"https://cdn.mindgil.com/news/photo/202211/75729_16552_3019.jpg"}],"lw":[1],"h":310},{"t":"text","html":"<p>1915년 <b>일반상대성이론<\/b> 발표. 1917년 이 이론으로 우주 전체를 설명하려 함.<\/p>"},{"t":"box","style":"color","label":"가정 1","html":"우주는 어디서나 고르게 퍼져 있고, 어느 방향으로 봐도 같음."},{"t":"box","style":"color","label":"가정 2","html":"우주는 커지거나 줄지 않는 <b>정지한 우주<\/b>임."}]},{"section":"s1","tag":"1917","title":"우주상수를 넣다","blocks":[{"t":"images","items":[{"cap":"아인슈타인의 중력장 방정식","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFiOzpb55PaAxOzBPMRWA6PhLR06oLi9T535eRTRsQIXpERcLVmhnpeJE&s=101300_29959_3333.jpg","pos":"80.2% 20.0%","fit":"contain"}],"h":235,"lw":[1]},{"t":"text","html":"<p>그런데 방정식을 풀면 우주는 <b>자기 중력 때문에 수축<\/b>해 버림.<\/p><p>아인슈타인은 중력을 밀어내는 항 <b>우주상수(Λ)<\/b>를 일부러 넣어 우주를 멈춰 세움.<\/p>"}]},{"section":"s2","tag":"1922","title":"팽창하는 해답","blocks":[{"t":"images","items":[{"cap":"알렉산드르 프리드만","src":"https://mblogthumb-phinf.pstatic.net/MjAyNTAxMjNfMjMz/MDAxNzM3NTc4ODQ4MjUy.fC5CBd7DoV2fxgny1PtiUpSLp85K50iVddmgMsuRZYMg.AEBgzFZWukgoObuxsqu_-d5BNFKS2HNDAKtMgbkbgf0g.PNG/image.PNG?type=w800","fit":"contain"}],"lw":[1],"h":240},{"t":"text","html":"<p>러시아 수학자 <b>프리드만<\/b>, 아인슈타인의 방정식에서 우주가 <b>팽창하거나 수축하는 해<\/b>를 찾아냄.<\/p><p>아인슈타인은 처음엔 계산이 틀렸다고 했다가 나중에 인정함.<\/p>"}]},{"section":"s2","tag":"1927","title":"조르주 르메트르","blocks":[{"t":"images","items":[{"cap":"조르주 르메트르","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzwA29MmcDPkmvPuZ0EDono3yC7mer8-9wcyiSg_rGyPLpDCK7mjmA7hA&s=10","fit":"contain"}],"lw":[1],"h":250},{"t":"text","html":"<p>벨기에의 가톨릭 신부이자 천문학자·물리학자.<\/p><p>1927년 <b>우주가 팽창한다<\/b>는 논문 발표. 먼 은하일수록 빨리 멀어진다는 관계와 그 비례상수(훗날 허블 상수)도 계산함. 1931년 우주가 <b>‘원시 원자’<\/b> 하나에서 시작됐다고 제안함.<\/p>"},{"t":"say","html":"르메트르는 내가 태어난 순간을 처음 상상한 사람이야."}]},{"section":"s2","tag":"1927","title":"“당신의 물리학은 끔찍하오”","blocks":[{"t":"images","items":[{"cap":"아인슈타인과 르메트르","src":"https://webzine.nexentire.com/webzine/vol93/image/sub/sub1_2_3.jpg"}],"lw":[1],"h":330},{"t":"text","html":"<p>1927년 솔베이 회의에서 르메트르를 만난 아인슈타인은 팽창 우주를 받아들이지 않음.<\/p>"},{"t":"box","style":"quote","html":"“계산은 정확하지만, 당신의 물리학은 끔찍하오.”"},{"t":"text","html":"<p>르메트르가 훗날 전한 말임.<\/p>"}]},{"section":"s2","tag":"1929","title":"에드윈 허블","blocks":[{"t":"images","items":[{"cap":"에드윈 허블","src":"https://i.namu.wiki/i/vhgNIddCz-gMJ1EaogfcHXflxclw6tJjwHZtfm4GWgjUZjWjgg2vlprvCKPapwR5z_5mpUmkp8bGfTgsvNgJEA.webp"},{"cap":"윌슨산 천문대 2.5m 망원경","src":"http://www.uwastrocamp.com/wp-content/uploads/2025/10/%EA%B7%B8%EB%A6%BC1.-2.5m-%EB%A7%9D%EC%9B%90%EA%B2%BD%EC%9D%84-%EC%A1%B0%EC%9E%91%ED%95%98%EB%8A%94-%ED%97%88%EB%B8%94.jpg","w":0.86},{"cap":"","src":"https://imgnn.seoul.co.kr/img/upload/2019/01/31/SSI_20190131130131_V.jpg","w":1.14}],"layout":{"m":"cols","g":[1,2]},"lw":[1,1],"h":380},{"t":"text","html":"<p>윌슨산 천문대의 2.5m 망원경으로 은하까지의 <b>거리<\/b>와 빛의 <b>적색편이<\/b>를 함께 측정함.<\/p><p>결과: <b>멀리 있는 은하일수록 더 빨리 멀어짐<\/b>. 우주가 팽창한다는 관측 증거.<\/p>"}]},{"section":"s2","tag":"원리","title":"적색편이란?","blocks":[{"t":"images","items":[{"cap":"도플러 효과와 스펙트럼 선 이동 그림","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4-llWc8XsEc671vp_XIqCbbktzSktW6jpFpvkbhskOw_WE-BMkgN0LU1a&s=10","fit":"cover","pos":"3.9% 47.7%"}],"lw":[1],"h":335},{"t":"text","html":"<p>구급차가 멀어지면 사이렌 소리가 낮아지듯, 멀어지는 천체의 빛은 <b>파장이 길어져<\/b> 스펙트럼 선이 <b>빨간 쪽<\/b>으로 밀려남.<\/p><p>은하의 적색편이는 은하 사이의 <b>공간 자체가 늘어나서<\/b> 생김.<\/p>"}]},{"section":"s2","tag":"1929","title":"허블 법칙","blocks":[{"t":"images","items":[{"cap":"거리-후퇴 속도 그래프","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCT3QM4kN5w1CwJTILdpmZFaTxcZbftmEdKC3YypfZkmqsd1lfioR70U4&s=10","fit":"contain"}],"lw":[1],"h":280},{"t":"text","html":"<p>후퇴 속도 = <b>허블 상수<\/b> × 거리. 그래프의 기울기가 허블 상수임(약 70km/s/Mpc).<\/p>"},{"t":"box","style":"color","label":"거꾸로 돌리면","html":"시간을 되감으면 모든 은하가 한 점에 모임. 우주에 <b>시작<\/b>이 있었다는 뜻."},{"t":"text","html":"<p>2018년 국제천문연맹은 르메트르의 공을 기려 <b>허블-르메트르 법칙<\/b>으로 부르자고 권고함.<\/p>"}]},{"section":"s3","tag":"1931","title":"아인슈타인의 ‘최대 실수’","blocks":[{"t":"images","items":[{"cap":"윌슨산 천문대를 방문한 아인슈타인","src":"https://cdn.gycitizen.com/news/photo/201612/15078_15684_5953.jpg","pos":"49.1% 28.3%"}],"lw":[1],"h":230},{"t":"text","html":"<p>1931년 아인슈타인, 윌슨산 천문대를 방문한 뒤 팽창 우주를 받아들이고 우주상수를 버림.<\/p><p>가모프에 따르면 아인슈타인은 우주상수를 ‘생애 최대의 실수’라고 했다고 함.<\/p>"}]},{"section":"s3","tag":"1948","title":"가모프의 뜨거운 우주","blocks":[{"t":"images","items":[{"cap":"조지 가모프","src":"https://www.scienceall.com/jnrepo/uploads/2015/10/%EC%A1%B0%EC%A7%80-%EA%B0%80%EB%AA%A8%EB%B8%8C.jpg","pos":"50.0% 59.6%"},{"cap":"랄프애셔 알퍼","src":"https://upload.wikimedia.org/wikipedia/commons/d/d2/Ralph_Alpher_%28cropped%29.jpg?utm_source=ko.wikipedia.org&utm_campaign=index&utm_content=original","pos":"34.8% 38.8%"}],"lw":[1]},{"t":"text","html":"<p><b>가모프<\/b>와 <b>알퍼<\/b>: 초기 우주는 아주 뜨겁고 빽빽했고, 이때 <b>수소·헬륨<\/b> 같은 가벼운 원소가 만들어짐.<\/p>"},{"t":"text","html":"<p>알퍼와 허먼은 그 열의 흔적이 지금도 약 <b>5K(영하 268℃)<\/b>의 빛으로 우주를 채우고 있을 것이라 예측함.<\/p>"},{"t":"say","html":"그 예측된 빛이 바로 나야. 아직 아무도 날 찾지 못했지만."}]},{"section":"s3","tag":"1948","title":"맞수, 정상우주론","blocks":[{"t":"images","items":[{"cap":"프레드 호일","src":"https://img2.daumcdn.net/thumb/R658x0.q70/?fname=https://t1.daumcdn.net/news/202105/06/weeklydonga/20210506100115459vksd.jpg","fit":"contain"}],"lw":[1],"h":335},{"t":"text","html":"<p><b>본디·골드·호일<\/b>의 정상우주론: 우주는 팽창하지만, 벌어진 틈에 <b>새 물질이 계속 생겨나<\/b> 언제나 같은 모습을 유지함.<\/p>"},{"t":"box","style":"color","label":"핵심","html":"우주에는 <b>시작도 끝도 없음<\/b>."}]},{"section":"s3","tag":"1949","title":"‘빅뱅’이라는 이름","blocks":[{"t":"images","items":[{"cap":"BBC 라디오 방송 장면","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShgfsVJDYdQZduWxooGTXb8rRwo4aT4A5DYjiPAzoh5Thj4y2oz-D0K0o&s=10","pos":"51.1% 16.5%"}],"lw":[1]},{"t":"text","html":"<p>1949년 호일이 BBC 라디오에서 상대 이론을 <b>‘빅뱅(Big Bang)’<\/b>이라고 부름.<\/p><p>깎아내리려 한 말이라는 이야기가 많지만 호일 본인은 아니라고 함. 어쨌든 이 이름이 그대로 굳어짐.<\/p>"}]},{"section":"s4","tag":"1964","title":"하늘 전체에서 오는 잡음","blocks":[{"t":"images","items":[{"cap":"벨 연구소 혼 안테나","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Horn_Antenna-in_Holmdel%2C_New_Jersey_-_restoration1.jpg/250px-Horn_Antenna-in_Holmdel%2C_New_Jersey_-_restoration1.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","fit":"cover","w":1.25},{"cap":"펜지어스와 윌슨","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkrBxwMvzyoN5dEgE9SkmjmHwL2L0EO9hd14HsgQdV7NMgZjBresq4YmN4&s=10","fit":"cover","w":0.75},{"cap":"","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ00XY5ZtbGbzuevg3oZEX6ILfP9fKAZE3SJFcwG91r-IE5YF1r6Z9uPds&s=10"}],"layout":{"m":"cols","g":[2,1]},"lw":[1.07,0.93],"h":360},{"t":"text","html":"<p><b>펜지어스<\/b>와 <b>윌슨<\/b>, 안테나에서 어느 방향에서나 똑같이 들어오는 잡음을 발견함. 비둘기 둥지까지 치웠지만 사라지지 않음.<\/p><p>정체는 약 3K의 <b>우주배경복사<\/b>. 1978년 노벨 물리학상.<\/p>"}]},{"section":"s4","tag":"1965","title":"승부가 기울다","blocks":[{"t":"images","items":[{"cap":"우주배경복사 설명 그림","src":"https://mblogthumb-phinf.pstatic.net/MjAxODA3MDNfNDQg/MDAxNTMwNTk2MzY0NTUw.2NCyYpC6C3edfKgxF0UXbLKWLQyTXKP9wneJyAdVBpgg.HimVmz6KOYWsZUmaF93q2UBkg-8amO7fsxM3r2vztAsg.JPEG.david6703/20180703-03.jpg?type=w800"},{"cap":"","src":"https://pimg.mk.co.kr/meet/neds/2014/03/image_readmed_2014_424355_13951378111258960.jpg","fit":"contain"}],"layout":{"m":"cols","g":[2]},"lw":[1]},{"t":"text","html":"<p>우주배경복사는 빅뱅 이론이 <b>예측한 빛<\/b>이었음. 정상우주론으로는 설명하기 어려움.<\/p><p>이후 빅뱅 이론이 우주의 시작을 설명하는 표준 이론이 됨.<\/p>"},{"t":"say","html":"드디어 1964년, 안테나에 걸렸어! 처음엔 잡음 취급이었지만."}]},{"section":"s4","tag":"1989","title":"우주의 아기 사진","blocks":[{"t":"images","items":[{"cap":"COBE·WMAP·플랑크가 찍은 우주배경복사 지도 비교","src":"https://img1.kakaocdn.net/thumb/R1280x0.fjpg/?fname=http://t1.daumcdn.net/brunch/service/user/hHeb/image/iy0tAtPxybOUBztNBah2R1aduXI.jpg","fit":"contain"}],"lw":[1],"h":255},{"t":"text","html":"<p><b>COBE<\/b> 위성(1989): 우주배경복사에 <b>10만분의 1<\/b> 정도의 미세한 온도 차이를 찾음. 은하가 생겨난 씨앗. 2006년 노벨 물리학상.<\/p><p><b>WMAP<\/b>(2001), <b>플랑크<\/b>(2009)가 더 정밀하게 찍음. 우주의 나이 약 <b>138억 년<\/b>.<\/p>"}]},{"section":"s5","tag":"지금","title":"점점 빨라지는 팽창","blocks":[{"t":"images","items":[{"cap":"제임스웹 우주망원경이 찍은 먼 은하들","src":"https://flexible.img.hani.co.kr/flexible/normal/800/816/imgdb/original/2022/0712/20220712500207.jpg"}],"lw":[1]},{"t":"text","html":"<p>1998년 먼 초신성 관측으로 우주 팽창이 <b>점점 빨라진다<\/b>는 사실을 발견함(2011년 노벨 물리학상). 원인은 아직 정체를 모르는 <b>암흑에너지<\/b>.<\/p><p>버려졌던 아인슈타인의 <b>우주상수<\/b>가 다시 등장함.<\/p>"},{"t":"say","html":"나는 원래 뜨거웠지만, 우주가 늘어나는 동안 영하 270℃까지 식었어. 그래도 여전히 우주를 가득 채우고 있지."}]}]}</script>
+<script id="doc-data" type="application/json">{"id":"bigbang-vmwtxqz3c","title":"우주는 어떻게 시작됐을까","format":"book","paper":{"size":"B4","orient":"land","cols":6,"rows":3},"character":{"label":"가장 오래된 빛의 일기","icon":"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2220%22%20fill%3D%22%231B2440%22/%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%229%22%20fill%3D%22%23F2B134%22%20opacity%3D%22.25%22/%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%225%22%20fill%3D%22%23FFD36B%22/%3E%3Cpath%20d%3D%22M4%2030c3-4%205%204%208%200s5%204%208%200%205%204%208%200%205%204%208%200%22%20fill%3D%22none%22%20stroke%3D%22%23FF8A65%22%20stroke-width%3D%222%22/%3E%3C/svg%3E"},"sections":[{"id":"s1","name":"멈춰 있는 우주","color":"#1B2440"},{"id":"s2","name":"팽창의 증거","color":"#D94A26"},{"id":"s3","name":"두 이론의 대결","color":"#6A4BC4"},{"id":"s4","name":"결정적 증거","color":"#12877C"},{"id":"s5","name":"오늘의 우주","color":"#2D72C8"}],"pages":[{"type":"cover","kicker":"138억 년 전 → 지금","title":"우주는<br>어떻게 시작됐을까","subtitle":"빅뱅 이론 이야기","names":true,"blocks":[{"t":"images","items":[{"cap":"우주배경복사 지도(플랑크 위성)","fit":"cover","src":"https://img4.yna.co.kr/etc/inner/KR/2013/03/22/AKR20130322063000009_01_i_P2.jpg"}],"lw":[1],"h":235},{"t":"say","html":"나는 우주에서 가장 오래된 빛. 지금부터 138억 년짜리 이야기를 들려줄게."}]},{"section":"s1","tag":"1917","title":"아인슈타인의 우주","blocks":[{"t":"images","items":[{"cap":"아인슈타인","src":"https://cdn.mindgil.com/news/photo/202211/75729_16552_3019.jpg"}],"lw":[1],"h":310},{"t":"text","html":"<p>1915년 <b>일반상대성이론<\/b> 발표. 1917년 이 이론으로 우주 전체를 설명하려 함.<\/p>"},{"t":"box","style":"color","label":"가정 1","html":"우주는 어디서나 고르게 퍼져 있고, 어느 방향으로 봐도 같음."},{"t":"box","style":"color","label":"가정 2","html":"우주는 커지거나 줄지 않는 <b>정지한 우주<\/b>임."}]},{"section":"s1","tag":"1917","title":"우주상수를 넣다","blocks":[{"t":"images","items":[{"cap":"아인슈타인의 중력장 방정식","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFiOzpb55PaAxOzBPMRWA6PhLR06oLi9T535eRTRsQIXpERcLVmhnpeJE&s=101300_29959_3333.jpg","pos":"80.2% 20.0%","fit":"contain"}],"h":235,"lw":[1]},{"t":"text","html":"<p>그런데 방정식을 풀면 우주는 <b>자기 중력 때문에 수축<\/b>해 버림.<\/p><p>아인슈타인은 중력을 밀어내는 항 <b>우주상수(Λ)<\/b>를 일부러 넣어 우주를 멈춰 세움.<\/p>"}]},{"section":"s2","tag":"1922","title":"팽창하는 해답","blocks":[{"t":"images","items":[{"cap":"알렉산드르 프리드만","src":"https://mblogthumb-phinf.pstatic.net/MjAyNTAxMjNfMjMz/MDAxNzM3NTc4ODQ4MjUy.fC5CBd7DoV2fxgny1PtiUpSLp85K50iVddmgMsuRZYMg.AEBgzFZWukgoObuxsqu_-d5BNFKS2HNDAKtMgbkbgf0g.PNG/image.PNG?type=w800","fit":"contain"}],"lw":[1],"h":240},{"t":"text","html":"<p>러시아 수학자 <b>프리드만<\/b>, 아인슈타인의 방정식에서 우주가 <b>팽창하거나 수축하는 해<\/b>를 찾아냄.<\/p><p>아인슈타인은 처음엔 계산이 틀렸다고 했다가 나중에 인정함.<\/p>"}]},{"section":"s2","tag":"1927","title":"조르주 르메트르","blocks":[{"t":"images","items":[{"cap":"조르주 르메트르","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzwA29MmcDPkmvPuZ0EDono3yC7mer8-9wcyiSg_rGyPLpDCK7mjmA7hA&s=10","fit":"contain"}],"lw":[1],"h":250},{"t":"text","html":"<p>벨기에의 가톨릭 신부이자 천문학자·물리학자.<\/p><p>1927년 <b>우주가 팽창한다<\/b>는 논문 발표. 먼 은하일수록 빨리 멀어진다는 관계와 그 비례상수(훗날 허블 상수)도 계산함. 1931년 우주가 <b>‘원시 원자’<\/b> 하나에서 시작됐다고 제안함.<\/p>"},{"t":"say","html":"르메트르는 내가 태어난 순간을 처음 상상한 사람이야."}]},{"section":"s2","tag":"1927","title":"“당신의 물리학은 끔찍하오”","blocks":[{"t":"images","items":[{"cap":"아인슈타인과 르메트르","src":"https://webzine.nexentire.com/webzine/vol93/image/sub/sub1_2_3.jpg"}],"lw":[1],"h":330},{"t":"text","html":"<p>1927년 솔베이 회의에서 르메트르를 만난 아인슈타인은 팽창 우주를 받아들이지 않음.<\/p>"},{"t":"box","style":"quote","html":"“계산은 정확하지만, 당신의 물리학은 끔찍하오.”"},{"t":"text","html":"<p>르메트르가 훗날 전한 말임.<\/p>"}]},{"section":"s2","tag":"1929","title":"에드윈 허블","blocks":[{"t":"images","items":[{"cap":"에드윈 허블","src":"https://i.namu.wiki/i/vhgNIddCz-gMJ1EaogfcHXflxclw6tJjwHZtfm4GWgjUZjWjgg2vlprvCKPapwR5z_5mpUmkp8bGfTgsvNgJEA.webp"},{"cap":"윌슨산 천문대 2.5m 망원경","src":"http://www.uwastrocamp.com/wp-content/uploads/2025/10/%EA%B7%B8%EB%A6%BC1.-2.5m-%EB%A7%9D%EC%9B%90%EA%B2%BD%EC%9D%84-%EC%A1%B0%EC%9E%91%ED%95%98%EB%8A%94-%ED%97%88%EB%B8%94.jpg","w":0.86},{"cap":"","src":"https://imgnn.seoul.co.kr/img/upload/2019/01/31/SSI_20190131130131_V.jpg","w":1.14}],"layout":{"m":"cols","g":[1,2]},"lw":[1,1],"h":380},{"t":"text","html":"<p>윌슨산 천문대의 2.5m 망원경으로 은하까지의 <b>거리<\/b>와 빛의 <b>적색편이<\/b>를 함께 측정함.<\/p><p>결과: <b>멀리 있는 은하일수록 더 빨리 멀어짐<\/b>. 우주가 팽창한다는 관측 증거.<\/p>"}]},{"section":"s2","tag":"원리","title":"적색편이란?","blocks":[{"t":"images","items":[{"cap":"도플러 효과와 스펙트럼 선 이동 그림","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4-llWc8XsEc671vp_XIqCbbktzSktW6jpFpvkbhskOw_WE-BMkgN0LU1a&s=10","fit":"cover","pos":"3.9% 47.7%"}],"lw":[1],"h":335},{"t":"text","html":"<p>구급차가 멀어지면 사이렌 소리가 낮아지듯, 멀어지는 천체의 빛은 <b>파장이 길어져<\/b> 스펙트럼 선이 <b>빨간 쪽<\/b>으로 밀려남.<\/p><p>은하의 적색편이는 은하 사이의 <b>공간 자체가 늘어나서<\/b> 생김.<\/p>"}]},{"section":"s2","tag":"1929","title":"허블 법칙","blocks":[{"t":"images","items":[{"cap":"거리-후퇴 속도 그래프","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCT3QM4kN5w1CwJTILdpmZFaTxcZbftmEdKC3YypfZkmqsd1lfioR70U4&s=10","fit":"contain"}],"lw":[1],"h":280},{"t":"text","html":"<p>후퇴 속도 = <b>허블 상수<\/b> × 거리. 그래프의 기울기가 허블 상수임(약 70km/s/Mpc).<\/p>"},{"t":"box","style":"color","label":"거꾸로 돌리면","html":"시간을 되감으면 모든 은하가 한 점에 모임. 우주에 <b>시작<\/b>이 있었다는 뜻."},{"t":"text","html":"<p>2018년 국제천문연맹은 르메트르의 공을 기려 <b>허블-르메트르 법칙<\/b>으로 부르자고 권고함.<\/p>"}]},{"section":"s3","tag":"1931","title":"아인슈타인의 ‘최대 실수’","blocks":[{"t":"images","items":[{"cap":"윌슨산 천문대를 방문한 아인슈타인","src":"https://cdn.gycitizen.com/news/photo/201612/15078_15684_5953.jpg","pos":"49.1% 28.3%"}],"lw":[1],"h":230},{"t":"text","html":"<p>1931년 아인슈타인, 윌슨산 천문대를 방문한 뒤 팽창 우주를 받아들이고 우주상수를 버림.<\/p><p>가모프에 따르면 아인슈타인은 우주상수를 ‘생애 최대의 실수’라고 했다고 함.<\/p>"}]},{"section":"s3","tag":"1948","title":"가모프의 뜨거운 우주","blocks":[{"t":"images","items":[{"cap":"조지 가모프","src":"https://www.scienceall.com/jnrepo/uploads/2015/10/%EC%A1%B0%EC%A7%80-%EA%B0%80%EB%AA%A8%EB%B8%8C.jpg","pos":"50.0% 59.6%"},{"cap":"랄프애셔 알퍼","src":"https://upload.wikimedia.org/wikipedia/commons/d/d2/Ralph_Alpher_%28cropped%29.jpg?utm_source=ko.wikipedia.org&utm_campaign=index&utm_content=original","pos":"34.8% 38.8%"}],"lw":[1]},{"t":"text","html":"<p><b>가모프<\/b>와 <b>알퍼<\/b>: 초기 우주는 아주 뜨겁고 빽빽했고, 이때 <b>수소·헬륨<\/b> 같은 가벼운 원소가 만들어짐.<\/p>"},{"t":"text","html":"<p>알퍼와 허먼은 그 열의 흔적이 지금도 약 <b>5K(영하 268℃)<\/b>의 빛으로 우주를 채우고 있을 것이라 예측함.<\/p>"},{"t":"say","html":"그 예측된 빛이 바로 나야. 아직 아무도 날 찾지 못했지만."}]},{"section":"s3","tag":"1948","title":"맞수, 정상우주론","blocks":[{"t":"images","items":[{"cap":"프레드 호일","src":"https://img2.daumcdn.net/thumb/R658x0.q70/?fname=https://t1.daumcdn.net/news/202105/06/weeklydonga/20210506100115459vksd.jpg","fit":"contain"}],"lw":[1],"h":335},{"t":"text","html":"<p><b>본디·골드·호일<\/b>의 정상우주론: 우주는 팽창하지만, 벌어진 틈에 <b>새 물질이 계속 생겨나<\/b> 언제나 같은 모습을 유지함.<\/p>"},{"t":"box","style":"color","label":"핵심","html":"우주에는 <b>시작도 끝도 없음<\/b>."}]},{"section":"s3","tag":"1949","title":"‘빅뱅’이라는 이름","blocks":[{"t":"images","items":[{"cap":"BBC 라디오 방송 장면","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShgfsVJDYdQZduWxooGTXb8rRwo4aT4A5DYjiPAzoh5Thj4y2oz-D0K0o&s=10","pos":"51.1% 16.5%"}],"lw":[1]},{"t":"text","html":"<p>1949년 호일이 BBC 라디오에서 상대 이론을 <b>‘빅뱅(Big Bang)’<\/b>이라고 부름.<\/p><p>깎아내리려 한 말이라는 이야기가 많지만 호일 본인은 아니라고 함. 어쨌든 이 이름이 그대로 굳어짐.<\/p>"}]},{"section":"s4","tag":"1964","title":"하늘 전체에서 오는 잡음","blocks":[{"t":"images","items":[{"cap":"벨 연구소 혼 안테나","src":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Horn_Antenna-in_Holmdel%2C_New_Jersey_-_restoration1.jpg/250px-Horn_Antenna-in_Holmdel%2C_New_Jersey_-_restoration1.jpg?utm_source=ko.wikipedia.org&utm_campaign=parser&utm_content=thumbnail","fit":"cover","w":1.25},{"cap":"펜지어스와 윌슨","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkrBxwMvzyoN5dEgE9SkmjmHwL2L0EO9hd14HsgQdV7NMgZjBresq4YmN4&s=10","fit":"cover","w":0.75},{"cap":"","src":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ00XY5ZtbGbzuevg3oZEX6ILfP9fKAZE3SJFcwG91r-IE5YF1r6Z9uPds&s=10"}],"layout":{"m":"cols","g":[2,1]},"lw":[1.07,0.93],"h":360},{"t":"text","html":"<p><b>펜지어스<\/b>와 <b>윌슨<\/b>, 안테나에서 어느 방향에서나 똑같이 들어오는 잡음을 발견함. 비둘기 둥지까지 치웠지만 사라지지 않음.<\/p><p>정체는 약 3K의 <b>우주배경복사<\/b>. 1978년 노벨 물리학상.<\/p>"}]},{"section":"s4","tag":"1965","title":"승부가 기울다","blocks":[{"t":"images","items":[{"cap":"우주배경복사 설명 그림","src":"https://mblogthumb-phinf.pstatic.net/MjAxODA3MDNfNDQg/MDAxNTMwNTk2MzY0NTUw.2NCyYpC6C3edfKgxF0UXbLKWLQyTXKP9wneJyAdVBpgg.HimVmz6KOYWsZUmaF93q2UBkg-8amO7fsxM3r2vztAsg.JPEG.david6703/20180703-03.jpg?type=w800"},{"cap":"","src":"https://pimg.mk.co.kr/meet/neds/2014/03/image_readmed_2014_424355_13951378111258960.jpg","fit":"contain"}],"layout":{"m":"cols","g":[2]},"lw":[1]},{"t":"text","html":"<p>우주배경복사는 빅뱅 이론이 <b>예측한 빛<\/b>이었음. 정상우주론으로는 설명하기 어려움.<\/p><p>이후 빅뱅 이론이 우주의 시작을 설명하는 표준 이론이 됨.<\/p>"},{"t":"say","html":"드디어 1964년, 안테나에 걸렸어! 처음엔 잡음 취급이었지만."}]},{"section":"s4","tag":"1989","title":"우주의 아기 사진","blocks":[{"t":"images","items":[{"cap":"COBE·WMAP·플랑크가 찍은 우주배경복사 지도 비교","src":"https://img1.kakaocdn.net/thumb/R1280x0.fjpg/?fname=http://t1.daumcdn.net/brunch/service/user/hHeb/image/iy0tAtPxybOUBztNBah2R1aduXI.jpg","fit":"contain"}],"lw":[1],"h":255},{"t":"text","html":"<p><b>COBE<\/b> 위성(1989): 우주배경복사에 <b>10만분의 1<\/b> 정도의 미세한 온도 차이를 찾음. 은하가 생겨난 씨앗. 2006년 노벨 물리학상.<\/p><p><b>WMAP<\/b>(2001), <b>플랑크<\/b>(2009)가 더 정밀하게 찍음. 우주의 나이 약 <b>138억 년<\/b>.<\/p>"}]},{"section":"s5","tag":"지금","title":"점점 빨라지는 팽창","blocks":[{"t":"images","items":[{"cap":"제임스웹 우주망원경이 찍은 먼 은하들","src":"https://flexible.img.hani.co.kr/flexible/normal/800/816/imgdb/original/2022/0712/20220712500207.jpg"}],"lw":[1]},{"t":"text","html":"<p>1998년 먼 초신성 관측으로 우주 팽창이 <b>점점 빨라진다<\/b>는 사실을 발견함(2011년 노벨 물리학상). 원인은 아직 정체를 모르는 <b>암흑에너지<\/b>.<\/p><p>버려졌던 아인슈타인의 <b>우주상수<\/b>가 다시 등장함.<\/p>"},{"t":"say","html":"나는 원래 뜨거웠지만, 우주가 늘어나는 동안 영하 270℃까지 식었어. 그래도 여전히 우주를 가득 채우고 있지."}]}],"imp":"strip"}</script>
 
 <script>
 "use strict";
@@ -278,15 +313,17 @@ function fmt(){
   if(doc.format==="sheet") return {kind:"sheet", pw:210, ph:297, paper:"A4 세로"};
   const P=doc.paper; const [a,b]=PAPERS[P.size]||PAPERS.B4; const land=P.orient==="land";
   const cols=Math.max(1,Math.min(12,P.cols|0)), rows=Math.max(1,Math.min(8,P.rows|0));
-  return {kind:"book", pw:land?b:a, ph:land?a:b, cols, rows, cap:cols*rows, paper:P.size+" "+(land?"가로":"세로"),
+  const pw=land?b:a, ph=land?a:b, mg=Math.max(0,Math.min(20,P.margin==null?5:+P.margin||0));
+  return {kind:"book", pw, ph, cols, rows, cap:cols*rows, mg, cw:(pw-2*mg)/cols, ch:(ph-2*mg)/rows, paper:P.size+" "+(land?"가로":"세로"),
     imp:(doc.imp==="zine"&&cols===4&&rows===2)?"zine":"strip"};
 }
 function sepCover(){ const f=fmt(); return f.kind==="book" && f.imp!=="zine" && doc.coverMode!=="inline" && !!doc.pages[0] && doc.pages[0].type==="cover"; }
-function pageNum(i){ return sepCover()? i : i+1; }
+function hasCover(){ return fmt().kind==="book" && !!doc.pages[0] && doc.pages[0].type==="cover"; }
+function pageNum(i){ return hasCover()? i : i+1; }
 function isCoverIdx(i){ return fmt().kind==="book" && i===0 && doc.pages[0] && doc.pages[0].type==="cover"; }
 function pageLabel(i){ return isCoverIdx(i)?"표지":pageNum(i)+"쪽"; }
-function pageSide(i){ const n=pageNum(i); return sepCover()?(n%2===1?"pl":"pr"):(n%2===1?"pr":"pl"); }
-function bookH(){ const f=fmt(); return BOOK_W * (f.ph/f.rows) / (f.pw/f.cols); }
+function pageSide(i){ return pageNum(i)%2===1?"pl":"pr"; }
+function bookH(){ const f=fmt(); return BOOK_W * f.ch / f.cw; }
 function pageSize(){ return fmt().kind==="sheet" ? [SHEET_W,SHEET_H] : [BOOK_W,bookH()]; }
 function baseFs(){ return fmt().kind==="sheet" ? 16 : 17; }
 
@@ -389,7 +426,7 @@ function renderPage(i){
   const el=document.createElement("div");
   el.className="page "+f.kind+" "+pageSide(i); el.style.width=W+"px"; el.style.height=H+"px"; el.dataset.i=i;
   if(fitFs[i]) el.style.setProperty("--fs",fitFs[i]+"px");
-  el.style.setProperty("--mm",(f.kind==="sheet"?SHEET_W/210:BOOK_W/(f.pw/f.cols))+"px");
+  el.style.setProperty("--mm",(f.kind==="sheet"?SHEET_W/210:BOOK_W/f.cw)+"px");
   if(P.type==="cover" && f.kind==="book"){
     el.classList.add("cover");
     const top=document.createElement("div"); top.className="top";
@@ -644,12 +681,11 @@ function drawSpreads(){
   const v=document.getElementById("spreadView"); v.innerHTML=""; const f=fmt(); const [W]=pageSize();
   let groups=[];
   if(f.kind==="sheet") groups=doc.pages.map((_,i)=>[i]);
-  else if(sepCover()){ groups.push([0]); for(let i=1;i<doc.pages.length;i+=2) groups.push(i+1<doc.pages.length?[i,i+1]:[i]); }
-  else{ groups.push([0]); for(let i=1;i<doc.pages.length-1;i+=2) groups.push([i,i+1]); if(doc.pages.length%2===0) groups.push([doc.pages.length-1]); }
+  else{ const st=hasCover()?1:0; if(st) groups.push([0]); for(let i=st;i<doc.pages.length;i+=2) groups.push(i+1<doc.pages.length?[i,i+1]:[i]); }
   const sc=Math.max(0.3,Math.min(f.kind==="sheet"?0.6:0.62,(window.innerWidth-40)/(W*(f.kind==="sheet"?1:2))));
   groups.forEach(g=>{
     const lab=document.createElement("div"); lab.className="spreadLabel";
-    lab.textContent=f.kind==="sheet"?(g[0]+1)+"쪽":isCoverIdx(g[0])?(sepCover()?"표지 (인쇄할 때 맨 뒤에 따로)":"앞표지"):g.length===1?(sepCover()?pageLabel(g[0]):"뒤표지 ("+pageLabel(g[0])+")"):pageNum(g[0])+"–"+pageNum(g[1])+"쪽";
+    lab.textContent=f.kind==="sheet"?(g[0]+1)+"쪽":isCoverIdx(g[0])?(sepCover()?"표지 (인쇄할 때 맨 뒤에 따로)":"표지"):g.length===1?pageLabel(g[0]):pageNum(g[0])+"–"+pageNum(g[1])+"쪽";
     v.appendChild(lab);
     const s=document.createElement("div"); s.className="spread";
     g.forEach(i=>{ const h=holder(i,sc); h.title=pageLabel(i)+" 고치기"; h.onclick=()=>{ cur=i; activeBlock=-1; setView("slide"); }; s.appendChild(h); });
@@ -658,8 +694,19 @@ function drawSpreads(){
 }
 
 /* ================= 인쇄 배치 ================= */
+function spreadGroups(){
+  const f=fmt(), N=doc.pages.length, groups=[];
+  if(f.kind==="sheet") return doc.pages.map((_,i)=>[i]);
+  const st=hasCover()?1:0; if(st) groups.push([0]);
+  for(let i=st;i<N;i+=2) groups.push(i+1<N?[i,i+1]:[i]);
+  return groups;
+}
+/* 펼침면 [왼쪽, 오른쪽] 쪽 번호 (-1은 빈칸). 표지는 오른쪽에 혼자 */
+function spreadLR(gr){ if(isCoverIdx(gr[0])) return [-1,gr[0]]; return [gr[0], gr.length>1?gr[1]:-1]; }
+function spreadSize(){ const f=fmt(); const s=Math.min(297/(2*f.cw),210/f.ch); return {s, pw:2*f.cw*s, ph:f.ch*s}; }
 function sheetsLayout(){
   const f=fmt(), N=doc.pages.length;
+  if(f.kind==="book" && layout==="spread") return spreadGroups().map(gr=>({spread:true,lr:spreadLR(gr)}));
   if(f.kind==="sheet" || layout==="single"){
     const order=[...Array(N).keys()]; if(sepCover()) order.push(order.shift());
     return order.map(i=>({single:true,cells:[{i,flip:false}]}));
@@ -674,37 +721,87 @@ function sheetsLayout(){
       order.forEach((r,ri)=>r.forEach(k=>cells.push({k:base+k,flip:layout==="flip"&&ri===0})));
     } else {
       for(let r=0;r<f.rows;r++){ let idx=[...Array(f.cols)].map((_,c)=>base+r*f.cols+c);
-        const fl=layout==="flip"&&(sI*f.rows+r)%2===1; if(fl) idx.reverse(); idx.forEach(k=>cells.push({k,flip:fl})); }
+        const fl=layout==="flip"&&r%2===1; /* 장마다 같은 배치: 첫 줄은 언제나 똑바로 */ if(fl) idx.reverse(); idx.forEach(k=>cells.push({k,flip:fl})); }
     }
     sheets.push({cells:cells.map(c=>({i:c.k<list.length?list[c.k]:-1,flip:c.flip}))});
   }
   if(sep){ const cells=[...Array(f.cap)].map((_,k)=>({i:k===0?0:-1,flip:false,void:k!==0})); sheets.push({cover:true,cells}); }
   return sheets;
 }
+/* 자르는 선(실선)·접는 선(점선). 안쪽 선은 칸 위치마다 직접 고를 수 있음 (모든 장에 같이 적용) */
+let markEdit=false;
+function segDefault(f,dir,r,c){
+  if(dir==="v") return "fold";
+  if(f.imp==="zine") return (r===1&&(c===1||c===2))?"cut":"fold";
+  return "cut";
+}
+function segType(f,dir,r,c){ const S=(doc.marks&&doc.marks.seg)||{}; return S[dir+r+"_"+c]||segDefault(f,dir,r,c); }
+function addMarks(paper,f,sh){
+  const M=doc.marks||{}, showCut=M.cut!==false, showFold=M.fold!==false;
+  const mg=f.mg, cw=f.cw, ch=f.ch, W=f.cols*cw, H=f.rows*ch;
+  const line=(kind,dir,x,y,len)=>{
+    if(kind==="cut"&&!showCut||kind==="fold"&&!showFold) return;
+    if(kind==="none"&&!markEdit) return;
+    const d=document.createElement("div"); d.className="mk "+kind+" "+dir; d.style.left=(mg+x)+"mm"; d.style.top=(mg+y)+"mm";
+    if(dir==="h") d.style.width=len+"mm"; else d.style.height=len+"mm"; paper.appendChild(d); };
+  if(sh.cover){ line("cut","h",0,0,cw); line("cut","h",0,ch,cw); line("cut","v",0,0,ch); line("cut","v",cw,0,ch); return; }
+  // 바깥 테두리는 언제나 자르는 선
+  line("cut","h",0,0,W); line("cut","h",0,H,W); line("cut","v",0,0,H); line("cut","v",W,0,H);
+  const hit=(dir,r,c,x,y)=>{ if(!markEdit) return; const t=segType(f,dir,r,c);
+    const e=document.createElement("div"); e.className="mkHit"; e.title=(t==="cut"?"자르는 선":t==="fold"?"접는 선":"선 없음")+" · 눌러서 바꾸기";
+    if(dir==="h"){ e.style.left=(mg+x+1)+"mm"; e.style.top=(mg+y-1.8)+"mm"; e.style.width=(cw-2)+"mm"; e.style.height="3.6mm"; }
+    else { e.style.left=(mg+x-1.8)+"mm"; e.style.top=(mg+y+1)+"mm"; e.style.height=(ch-2)+"mm"; e.style.width="3.6mm"; }
+    e.onclick=()=>{ doc.marks=doc.marks||{}; doc.marks.seg=doc.marks.seg||{}; const nx={cut:"fold",fold:"none",none:"cut"}[t];
+      const k=dir+r+"_"+c; if(nx===segDefault(f,dir,r,c)) delete doc.marks.seg[k]; else doc.marks.seg[k]=nx; save(); drawPrint(); };
+    paper.appendChild(e); };
+  for(let r=1;r<f.rows;r++) for(let c=0;c<f.cols;c++){ line(segType(f,"h",r,c),"h",c*cw,r*ch,cw); hit("h",r,c,c*cw,r*ch); }
+  for(let c=1;c<f.cols;c++) for(let r=0;r<f.rows;r++){ line(segType(f,"v",r,c),"v",c*cw,r*ch,ch); hit("v",r,c,c*cw,r*ch); }
+  if(mg>=4){ const lg=document.createElement("div"); lg.className="mkLegend"; lg.style.left=mg+"mm"; lg.style.top=(mg+H+0.8)+"mm";
+    lg.innerHTML=(showCut?'<i style="border-top:0.3mm solid #7A8399"></i>자르는 선':'')+(showFold?'<i style="border-top:0.25mm dashed #A6AEC0"></i>접는 선':''); paper.appendChild(lg); }
+}
 function drawPrint(){
   const f=fmt(); const box=document.getElementById("papers"); box.innerHTML="";
-  const single=f.kind==="book"&&layout==="single", cw0=f.kind==="book"?f.pw/f.cols:f.pw, ch0=f.kind==="book"?f.ph/f.rows:f.ph;
-  document.getElementById("pageRule").textContent="@page{size:"+(single?cw0+"mm "+ch0+"mm":f.pw+"mm "+f.ph+"mm")+";margin:0}";
+  const single=f.kind==="book"&&layout==="single", cw0=f.kind==="book"?f.cw:f.pw, ch0=f.kind==="book"?f.ch:f.ph;
+  const spread=f.kind==="book"&&layout==="spread", SP=f.kind==="book"?spreadSize():null;
+  document.getElementById("pageRule").textContent="@page{size:"+(spread?SP.pw.toFixed(2)+"mm "+SP.ph.toFixed(2)+"mm":single?cw0+"mm "+ch0+"mm":f.pw+"mm "+f.ph+"mm")+";margin:0}";
   const info=document.getElementById("printInfo");
-  let txt=(single?"용지 크기 <b>"+cw0.toFixed(1)+"×"+ch0.toFixed(1)+"mm</b>(한 쪽 크기)":"용지 <b>"+f.paper+"</b>")+", 여백 <b>없음</b>, 배율 <b>100%</b>(실제 크기), <b>배경 그래픽 켜기</b>로 맞춘 뒤, 프린터 대신 ‘PDF로 저장’을 고르면 PDF 파일이 돼요. ";
+  let txt=(spread?"용지 크기 <b>"+SP.pw.toFixed(0)+"×"+SP.ph.toFixed(0)+"mm</b>(A4 가로에 맞춤)":single?"용지 크기 <b>"+cw0.toFixed(1)+"×"+ch0.toFixed(1)+"mm</b>(한 쪽 크기)":"용지 <b>"+f.paper+"</b>")+", 여백 <b>없음</b>, 배율 <b>100%</b>(실제 크기), <b>배경 그래픽 켜기</b>로 맞춘 뒤, 프린터 대신 ‘PDF로 저장’을 고르면 PDF 파일이 돼요. ";
   if(f.kind==="book"){
     const sep=sepCover(), nC=doc.pages.length-(sep?1:0), nS=Math.ceil(nC/f.cap);
-    if(single) txt+="<b>한 쪽씩</b>: PDF 한 페이지에 책 한 쪽씩 들어가요"+(sep?". 표지는 맨 마지막 페이지예요. ":". ");
+    if(spread) txt+="<b>펼침면</b>: PDF 한 페이지에 마주 보는 두 쪽(1·2쪽, 3·4쪽…)이 들어가요. 표지는 첫 페이지 오른쪽에 혼자 나와요. 화면으로 넘겨 보거나 A4 가로에 크게 인쇄하기 좋아요. ";
+    else if(single) txt+="<b>한 쪽씩</b>: PDF 한 페이지에 책 한 쪽씩 들어가요"+(sep?". 표지는 맨 마지막 페이지예요. ":". ");
     else{
       txt+="한 장에 <b>"+f.cap+"쪽</b>("+f.cols+"×"+f.rows+"), "+(sep?"표지를 뺀 ":"지금 ")+"<b>"+nC+"쪽</b>이라 종이 <b>"+nS+"장</b>"+(sep?" + 표지 1장":"")+"이에요. ";
       if(sep) txt+="표지는 따로 마지막 장에 나와요. 펼치면 1·2쪽이 마주 보는 구성이에요. ";
       if(nC%f.cap) txt+="마지막 장에 빈칸이 "+(nS*f.cap-nC)+"개 남아요. ";
-      if(nS>1 && f.imp!=="zine") txt+="다음 장은 앞 장의 마지막 줄 끝에 이어 붙이면 돼요. ";
+      if(nS>1 && f.imp!=="zine") txt+="둘째 장부터도 첫 장과 같은 배치(첫 줄 똑바로, 둘째 줄 거꾸로…)로 이어지고, 직접 고른 선도 같은 자리에 똑같이 나와요. ";
       if(f.imp==="zine" && nS>1) txt+="종이마다 8쪽짜리 접는 책이 하나씩 나와요. ";
       txt+= f.imp==="zine" ? "<b>접는 책</b>: 가로로 반 접고, 가운데 두 칸 사이만 자른 뒤 펼쳐서 책 모양으로 접어요. " :
         (layout==="flip"?"<b>인쇄용</b>은 짝수 번째 줄이 거꾸로 뒤집혀 있어서, 줄마다 잘라 이어 붙인 뒤 병풍처럼 접으면 쪽 순서대로 이어져요. ":"");
     }
-    txt+='<span class="seg" role="group" aria-label="배치"><button data-lay="flip" aria-pressed="'+(layout==="flip")+'">인쇄용</button><button data-lay="order" aria-pressed="'+(layout==="order")+'">쪽 순서대로</button><button data-lay="single" aria-pressed="'+(layout==="single")+'">한 쪽씩 낱장</button></span>';
+    txt+='<span class="seg" role="group" aria-label="배치"><button data-lay="flip" aria-pressed="'+(layout==="flip")+'">인쇄용</button><button data-lay="order" aria-pressed="'+(layout==="order")+'">쪽 순서대로</button><button data-lay="single" aria-pressed="'+(layout==="single")+'">한 쪽씩 낱장</button><button data-lay="spread" aria-pressed="'+(layout==="spread")+'">펼침면(두 쪽씩)</button></span>';
+    if(!single&&!spread) txt+='<br><button class="small" id="mkEdit" aria-pressed="'+markEdit+'">선 직접 고르기</button> '+
+      (doc.marks&&doc.marks.seg&&Object.keys(doc.marks.seg).length?'<button class="small" id="mkReset">선 처음대로</button> ':'')+
+      (markEdit?'<b>안쪽 선을 누를 때마다 자르는 선 → 접는 선 → 선 없음(빨간 점선, 인쇄 안 됨) 순서로 바뀌어요. 바깥 테두리는 항상 자르는 선이고, 고른 선은 모든 장에 같이 적용돼요.</b> ':'')+
+      ' <label style="margin-left:10px"><input type="checkbox" data-mk="cut"'+((doc.marks||{}).cut!==false?" checked":"")+'> 자르는 선(실선)</label> <label style="margin-left:6px"><input type="checkbox" data-mk="fold"'+((doc.marks||{}).fold!==false?" checked":"")+'> 접는 선(점선)</label>';
   }
   info.innerHTML=txt;
   info.querySelectorAll("[data-lay]").forEach(b=>b.onclick=()=>{ layout=b.dataset.lay; drawPrint(); });
+  const me=info.querySelector("#mkEdit"); if(me) me.onclick=()=>{ markEdit=!markEdit; drawPrint(); };
+  const mr=info.querySelector("#mkReset"); if(mr) mr.onclick=()=>{ if(doc.marks) delete doc.marks.seg; save(); drawPrint(); };
+  info.querySelectorAll("[data-mk]").forEach(c=>c.onchange=()=>{ doc.marks=doc.marks||{}; doc.marks[c.dataset.mk]=c.checked; save(); drawPrint(); });
   const pwPx=f.pw*MM, phPx=f.ph*MM, sc=Math.min(1,(window.innerWidth-40)/pwPx);
   sheetsLayout().forEach(sh=>{
+    if(sh.spread){
+      const pwPx=SP.pw*MM, phPx=SP.ph*MM, sc=Math.min(1,(window.innerWidth-40)/pwPx,520/phPx), hw=f.cw*SP.s, hh=f.ch*SP.s;
+      const wrap=document.createElement("div"); wrap.className="paperWrap"; wrap.style.width=(pwPx*sc)+"px"; wrap.style.height=(phPx*sc)+"px";
+      const scale=document.createElement("div"); scale.className="paperScale"; scale.style.transform="scale("+sc+")";
+      const paper=document.createElement("div"); paper.className="sprPaper"; paper.style.width=SP.pw+"mm"; paper.style.height=SP.ph+"mm";
+      sh.lr.forEach(i=>{ const h=document.createElement("div"); h.className="sprHalf"; h.style.width=hw+"mm"; h.style.height=hh+"mm";
+        if(i>=0){ const pg=renderPage(i); pg.style.transform="scale("+(hw*MM/BOOK_W)+")"; h.appendChild(pg); } paper.appendChild(h); });
+      if(sh.lr[0]>=0&&sh.lr[1]>=0){ const fd=document.createElement("div"); fd.className="sprFold"; paper.appendChild(fd); }
+      scale.appendChild(paper); wrap.appendChild(scale); box.appendChild(wrap); return;
+    }
     const cells=sh.cells, PW=sh.single?cw0:f.pw, PH=sh.single?ch0:f.ph;
     const pwPx=PW*MM, phPx=PH*MM, sc=Math.min(1,(window.innerWidth-40)/pwPx, sh.single?420/phPx:1);
     const wrap=document.createElement("div"); wrap.className="paperWrap"; wrap.style.width=(pwPx*sc)+"px"; wrap.style.height=(phPx*sc)+"px";
@@ -713,10 +810,11 @@ function drawPrint(){
     const paper=document.createElement("div"); paper.className="paper"; paper.style.width=PW+"mm"; paper.style.height=PH+"mm";
     if(sh.single){ const p=renderPage(cells[0].i); p.style.transform="scale("+(PW*MM/(f.kind==="sheet"?SHEET_W:BOOK_W))+")"; paper.appendChild(p); }
     else{
-      const cw=f.pw/f.cols, ch=f.ph/f.rows; paper.style.gridTemplateColumns="repeat("+f.cols+","+cw+"mm)"; paper.style.gridTemplateRows="repeat("+f.rows+","+ch+"mm)";
+      const cw=f.cw, ch=f.ch, mg=f.mg; paper.style.padding=mg+"mm"; paper.style.gridTemplateColumns="repeat("+f.cols+","+cw+"mm)"; paper.style.gridTemplateRows="repeat("+f.rows+","+ch+"mm)";
       cells.forEach(c=>{ const cell=document.createElement("div"); cell.className="cell"+(c.flip?" flip":"")+(c.void?" void":""); cell.style.width=cw+"mm"; cell.style.height=ch+"mm";
         if(c.i>=0){ const p=renderPage(c.i); p.style.transform="scale("+(cw*MM/BOOK_W)+")"; cell.appendChild(p); } else cell.classList.add("empty");
         paper.appendChild(cell); });
+      addMarks(paper,f,sh);
     }
     scale.appendChild(paper); wrap.appendChild(scale); box.appendChild(wrap);
   });
@@ -761,14 +859,15 @@ function setKind(k){
 }
 function drawPaperBox(d){
   const box=d.querySelector("#paperBox"); if(doc.format==="sheet"){ box.innerHTML='<p class="hint">학습지는 A4 세로 한 장에 한 쪽씩 인쇄돼요. 쪽은 ‘뒤에 쪽 추가’로 늘려요.</p>'; return; }
-  const P=doc.paper, f=fmt(), cw=f.pw/f.cols, ch=f.ph/f.rows, sepN=sepCover()?1:0, nC=doc.pages.length-sepN, nS=Math.ceil(nC/f.cap), ratio=ch/cw;
+  const P=doc.paper, f=fmt(), cw=f.cw, ch=f.ch, sepN=sepCover()?1:0, nC=doc.pages.length-sepN, nS=Math.ceil(nC/f.cap), ratio=ch/cw;
   const num=(id,v,min,max)=>'<input type="number" id="'+id+'" min="'+min+'" max="'+max+'" value="'+v+'" style="width:64px">';
   box.innerHTML='<div class="field"><span>빠른 선택</span><div class="row" style="margin:0">'+
       Object.entries(FORMATS).filter(([k,v])=>v.kind==="book").map(([k,v])=>'<button class="small" data-pre="'+k+'">'+v.label+'</button>').join("")+'</div></div>'+
     '<div class="field"><span>종이 한 장의 배열</span><div class="row" style="margin:0">'+
       '<select id="pSize">'+Object.keys(PAPERS).map(k=>'<option'+(k===P.size?" selected":"")+'>'+k+'</option>').join("")+'</select>'+
       '<select id="pOri"><option value="land"'+(P.orient==="land"?" selected":"")+'>가로</option><option value="port"'+(P.orient!=="land"?" selected":"")+'>세로</option></select>'+
-      '<label style="font-size:13px">가로 '+num("pCols",f.cols,1,12)+' 칸</label><label style="font-size:13px">× 세로 '+num("pRows",f.rows,1,8)+' 줄</label></div></div>'+
+      '<label style="font-size:13px">가로 '+num("pCols",f.cols,1,12)+' 칸</label><label style="font-size:13px">× 세로 '+num("pRows",f.rows,1,8)+' 줄</label>'+
+      '<label style="font-size:13px">종이 가장자리 여백 '+num("pMg",f.mg,0,20)+' mm</label></div></div>'+
     (doc.pages[0]&&doc.pages[0].type==="cover"&&f.imp!=="zine"?'<label style="font-size:13px;display:block;margin-bottom:10px"><input type="checkbox" id="pSep"'+(doc.coverMode!=="inline"?" checked":"")+'> 표지는 따로 마지막 장에 인쇄 (펼치면 1·2쪽이 마주 보게)</label>':'')+
     (f.cols===4&&f.rows===2?'<label style="font-size:13px;display:block;margin-bottom:10px"><input type="checkbox" id="pZine"'+(doc.imp==="zine"?" checked":"")+'> 가운데만 잘라 접는 8쪽 책 방식으로 배치</label>':'')+
     '<p class="hint">한 쪽 크기 '+cw.toFixed(1)+'×'+ch.toFixed(1)+'mm · 한 장에 '+f.cap+'쪽 · '+(sepN?'표지 빼고 ':'지금 ')+nC+'쪽 → 종이 '+nS+'장'+(sepN?' + 표지':'')+
@@ -776,11 +875,12 @@ function drawPaperBox(d){
     '<div class="row" style="margin:0 0 12px">'+(nC%f.cap?'<button class="small" id="pFill">빈 쪽 채워서 '+(nS*f.cap)+'쪽 맞추기</button>':'')+
       (nC>f.cap?'<button class="small danger" id="pTrim">'+f.cap+'쪽(한 장)으로 줄이기</button>':'')+'</div>';
   const upd=()=>{ save(); fitAll(); refreshPageSel(); setView(view); drawPaperBox(d); };
-  box.querySelectorAll("[data-pre]").forEach(b=>b.onclick=()=>{ const F=FORMATS[b.dataset.pre]; doc.paper={size:F.size,orient:F.orient,cols:F.cols,rows:F.rows}; doc.imp=F.imp||"strip"; upd(); });
+  box.querySelectorAll("[data-pre]").forEach(b=>b.onclick=()=>{ const F=FORMATS[b.dataset.pre]; doc.paper={size:F.size,orient:F.orient,cols:F.cols,rows:F.rows,margin:P.margin}; doc.imp=F.imp||"strip"; upd(); });
   box.querySelector("#pSize").onchange=e=>{ P.size=e.target.value; upd(); };
   box.querySelector("#pOri").onchange=e=>{ P.orient=e.target.value; upd(); };
   box.querySelector("#pCols").onchange=e=>{ P.cols=Math.max(1,Math.min(12,+e.target.value||1)); upd(); };
   box.querySelector("#pRows").onchange=e=>{ P.rows=Math.max(1,Math.min(8,+e.target.value||1)); upd(); };
+  box.querySelector("#pMg").onchange=e=>{ P.margin=Math.max(0,Math.min(20,+e.target.value||0)); upd(); };
   const sp=box.querySelector("#pSep"); if(sp) sp.onchange=()=>{ if(sp.checked) delete doc.coverMode; else doc.coverMode="inline"; upd(); };
   const z=box.querySelector("#pZine"); if(z) z.onchange=()=>{ doc.imp=z.checked?"zine":"strip"; upd(); };
   const fl=box.querySelector("#pFill"); if(fl) fl.onclick=()=>{ while((doc.pages.length-sepN)%f.cap) doc.pages.push(blankPage("book")); upd(); };
@@ -826,8 +926,9 @@ function init(){
   document.getElementById("setBtn").onclick=openSettings;
   document.getElementById("newBtn").onclick=openNew;
   document.getElementById("printBtn").onclick=()=>{ drawPrint(); setTimeout(()=>window.print(),50); };
-  document.getElementById("htmlBtn").onclick=()=>{
+  const downloadHTML=(viewer)=>{
     const copy=JSON.parse(JSON.stringify(doc));
+    if(viewer) copy.viewer=true; else delete copy.viewer;
     copy.id=String(doc.id||"doc").replace(/-v\w+$/,"")+"-v"+Date.now().toString(36);   // 새 파일은 새 저장 칸에서 시작
     const data=JSON.stringify(copy).replace(/<\//g,"<\\/");
     const open='<script id="doc-data" type="application/json">';
@@ -835,9 +936,11 @@ function init(){
     if(a0<0||a1<0){ alert("HTML을 만들지 못했어요. 페이지를 새로 고친 뒤 다시 해 보세요."); return; }
     const html=PRISTINE.slice(0,a0+open.length)+data+PRISTINE.slice(a1);
     const blob=new Blob([html],{type:"text/html"}); const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob); a.download=(doc.title||"미니북").replace(/<[^>]*>/g," ").replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim()+".html";
+    a.href=URL.createObjectURL(blob); a.download=(doc.title||"미니북").replace(/<[^>]*>/g," ").replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim()+(viewer?"_펼쳐보기":"")+".html";
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
   };
+  document.getElementById("htmlBtn").onclick=()=>downloadHTML(false);
+  document.getElementById("viewBtn").onclick=()=>downloadHTML(true);
   document.getElementById("exportBtn").onclick=()=>{
     const blob=new Blob([JSON.stringify(doc)],{type:"application/json"}); const a=document.createElement("a");
     a.href=URL.createObjectURL(blob); a.download=(doc.title||"미니북").replace(/[\\/:*?"<>|]/g,"")+"_작업.json"; document.body.appendChild(a); a.click(); a.remove();
@@ -849,7 +952,52 @@ function init(){
   let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(()=>setView(view),150); });
 }
 
+/* ================= 펼쳐 보기 슬라이드 (읽기 전용) ================= */
+function initViewer(){
+  document.body.classList.add("viewer");
+  document.title=(doc.title||"미니북").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
+  const f=fmt(), groups=spreadGroups(); let g=0;
+  const v=document.createElement("div"); v.id="viewer";
+  v.innerHTML='<div class="vStage" id="vStage" aria-live="polite"></div><div class="vBar"><button id="vPrev" aria-label="이전">◀<span class="vLong"> 이전</span></button><span id="vNum"></span><button id="vNext" aria-label="다음"><span class="vLong">다음 </span>▶</button><span class="vTitle"></span><button id="vFull">전체 화면</button><button id="vPdf">PDF<span class="vLong">로 저장</span></button></div>';
+  document.body.appendChild(v);
+  v.querySelector(".vTitle").textContent=document.title;
+  const stage=v.querySelector("#vStage"), num=v.querySelector("#vNum"), prev=v.querySelector("#vPrev"), next=v.querySelector("#vNext");
+  const label=gr=>f.kind==="sheet"?(gr[0]+1)+"쪽":isCoverIdx(gr[0])?"표지":gr.length===1?pageLabel(gr[0]):pageNum(gr[0])+"–"+pageNum(gr[1])+"쪽";
+  const draw=()=>{
+    const [W,H]=pageSize(), n=f.kind==="book"?2:1;
+    const sc=Math.max(0.2,Math.min((stage.clientWidth-28)/(W*n),(stage.clientHeight-28)/H));
+    stage.innerHTML=""; const sp=document.createElement("div"); sp.className="vSpread";
+    const lr=f.kind==="book"?spreadLR(groups[g]):[groups[g][0]];
+    lr.forEach(i=>{ if(i>=0) sp.appendChild(holder(i,sc)); else { const b=document.createElement("div"); b.className="vBlank"; b.style.width=(W*sc)+"px"; b.style.height=(H*sc)+"px"; sp.appendChild(b); } });
+    stage.appendChild(sp);
+    num.textContent=label(groups[g])+" ("+(g+1)+"/"+groups.length+")";
+    prev.disabled=g===0; next.disabled=g===groups.length-1;
+  };
+  const go=d=>{ const n=Math.max(0,Math.min(groups.length-1,g+d)); if(n!==g){ g=n; draw(); } };
+  prev.onclick=()=>go(-1); next.onclick=()=>go(1);
+  document.addEventListener("keydown",e=>{
+    if(["ArrowRight","PageDown"," "].includes(e.key)){ e.preventDefault(); go(1); }
+    else if(["ArrowLeft","PageUp"].includes(e.key)){ e.preventDefault(); go(-1); }
+    else if(e.key==="Home"){ g=0; draw(); } else if(e.key==="End"){ g=groups.length-1; draw(); }
+  });
+  let x0=null;
+  stage.addEventListener("pointerdown",e=>{ x0=e.clientX; });
+  stage.addEventListener("pointerup",e=>{ if(x0==null) return; const dx=e.clientX-x0; x0=null;
+    if(Math.abs(dx)>40) go(dx<0?1:-1);
+    else { const r=stage.getBoundingClientRect(); go(e.clientX<r.left+r.width/2?-1:1); } });
+  const fb=v.querySelector("#vFull");
+  fb.onclick=()=>{ try{ if(document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(e){} };
+  document.addEventListener("fullscreenchange",()=>{ fb.textContent=document.fullscreenElement?"전체 화면 끄기":"전체 화면"; });
+  v.querySelector("#vPdf").onclick=()=>{ if(f.kind==="book") layout="spread"; drawPrint(); setTimeout(()=>window.print(),50); };
+  let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(draw,120); });
+  draw();
+}
+
 (async()=>{
+  if(TEMPLATE.viewer){
+    try{ await document.fonts.ready; }catch(e){}
+    fitAll(); initViewer(); window.__ready=true; return;
+  }
   const saved=await DB.get(STORE_KEY);
   if(validDoc(saved) && !window.__noStore) doc=normalizeDoc(saved);
   init();
